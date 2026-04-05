@@ -6,6 +6,7 @@ export {
   members,
   orgMemberRoleEnum,
   organisationMembers,
+  financialStatusChanges,
 } from "./members";
 export { seasons, bookingRounds } from "./seasons";
 export { tariffs } from "./tariffs";

@@ -75,3 +75,21 @@ export const organisationMembers = pgTable("organisation_members", {
   role: orgMemberRoleEnum("role").notNull().default("MEMBER"),
   isActive: boolean("is_active").notNull().default(true),
 });
+
+export const financialStatusChanges = pgTable("financial_status_changes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  organisationId: uuid("organisation_id")
+    .notNull()
+    .references(() => organisations.id),
+  memberId: uuid("member_id")
+    .notNull()
+    .references(() => members.id),
+  isFinancial: boolean("is_financial").notNull(),
+  reason: text("reason").notNull(),
+  changedByMemberId: uuid("changed_by_member_id")
+    .notNull()
+    .references(() => members.id),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
