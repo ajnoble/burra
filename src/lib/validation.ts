@@ -16,7 +16,7 @@ export const slugSchema = z
 
 export const dateSchema = z.coerce.date();
 
-export const centsSchema = z.number().int("Amount must be a whole number (cents)").nonneg();
+export const centsSchema = z.number().int("Amount must be a whole number (cents)").nonnegative("Amount cannot be negative");
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
