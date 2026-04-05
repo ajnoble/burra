@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const emailSchema = z.string().email("Invalid email address").trim().toLowerCase();
+export const emailSchema = z.string().trim().toLowerCase().email("Invalid email address");
 
 export const phoneSchema = z
   .string()
