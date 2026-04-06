@@ -53,7 +53,7 @@ describe("updateMemberRole", () => {
   });
 
   it("rejects invalid role", async () => {
-    const result = await updateMemberRole({ ...baseInput, role: "SUPERADMIN" as any });
+    const result = await updateMemberRole({ ...baseInput, role: "SUPERADMIN" as unknown as string });
     expect(result.success).toBe(false);
     expect(mockUpdate).not.toHaveBeenCalled();
   });
