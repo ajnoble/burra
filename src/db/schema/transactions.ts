@@ -33,6 +33,8 @@ export const transactions = pgTable("transactions", {
   type: transactionTypeEnum("type").notNull(),
   amountCents: integer("amount_cents").notNull(), // positive = charge, negative = credit
   stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeCheckoutSessionId: text("stripe_checkout_session_id"),
+  platformFeeCents: integer("platform_fee_cents"),
   description: text("description").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

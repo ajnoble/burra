@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 
 export const organisations = pgTable("organisations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -12,6 +12,7 @@ export const organisations = pgTable("organisations", {
   )
     .notNull()
     .default(false),
+  platformFeeBps: integer("platform_fee_bps").notNull().default(100), // 100 bps = 1%
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
   websiteUrl: text("website_url"),
