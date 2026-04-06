@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { db } from "./index";
 import {
   organisations,
@@ -278,6 +279,7 @@ async function seed() {
     await db.insert(organisationMembers).values({
       organisationId: org.id,
       memberId: member.id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       role: role as any,
     });
   }
@@ -290,7 +292,7 @@ async function seed() {
       .where(
         // Simple approach: update by matching the member we just created
         // In practice we'd use the member ID directly
-        require("drizzle-orm").eq(members.id, memberIds[i])
+        eq(members.id, memberIds[i])
       );
   }
   console.log("Created 30 members with roles and family links");

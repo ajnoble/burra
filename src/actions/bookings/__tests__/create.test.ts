@@ -8,6 +8,7 @@ const mockGenerateBookingReference = vi.fn();
 
 vi.mock("@/db/index", () => ({
   db: {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     transaction: (fn: Function) => mockTransaction(fn),
   },
 }));
