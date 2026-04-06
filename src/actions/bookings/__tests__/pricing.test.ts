@@ -12,21 +12,35 @@ vi.mock("@/db/index", () => ({
   },
 }));
 
-vi.mock("@/lib/dates", () => ({
-  isWeekend: (date: Date | string) => {
-    const d = new Date(typeof date === "string" ? date + "T12:00:00Z" : date);
-    const day = d.getUTCDay();
-    // Fri (5), Sat (6), Sun (0) are weekend nights
-    return day === 0 || day === 5 || day === 6;
-  },
-}));
-
 import {
   calculateGuestPrice,
   calculateBookingPrice,
   countNights,
   getNightDates,
+  isWeekendNight,
 } from "../pricing";
+
+describe("isWeekendNight", () => {
+  it("returns true for Friday", () => {
+    expect(isWeekendNight("2025-07-11")).toBe(true); // Friday
+  });
+
+  it("returns true for Saturday", () => {
+    expect(isWeekendNight("2025-07-12")).toBe(true); // Saturday
+  });
+
+  it("returns false for Sunday", () => {
+    expect(isWeekendNight("2025-07-13")).toBe(false); // Sunday
+  });
+
+  it("returns false for Monday", () => {
+    expect(isWeekendNight("2025-07-07")).toBe(false); // Monday
+  });
+
+  it("returns false for Thursday", () => {
+    expect(isWeekendNight("2025-07-10")).toBe(false); // Thursday
+  });
+});
 
 describe("countNights", () => {
   it("counts 3 nights for a 3-day stay", () => {
@@ -142,11 +156,11 @@ describe("calculateGuestPrice", () => {
       discountFiveNightsBps: 500,
       discountSevenNightsBps: 1000,
     });
-    // Mon-Thu(4wd) + Fri(we) + Sat(we) + Sun(we) = 4*5000 + 3*7000 = 41000
-    expect(result.subtotalCents).toBe(41000);
-    // 10% of 41000 = 4100 (7-night discount takes priority)
-    expect(result.discountAmountCents).toBe(4100);
-    expect(result.totalCents).toBe(36900);
+    // Mon-Thu(4wd) + Fri(we) + Sat(we) + Sun(wd) = 5*5000 + 2*7000 = 39000
+    expect(result.subtotalCents).toBe(39000);
+    // 10% of 39000 = 3900 (7-night discount takes priority)
+    expect(result.discountAmountCents).toBe(3900);
+    expect(result.totalCents).toBe(35100);
   });
 
   it("applies 7-night discount for 10 nights", () => {
@@ -158,11 +172,11 @@ describe("calculateGuestPrice", () => {
       discountFiveNightsBps: 500,
       discountSevenNightsBps: 1000,
     });
-    // Mon-Thu(4wd) + Fri(we) + Sat(we) + Sun(we) + Mon-Wed(3wd) = 7*5000 + 3*7000 = 56000
-    expect(result.subtotalCents).toBe(56000);
-    // 10% of 56000 = 5600
-    expect(result.discountAmountCents).toBe(5600);
-    expect(result.totalCents).toBe(50400);
+    // Mon-Thu(4wd) + Fri(we) + Sat(we) + Sun-Wed(4wd) = 8*5000 + 2*7000 = 54000
+    expect(result.subtotalCents).toBe(54000);
+    // 10% of 54000 = 5400
+    expect(result.discountAmountCents).toBe(5400);
+    expect(result.totalCents).toBe(48600);
   });
 
   it("returns zero discount when both discount rates are zero", () => {

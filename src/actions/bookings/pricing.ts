@@ -1,4 +1,3 @@
-import { isWeekend } from "@/lib/dates";
 import { applyBasisPoints } from "@/lib/currency";
 
 export function countNights(checkIn: string, checkOut: string): number {
@@ -22,6 +21,18 @@ export function getNightDates(checkIn: string, checkOut: string): string[] {
   }
 
   return dates;
+}
+
+/**
+ * Check if a night (by check-in date) should be charged at the weekend rate.
+ * Weekend nights are Friday and Saturday — the premium nights for accommodation.
+ * This differs from calendar weekends (Sat/Sun) because we're pricing the night,
+ * not the day.
+ */
+export function isWeekendNight(dateStr: string): boolean {
+  const d = new Date(dateStr + "T12:00:00Z");
+  const day = d.getUTCDay(); // 0=Sun, 5=Fri, 6=Sat
+  return day === 5 || day === 6; // Friday night and Saturday night
 }
 
 type NightBreakdown = {
@@ -60,8 +71,7 @@ export function calculateGuestPrice(input: GuestPriceInput): GuestPriceResult {
   const nightCount = nights.length;
 
   const nightBreakdown: NightBreakdown[] = nights.map((date) => {
-    // Pass date string; isWeekend handles timezone-safe parsing
-    const weekend = isWeekend(date);
+    const weekend = isWeekendNight(date);
     return {
       date,
       isWeekend: weekend,
