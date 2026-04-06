@@ -23,7 +23,7 @@ const STATUS_LABELS: Record<string, string> = {
 /**
  * Format a booking status for display. Pure function, testable.
  */
-export function formatBookingStatus(status: string): string {
+export async function formatBookingStatus(status: string): Promise<string> {
   return STATUS_LABELS[status] ?? status;
 }
 
