@@ -113,7 +113,7 @@ export async function cancelBooking(input: CancelInput): Promise<CancelResult> {
     const guestCountResult = await tx.execute(
       sql`SELECT COUNT(*) as count FROM booking_guests WHERE booking_id = ${input.bookingId}`
     );
-    const guestRows = guestCountResult as { count: number }[] | undefined;
+    const guestRows = guestCountResult as unknown as { count: number }[] | undefined;
     const guestCount = Number(guestRows?.[0]?.count ?? 0);
 
     for (const nightDate of nightDates) {

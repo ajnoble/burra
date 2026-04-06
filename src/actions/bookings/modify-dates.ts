@@ -84,7 +84,7 @@ export async function modifyBookingDates(
     .where(eq(bookingGuests.bookingId, input.bookingId));
 
   // Recalculate pricing for each guest
-  const guestPrices = [];
+  const guestPrices: { guestId: string; price: ReturnType<typeof calculateGuestPrice> }[] = [];
   for (const guest of guests) {
     const [tariff] = guest.snapshotTariffId
       ? await db

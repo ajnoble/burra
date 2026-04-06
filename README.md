@@ -102,14 +102,13 @@ drizzle/                        # Generated SQL migrations
 | 6 | Booking Flow | 5-step member booking wizard, concurrency handling with SELECT FOR UPDATE, timed bed holds, per-guest pricing |
 | 7 | Stripe Connect | Express account onboarding, Stripe Checkout payments, webhook processing, 1% platform fee |
 | 8 | Email Notifications | 12 templates via Resend + React Email, fire-and-forget delivery, admin copy on bookings |
+| 9 | Admin Booking Management | Admin booking list, approve/cancel/modify, bed reassignment, cancellation policies, Stripe refunds, member self-cancel |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 9 | Admin Booking Management — approve, modify, cancel, room allocation |
 | 10 | Subscription Management — annual fees, payment tracking |
-| 11 | Cancellation Policies — config, refund calculation, cancellation flow |
 | 12 | Treasurer Reporting — revenue, occupancy, ledger, CSV exports |
 | 13 | Bulk Communications — filtered email to members |
 | 14 | Waitlist — entry, notification, conversion to booking |
@@ -209,6 +208,12 @@ npm run test:coverage
 - **Booking date validation** — all 7 rules: season, round, min/max nights, past dates, availability
 - **Email templates** — all 12 template rendering tests, layout component, sendEmail helper
 - **Email integrations** — Welcome on member create, Booking Confirmation on booking create, Payment Received/Expired on webhooks, Financial Status Changed on status update
+- **Admin booking queries** — paginated list, detail, pending count, available beds
+- **Refund calculation** — policy tiers, boundary conditions, rounding, empty rules
+- **Booking actions** — approve, cancel with refund, modify dates with repricing, reassign beds, admin notes
+- **Cancellation policy** — save with validation, tier sorting, duplicate detection
+- **Stripe refund** — connected account refund, missing payment handling
+- **Payment gating** — block checkout for PENDING bookings
 
 ### Development Workflow
 

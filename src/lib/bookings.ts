@@ -359,7 +359,7 @@ export async function getAvailableBeds(
   );
 
   const bookedBedIds = new Set(
-    (bookedBeds as { bed_id: string }[]).map((r) => r.bed_id)
+    (bookedBeds as unknown as { bed_id: string }[]).map((r) => r.bed_id)
   );
 
   // Group by room, filter out booked beds
