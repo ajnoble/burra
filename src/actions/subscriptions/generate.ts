@@ -10,6 +10,7 @@ import {
 } from "@/db/schema";
 import { eq, and, isNull, isNotNull } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
 type GenerateSubscriptionsInput = {
   organisationId: string;
@@ -24,6 +25,11 @@ type GenerateSubscriptionsResult =
 export async function generateSubscriptions(
   input: GenerateSubscriptionsInput
 ): Promise<GenerateSubscriptionsResult> {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Not authorised" };
+  }
+
   const { organisationId, seasonId, slug } = input;
 
   // 1. Look up the season to get the dueDate
@@ -86,7 +92,7 @@ export async function generateSubscriptions(
     }))
   );
 
-  revalidatePath(`/${slug}/admin/settings`);
+  revalidatePath(`/${slug}/admin/subscriptions`);
 
   return { success: true, generated: eligible.length };
 }

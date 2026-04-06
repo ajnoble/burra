@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { MembershipRenewalDueEmail } from "@/lib/email/templates/membership-renewal-due";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
 export async function sendSubscriptionReminder({
   subscriptionId,
@@ -14,6 +15,11 @@ export async function sendSubscriptionReminder({
   subscriptionId: string;
   organisationId: string;
 }): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await getSessionMember(organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Not authorised" };
+  }
+
   try {
     const [data] = await db
       .select({

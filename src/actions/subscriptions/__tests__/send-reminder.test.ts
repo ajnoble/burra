@@ -42,6 +42,11 @@ vi.mock("@/lib/email/templates/membership-renewal-due", () => ({
   MembershipRenewalDueEmail: () => null,
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getSessionMember: vi.fn().mockResolvedValue({ memberId: "admin-1", role: "ADMIN" }),
+  canAccessAdmin: vi.fn().mockReturnValue(true),
+}));
+
 import {
   sendSubscriptionReminder,
   sendBulkReminders,

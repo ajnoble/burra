@@ -14,6 +14,8 @@ let mockSubscriptionResult: unknown[] = [
   { id: "sub-id", memberId: "member-id", amountCents: 12000 },
 ];
 
+const mockTransaction = vi.fn();
+
 vi.mock("@/db/index", () => ({
   db: {
     update: (...args: unknown[]) => {
@@ -55,11 +57,43 @@ vi.mock("@/db/index", () => ({
         },
       };
     },
+    transaction: async (fn: (tx: unknown) => Promise<void>) => {
+      mockTransaction();
+      // Provide a tx object with the same update/insert interface
+      const tx = {
+        update: (...args: unknown[]) => {
+          mockUpdate(...args);
+          return {
+            set: (...sArgs: unknown[]) => {
+              mockSet(...sArgs);
+              return {
+                where: () => ({}),
+              };
+            },
+          };
+        },
+        insert: (...args: unknown[]) => {
+          mockInsert(...args);
+          return {
+            values: (...vArgs: unknown[]) => {
+              mockValues(...vArgs);
+              return {};
+            },
+          };
+        },
+      };
+      await fn(tx);
+    },
   },
 }));
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  getSessionMember: vi.fn().mockResolvedValue({ memberId: "admin-1", role: "ADMIN" }),
+  canAccessAdmin: vi.fn().mockReturnValue(true),
 }));
 
 import { waiveSubscription, adjustSubscriptionAmount, recordOfflinePayment } from "../admin-actions";
