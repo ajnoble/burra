@@ -16,6 +16,7 @@ export const organisations = pgTable("organisations", {
   bookingReminderHours: integer("booking_reminder_hours").notNull().default(48),
   contactEmail: text("contact_email"),
   defaultApprovalNote: text("default_approval_note"),
+  subscriptionGraceDays: integer("subscription_grace_days").notNull().default(14),
   contactPhone: text("contact_phone"),
   websiteUrl: text("website_url"),
   address: text("address"),
