@@ -50,3 +50,41 @@ export function buildCheckoutSessionParams(input: CheckoutSessionInput) {
     cancel_url: input.cancelUrl,
   };
 }
+
+export type SubscriptionCheckoutInput = {
+  connectedAccountId: string;
+  subscriptionId: string;
+  organisationId: string;
+  seasonName: string;
+  amountCents: number;
+  platformFeeBps: number;
+  successUrl: string;
+  cancelUrl: string;
+};
+
+export function buildSubscriptionCheckoutParams(input: SubscriptionCheckoutInput) {
+  const platformFeeCents = applyBasisPoints(input.amountCents, input.platformFeeBps);
+
+  return {
+    mode: "payment" as const,
+    line_items: [
+      {
+        price_data: {
+          currency: "aud",
+          product_data: { name: `Membership Fee — ${input.seasonName}` },
+          unit_amount: input.amountCents,
+        },
+        quantity: 1,
+      },
+    ],
+    payment_intent_data: {
+      application_fee_amount: platformFeeCents,
+    },
+    metadata: {
+      subscriptionId: input.subscriptionId,
+      organisationId: input.organisationId,
+    },
+    success_url: input.successUrl,
+    cancel_url: input.cancelUrl,
+  };
+}
