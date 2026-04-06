@@ -15,6 +15,13 @@
       "when": 1775433530905,
       "tag": "0001_long_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775438454960,
+      "tag": "0002_nervous_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

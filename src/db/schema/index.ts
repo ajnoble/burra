@@ -17,7 +17,11 @@ export {
   bookings,
   bookingGuests,
 } from "./bookings";
-export { availabilityCache } from "./availability";
+export {
+  availabilityCache,
+  overrideTypeEnum,
+  availabilityOverrides,
+} from "./availability";
 export {
   transactionTypeEnum,
   transactions,
