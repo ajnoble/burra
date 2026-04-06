@@ -9,6 +9,7 @@ import {
   rooms,
   members,
   membershipClasses,
+  transactions,
 } from "@/db/schema";
 import { eq, and, desc, gte, sql } from "drizzle-orm";
 
@@ -38,6 +39,8 @@ export type BookingListItem = {
   status: string;
   guestCount: number;
   createdAt: Date;
+  invoiceTransactionId: string | null;
+  balancePaidAt: Date | null;
 };
 
 /**
@@ -113,6 +116,7 @@ export async function getUpcomingBookings(
       totalAmountCents: bookings.totalAmountCents,
       status: bookings.status,
       createdAt: bookings.createdAt,
+      balancePaidAt: bookings.balancePaidAt,
     })
     .from(bookings)
     .innerJoin(lodges, eq(lodges.id, bookings.lodgeId))
@@ -129,7 +133,7 @@ export async function getUpcomingBookings(
 
   const bookingIds = rows.map((r) => r.id);
   if (bookingIds.length === 0)
-    return rows.map((r) => ({ ...r, guestCount: 0 }));
+    return rows.map((r) => ({ ...r, guestCount: 0, invoiceTransactionId: null }));
 
   const guestCounts = await db
     .select({
@@ -144,9 +148,29 @@ export async function getUpcomingBookings(
     guestCounts.map((g) => [g.bookingId, Number(g.count)])
   );
 
+  const invoiceTxns = bookingIds.length > 0
+    ? await db
+        .select({
+          bookingId: transactions.bookingId,
+          transactionId: transactions.id,
+        })
+        .from(transactions)
+        .where(
+          and(
+            sql`${transactions.bookingId} IN ${bookingIds}`,
+            eq(transactions.type, "INVOICE")
+          )
+        )
+    : [];
+
+  const invoiceMap = new Map(
+    invoiceTxns.map((t) => [t.bookingId, t.transactionId])
+  );
+
   return rows.map((r) => ({
     ...r,
     guestCount: countMap.get(r.id) ?? 0,
+    invoiceTransactionId: invoiceMap.get(r.id) ?? null,
   }));
 }
 

@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { PaymentButton } from "./payment-button";
 
 export default async function DashboardPage({
   params,
@@ -78,31 +79,48 @@ export default async function DashboardPage({
               {upcomingBookings.map((b) => (
                 <div
                   key={b.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="rounded-lg border p-3"
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{b.lodgeName}</p>
-                      <Badge
-                        variant={STATUS_VARIANT[b.status] ?? "secondary"}
-                      >
-                        {STATUS_LABEL[b.status] ?? b.status}
-                      </Badge>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{b.lodgeName}</p>
+                        <Badge
+                          variant={STATUS_VARIANT[b.status] ?? "secondary"}
+                        >
+                          {STATUS_LABEL[b.status] ?? b.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {b.checkInDate} to {b.checkOutDate} &middot;{" "}
+                        {b.totalNights} night{b.totalNights !== 1 ? "s" : ""} &middot;{" "}
+                        {b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {b.checkInDate} to {b.checkOutDate} &middot;{" "}
-                      {b.totalNights} night{b.totalNights !== 1 ? "s" : ""} &middot;{" "}
-                      {b.guestCount} guest{b.guestCount !== 1 ? "s" : ""}
-                    </p>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        {formatCurrency(b.totalAmountCents)}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {b.bookingReference}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium">
-                      {formatCurrency(b.totalAmountCents)}
-                    </p>
-                    <p className="text-xs text-muted-foreground font-mono">
-                      {b.bookingReference}
-                    </p>
-                  </div>
+                  {b.balancePaidAt ? (
+                    <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-md bg-muted">
+                      <span className="h-2 w-2 rounded-full bg-green-500" />
+                      <span className="text-sm text-green-600 dark:text-green-400">
+                        Paid
+                      </span>
+                    </div>
+                  ) : b.invoiceTransactionId && org?.stripeConnectOnboardingComplete ? (
+                    <PaymentButton
+                      organisationId={org.id}
+                      transactionId={b.invoiceTransactionId}
+                      slug={slug}
+                      amountCents={b.totalAmountCents}
+                    />
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -110,7 +128,13 @@ export default async function DashboardPage({
         </div>
         <div className="rounded-lg border p-4">
           <h3 className="font-medium">Outstanding Balance</h3>
-          <p className="text-sm text-muted-foreground mt-1">$0.00</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {formatCurrency(
+              upcomingBookings
+                .filter((b) => !b.balancePaidAt)
+                .reduce((sum, b) => sum + b.totalAmountCents, 0)
+            )}
+          </p>
         </div>
       </div>
     </div>
