@@ -118,7 +118,7 @@ describe("generateSubscriptions", () => {
     const result = await generateSubscriptions(baseInput);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Season not found");
+    expect(result).toEqual({ success: false, error: "Season not found" });
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
@@ -126,7 +126,7 @@ describe("generateSubscriptions", () => {
     const result = await generateSubscriptions(baseInput);
 
     expect(result.success).toBe(true);
-    expect(result.generated).toBe(2);
+    expect(result).toHaveProperty("generated", 2);
     expect(mockInsert).toHaveBeenCalledTimes(1);
 
     const insertedValues = mockValues.mock.calls[0][0] as Array<{
@@ -150,7 +150,7 @@ describe("generateSubscriptions", () => {
     const result = await generateSubscriptions(baseInput);
 
     expect(result.success).toBe(true);
-    expect(result.generated).toBe(0);
+    expect(result).toHaveProperty("generated", 0);
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
@@ -163,7 +163,7 @@ describe("generateSubscriptions", () => {
     const result = await generateSubscriptions(baseInput);
 
     expect(result.success).toBe(true);
-    expect(result.generated).toBe(0);
+    expect(result).toHaveProperty("generated", 0);
     expect(mockInsert).not.toHaveBeenCalled();
   });
 });
