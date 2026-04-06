@@ -6,6 +6,7 @@ import {
   financialStatusChanges,
 } from "@/db/schema";
 import { eq, and, or, ilike, desc, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 const PAGE_SIZE = 25;
 
@@ -170,15 +171,18 @@ export async function getFamilyMembers(orgId: string, primaryMemberId: string) {
 }
 
 export async function getFinancialHistory(orgId: string, memberId: string) {
+  const changedBy = alias(members, "changedBy");
   return db
     .select({
       id: financialStatusChanges.id,
       isFinancial: financialStatusChanges.isFinancial,
       reason: financialStatusChanges.reason,
       createdAt: financialStatusChanges.createdAt,
-      changedByMemberId: financialStatusChanges.changedByMemberId,
+      changedByFirstName: changedBy.firstName,
+      changedByLastName: changedBy.lastName,
     })
     .from(financialStatusChanges)
+    .leftJoin(changedBy, eq(changedBy.id, financialStatusChanges.changedByMemberId))
     .where(
       and(
         eq(financialStatusChanges.organisationId, orgId),
