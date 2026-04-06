@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/db/index";
 import { availabilityCache, availabilityOverrides } from "@/db/schema";
 import { eq, and, gte, lte } from "drizzle-orm";
