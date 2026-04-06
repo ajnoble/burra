@@ -29,8 +29,8 @@ beforeEach(() => {
   mockGetRound.mockResolvedValue({
     id: "round-id",
     seasonId: "season-id",
-    opensAt: new Date("2027-01-01T00:00:00Z"),
-    closesAt: new Date("2027-12-31T23:59:59Z"),
+    opensAt: new Date("2025-01-01T00:00:00Z"),
+    closesAt: new Date("2028-12-31T23:59:59Z"),
     maxNightsPerBooking: 14,
     maxNightsPerMember: 28,
   });
@@ -103,8 +103,8 @@ describe("validateBookingDates", () => {
     mockGetRound.mockResolvedValue({
       id: "round-id",
       seasonId: "season-id",
-      opensAt: new Date("2027-01-01T00:00:00Z"),
-      closesAt: new Date("2027-12-31T23:59:59Z"),
+      opensAt: new Date("2025-01-01T00:00:00Z"),
+      closesAt: new Date("2028-12-31T23:59:59Z"),
       maxNightsPerBooking: 2,
       maxNightsPerMember: 28,
     });
@@ -118,8 +118,8 @@ describe("validateBookingDates", () => {
     mockGetRound.mockResolvedValue({
       id: "round-id",
       seasonId: "season-id",
-      opensAt: new Date("2027-01-01T00:00:00Z"),
-      closesAt: new Date("2027-12-31T23:59:59Z"),
+      opensAt: new Date("2025-01-01T00:00:00Z"),
+      closesAt: new Date("2028-12-31T23:59:59Z"),
       maxNightsPerBooking: 14,
       maxNightsPerMember: 5,
     });

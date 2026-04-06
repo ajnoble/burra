@@ -54,8 +54,8 @@ export async function validateBookingDates(input: {
   if (!round) {
     errors.push("Booking round not found");
   } else {
-    const checkInDate = new Date(checkIn + "T00:00:00Z");
-    if (checkInDate < round.opensAt || checkInDate > round.closesAt) {
+    const now = new Date();
+    if (now < round.opensAt || now > round.closesAt) {
       errors.push("Booking round is not currently open");
     }
 
