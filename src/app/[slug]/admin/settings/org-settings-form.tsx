@@ -24,6 +24,7 @@ type Org = {
   websiteUrl: string | null;
   address: string | null;
   timezone: string;
+  subscriptionGraceDays: number;
 };
 
 export function OrgSettingsForm({ org }: { org: Org }) {
@@ -44,6 +45,7 @@ export function OrgSettingsForm({ org }: { org: Org }) {
         websiteUrl: form.get("websiteUrl") as string,
         address: form.get("address") as string,
         timezone: form.get("timezone") as string,
+        subscriptionGraceDays: parseInt(form.get("subscriptionGraceDays") as string, 10),
       });
       toast.success("Settings saved");
     } catch (err) {
@@ -114,6 +116,21 @@ export function OrgSettingsForm({ org }: { org: Org }) {
             />
             <p className="text-xs text-muted-foreground">
               e.g. Australia/Melbourne, Australia/Sydney
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subscriptionGraceDays">Subscription Grace Period (days)</Label>
+            <Input
+              id="subscriptionGraceDays"
+              name="subscriptionGraceDays"
+              type="number"
+              min="0"
+              max="90"
+              defaultValue={org.subscriptionGraceDays}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Days after subscription due date before marking members as non-financial
             </p>
           </div>
           <Button type="submit" disabled={saving}>

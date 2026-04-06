@@ -14,6 +14,7 @@ const updateOrgSchema = z.object({
   websiteUrl: z.string().url().optional().or(z.literal("")),
   address: z.string().optional().or(z.literal("")),
   timezone: z.string().min(1),
+  subscriptionGraceDays: z.number().int().min(0).max(90).optional(),
 });
 
 export type UpdateOrgInput = z.infer<typeof updateOrgSchema>;
@@ -30,6 +31,9 @@ export async function updateOrganisation(input: UpdateOrgInput) {
       websiteUrl: data.websiteUrl || null,
       address: data.address || null,
       timezone: data.timezone,
+      ...(data.subscriptionGraceDays !== undefined && {
+        subscriptionGraceDays: data.subscriptionGraceDays,
+      }),
       updatedAt: new Date(),
     })
     .where(eq(organisations.id, data.id))
