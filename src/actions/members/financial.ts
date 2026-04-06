@@ -1,10 +1,13 @@
 "use server";
 
 import { db } from "@/db/index";
-import { members, financialStatusChanges } from "@/db/schema";
+import { members, financialStatusChanges, organisations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { financialStatusChangeSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
+import { sendEmail } from "@/lib/email/send";
+import React from "react";
+import { FinancialStatusChangedEmail } from "@/lib/email/templates/financial-status-changed";
 
 type UpdateFinancialInput = {
   memberId: string;
@@ -44,6 +47,31 @@ export async function updateFinancialStatus(
     isFinancial: parsed.data.isFinancial,
     reason: parsed.data.reason,
     changedByMemberId: input.changedByMemberId,
+  });
+
+  // Fetch org details for email
+  const [org] = await db
+    .select({
+      name: organisations.name,
+      contactEmail: organisations.contactEmail,
+      logoUrl: organisations.logoUrl,
+    })
+    .from(organisations)
+    .where(eq(organisations.id, input.organisationId));
+
+  // Send financial status changed email (fire-and-forget)
+  sendEmail({
+    to: updated.email,
+    subject: `Membership status updated — ${org?.name ?? input.slug}`,
+    template: React.createElement(FinancialStatusChangedEmail, {
+      orgName: org?.name ?? input.slug,
+      firstName: updated.firstName,
+      isFinancial: parsed.data.isFinancial,
+      reason: parsed.data.reason,
+      logoUrl: org?.logoUrl || undefined,
+    }),
+    replyTo: org?.contactEmail || undefined,
+    orgName: org?.name ?? input.slug,
   });
 
   revalidatePath(`/${input.slug}/admin/members/${input.memberId}`);

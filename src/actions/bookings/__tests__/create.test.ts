@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockSendEmail = vi.fn();
+vi.mock("@/lib/email/send", () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+}));
+
 const mockTransaction = vi.fn();
 const mockGetSessionMember = vi.fn();
 const mockGetMember = vi.fn();
@@ -38,10 +43,20 @@ vi.mock("@/db/schema", () => ({
     bookedBeds: "booked_beds",
     version: "version",
   },
-  members: { id: "id", membershipClassId: "membership_class_id", isFinancial: "is_financial" },
+  members: { id: "id", membershipClassId: "membership_class_id", isFinancial: "is_financial", firstName: "first_name", lastName: "last_name" },
   tariffs: { id: "id", lodgeId: "lodge_id", seasonId: "season_id", membershipClassId: "membership_class_id" },
   seasons: { id: "id" },
   bookingRounds: { id: "id", requiresApproval: "requires_approval" },
+  organisations: { id: "id", name: "name", contactEmail: "contact_email", logoUrl: "logo_url" },
+  lodges: { id: "id", name: "name" },
+}));
+
+vi.mock("@/lib/email/templates/booking-confirmation", () => ({
+  BookingConfirmationEmail: () => null,
+}));
+
+vi.mock("@/lib/email/templates/admin-booking-notification", () => ({
+  AdminBookingNotificationEmail: () => null,
 }));
 
 import { validateCreateBookingInput } from "../create-helpers";

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getStripeClient } from "@/lib/stripe";
-import { handleCheckoutSessionCompleted } from "@/actions/stripe/webhook-handlers";
+import { handleCheckoutSessionCompleted, handleCheckoutSessionExpired } from "@/actions/stripe/webhook-handlers";
 import type Stripe from "stripe";
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -33,9 +33,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       await handleCheckoutSessionCompleted(session);
       break;
     }
-    case "checkout.session.expired":
-      console.log(`Checkout session expired: ${event.data.object.id}`);
+    case "checkout.session.expired": {
+      const session = event.data.object as Stripe.Checkout.Session;
+      await handleCheckoutSessionExpired(session);
       break;
+    }
     default:
       console.log(`Unhandled event type: ${event.type}`);
   }

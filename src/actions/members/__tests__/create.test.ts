@@ -6,6 +6,14 @@ const mockReturning = vi.fn();
 const mockSelect = vi.fn();
 const mockFrom = vi.fn();
 const mockWhere = vi.fn();
+const mockSendEmail = vi.fn();
+
+vi.mock("@/lib/email/send", () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+}));
+
+// Track select call count so we can return different results for different queries
+let selectCallCount = 0;
 
 vi.mock("@/db/index", () => ({
   db: {
@@ -25,13 +33,25 @@ vi.mock("@/db/index", () => ({
     },
     select: (...args: unknown[]) => {
       mockSelect(...args);
+      const callIndex = selectCallCount++;
       return {
         from: (...fArgs: unknown[]) => {
           mockFrom(...fArgs);
           return {
             where: (...wArgs: unknown[]) => {
               mockWhere(...wArgs);
-              return []; // no existing member with this email
+              // callIndex 0: email uniqueness check => no existing member
+              // callIndex 1: organisations query => return org details
+              if (callIndex === 1) {
+                return [
+                  {
+                    name: "Demo Club",
+                    contactEmail: "admin@demo.com",
+                    logoUrl: "https://example.com/logo.png",
+                  },
+                ];
+              }
+              return [];
             },
           };
         },
@@ -52,6 +72,7 @@ import { createMember } from "../create";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  selectCallCount = 0;
 });
 
 describe("createMember", () => {
@@ -88,5 +109,20 @@ describe("createMember", () => {
     });
     expect(result.success).toBe(false);
     expect(mockInsert).not.toHaveBeenCalled();
+  });
+
+  it("sends a Welcome email after successful member creation", async () => {
+    await createMember(validInput);
+
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
+
+    const emailArgs = mockSendEmail.mock.calls[0][0];
+    expect(emailArgs.to).toBe("james@example.com");
+    expect(emailArgs.subject).toBe("Welcome to Demo Club");
+    expect(emailArgs.orgName).toBe("Demo Club");
+    expect(emailArgs.replyTo).toBe("admin@demo.com");
+    // template should be a React element
+    expect(emailArgs.template).toBeDefined();
+    expect(emailArgs.template.type).toBeDefined();
   });
 });

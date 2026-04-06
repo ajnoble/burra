@@ -11,6 +11,8 @@ import {
   tariffs,
   seasons,
   bookingRounds,
+  organisations,
+  lodges,
 } from "@/db/schema";
 import { eq, and, sql, lt } from "drizzle-orm";
 import { getSessionMember } from "@/lib/auth";
@@ -26,6 +28,10 @@ import {
 import { validateBookingDates } from "@/actions/availability/validation";
 import { revalidatePath } from "next/cache";
 import { validateCreateBookingInput } from "./create-helpers";
+import { sendEmail } from "@/lib/email/send";
+import React from "react";
+import { BookingConfirmationEmail } from "@/lib/email/templates/booking-confirmation";
+import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booking-notification";
 
 
 type CreateBookingResult = {
@@ -299,8 +305,76 @@ export async function createBooking(
       return {
         bookingReference: booking.bookingReference,
         bookingId: booking.id,
+        totalAmountCents: bookingTotal.totalAmountCents,
+        status,
       };
     });
+
+    // Fetch org and lodge details for email
+    const [org] = await db
+      .select({
+        name: organisations.name,
+        contactEmail: organisations.contactEmail,
+        logoUrl: organisations.logoUrl,
+      })
+      .from(organisations)
+      .where(eq(organisations.id, data.organisationId));
+
+    const [lodge] = await db
+      .select({ name: lodges.name })
+      .from(lodges)
+      .where(eq(lodges.id, data.lodgeId));
+
+    // Get guest names for email
+    const guestMemberIds = data.guests.map((g) => g.memberId);
+    const guestMembers = await db
+      .select({ firstName: members.firstName, lastName: members.lastName })
+      .from(members)
+      .where(sql`${members.id} IN (${sql.join(guestMemberIds.map(id => sql`${id}`), sql`, `)})`);
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+    // Send booking confirmation only when actually confirmed (not pending approval)
+    if (result.status === "CONFIRMED") {
+      sendEmail({
+        to: session.email,
+        subject: `Booking confirmed — ${result.bookingReference}`,
+        template: React.createElement(BookingConfirmationEmail, {
+          orgName: org?.name ?? slug,
+          bookingReference: result.bookingReference,
+          lodgeName: lodge?.name ?? "Lodge",
+          checkInDate: data.checkInDate,
+          checkOutDate: data.checkOutDate,
+          totalNights: nights,
+          guests: guestMembers,
+          totalAmountCents: result.totalAmountCents,
+          payUrl: `${appUrl}/${slug}/dashboard`,
+          logoUrl: org?.logoUrl || undefined,
+        }),
+        replyTo: org?.contactEmail || undefined,
+        orgName: org?.name ?? slug,
+      });
+    }
+
+    // Send admin notification
+    if (org?.contactEmail) {
+      sendEmail({
+        to: org.contactEmail,
+        subject: `[Admin] Booking created — ${result.bookingReference}`,
+        template: React.createElement(AdminBookingNotificationEmail, {
+          orgName: org.name,
+          bookingReference: result.bookingReference,
+          memberName: `${session.firstName} ${session.lastName}`,
+          lodgeName: lodge?.name ?? "Lodge",
+          checkInDate: data.checkInDate,
+          checkOutDate: data.checkOutDate,
+          action: "created" as const,
+          adminUrl: `${appUrl}/${slug}/admin`,
+          logoUrl: org.logoUrl || undefined,
+        }),
+        orgName: org.name,
+      });
+    }
 
     revalidatePath(`/${slug}/dashboard`);
     revalidatePath(`/${slug}/book`);
