@@ -166,7 +166,7 @@ export async function createBooking(
               AND b.check_out_date > ${data.checkInDate}`
         );
 
-        if (conflicting.rows && conflicting.rows.length > 0) {
+        if (conflicting && (conflicting as unknown[]).length > 0) {
           throw new Error(`Bed is no longer available`);
         }
       }

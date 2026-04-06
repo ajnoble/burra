@@ -81,7 +81,7 @@ export function OverrideForm({
         id: override.id,
         startDate,
         endDate,
-        type,
+        type: type as "CLOSURE" | "REDUCTION",
         bedReduction: type === "REDUCTION" ? parseInt(bedReduction, 10) : null,
         reason: reason || null,
         slug,
@@ -91,7 +91,7 @@ export function OverrideForm({
         lodgeId,
         startDate,
         endDate,
-        type,
+        type: type as "CLOSURE" | "REDUCTION",
         bedReduction:
           type === "REDUCTION" ? parseInt(bedReduction, 10) : undefined,
         reason: reason || undefined,
