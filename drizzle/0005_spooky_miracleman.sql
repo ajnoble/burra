@@ -1,0 +1,1 @@
+ALTER TABLE "organisations" ADD COLUMN "booking_reminder_hours" integer DEFAULT 48 NOT NULL;
