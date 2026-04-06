@@ -1,5 +1,5 @@
 import { db } from "@/db/index";
-import { transactions, bookings } from "@/db/schema";
+import { transactions, bookings, subscriptions } from "@/db/schema";
 import { members, organisations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type Stripe from "stripe";
@@ -19,7 +19,91 @@ export async function handleCheckoutSessionCompleted(
 
   if (!paymentIntentId) return;
 
-  const { transactionId, bookingId, organisationId } = session.metadata ?? {};
+  const { transactionId, bookingId, organisationId, subscriptionId } = session.metadata ?? {};
+
+  // Handle subscription payment
+  if (subscriptionId) {
+    // Idempotency check: skip if we already recorded this subscription payment
+    const [existingSub] = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.stripePaymentIntentId, paymentIntentId),
+          eq(transactions.type, "SUBSCRIPTION")
+        )
+      );
+
+    if (existingSub) return;
+
+    // Fetch subscription data
+    const [sub] = await db
+      .select({
+        id: subscriptions.id,
+        memberId: subscriptions.memberId,
+        amountCents: subscriptions.amountCents,
+        organisationId: subscriptions.organisationId,
+      })
+      .from(subscriptions)
+      .where(eq(subscriptions.id, subscriptionId));
+
+    if (!sub) return;
+
+    const amountCents = session.amount_total ?? sub.amountCents;
+
+    // Create SUBSCRIPTION transaction
+    await db.insert(transactions).values({
+      organisationId: sub.organisationId,
+      memberId: sub.memberId,
+      type: "SUBSCRIPTION",
+      amountCents: amountCents,
+      stripePaymentIntentId: paymentIntentId,
+      stripeCheckoutSessionId: session.id,
+      description: `Membership subscription payment`,
+    });
+
+    // Update subscription: mark as PAID
+    await db
+      .update(subscriptions)
+      .set({
+        status: "PAID",
+        paidAt: new Date(),
+        stripePaymentIntentId: paymentIntentId,
+        updatedAt: new Date(),
+      })
+      .where(eq(subscriptions.id, subscriptionId));
+
+    // Get member email and org details for email
+    const [emailData] = await db
+      .select({
+        email: members.email,
+        orgName: organisations.name,
+        contactEmail: organisations.contactEmail,
+        logoUrl: organisations.logoUrl,
+      })
+      .from(members)
+      .innerJoin(organisations, eq(organisations.id, sub.organisationId))
+      .where(eq(members.id, sub.memberId));
+
+    if (emailData) {
+      sendEmail({
+        to: emailData.email,
+        subject: `Payment received — Membership Subscription`,
+        template: React.createElement(PaymentReceivedEmail, {
+          orgName: emailData.orgName,
+          bookingReference: "Membership Subscription",
+          amountCents: amountCents,
+          paidDate: new Date().toISOString().split("T")[0],
+          logoUrl: emailData.logoUrl || undefined,
+        }),
+        replyTo: emailData.contactEmail || undefined,
+        orgName: emailData.orgName,
+      });
+    }
+
+    return;
+  }
+
   if (!transactionId || !bookingId || !organisationId) return;
 
   // Idempotency check: skip if we already recorded this payment
