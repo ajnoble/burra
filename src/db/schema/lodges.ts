@@ -18,6 +18,8 @@ export const lodges = pgTable("lodges", {
   description: text("description"),
   imageUrl: text("image_url"),
   totalBeds: integer("total_beds").notNull(),
+  checkInTime: text("check_in_time").notNull().default("17:00"),
+  checkOutTime: text("check_out_time").notNull().default("16:00"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

@@ -44,6 +44,7 @@ export const bookingRounds = pgTable("booking_rounds", {
     .default(false),
   maxNightsPerMember: integer("max_nights_per_member"),
   maxNightsPerBooking: integer("max_nights_per_booking"),
+  holdDurationMinutes: integer("hold_duration_minutes").default(10),
   requiresApproval: boolean("requires_approval").notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })

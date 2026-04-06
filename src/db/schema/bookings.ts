@@ -85,3 +85,25 @@ export const bookingGuests = pgTable("booking_guests", {
     () => membershipClasses.id
   ),
 });
+
+export const bedHolds = pgTable("bed_holds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  lodgeId: uuid("lodge_id")
+    .notNull()
+    .references(() => lodges.id),
+  bedId: uuid("bed_id")
+    .notNull()
+    .references(() => beds.id),
+  memberId: uuid("member_id")
+    .notNull()
+    .references(() => members.id),
+  bookingRoundId: uuid("booking_round_id")
+    .notNull()
+    .references(() => bookingRounds.id),
+  checkInDate: date("check_in_date").notNull(),
+  checkOutDate: date("check_out_date").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
