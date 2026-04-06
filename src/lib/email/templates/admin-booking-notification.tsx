@@ -9,7 +9,7 @@ type AdminBookingNotificationEmailProps = {
   lodgeName: string;
   checkInDate: string;
   checkOutDate: string;
-  action: "created" | "cancelled";
+  action: "created" | "cancelled" | "approved" | "modified";
   adminUrl: string;
   logoUrl?: string;
 };
@@ -27,7 +27,7 @@ export function AdminBookingNotificationEmail({
 }: AdminBookingNotificationEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
-      <Text style={heading}>Booking {action === "created" ? "Created" : "Cancelled"}</Text>
+      <Text style={heading}>Booking {action.charAt(0).toUpperCase() + action.slice(1)}</Text>
       <Text style={paragraph}>
         A booking has been {action} by a member. Details below:
       </Text>
