@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Snowgum — Club Accommodation Booking",
+  title: "Snow Gum — Club Accommodation Booking",
   description:
     "Modern booking and membership management for member-owned accommodation clubs.",
 };

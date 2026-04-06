@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4">
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-          Snowgum
+          Snow Gum
         </h1>
         <p className="text-lg text-muted-foreground max-w-md mx-auto">
           Modern booking and membership management for member-owned

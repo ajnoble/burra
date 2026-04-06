@@ -1,4 +1,4 @@
-# Snowgum
+# Snow Gum
 
 A SaaS booking and membership management platform for member-owned accommodation clubs in Australia. Built to replace legacy systems like CBDWeb with a modern, mobile-first experience.
 
