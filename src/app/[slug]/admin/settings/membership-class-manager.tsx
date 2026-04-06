@@ -31,6 +31,7 @@ type MembershipClass = {
   description: string | null;
   sortOrder: number;
   isActive: boolean;
+  annualFeeCents: number | null;
 };
 
 export function MembershipClassManager({
@@ -53,6 +54,8 @@ export function MembershipClassManager({
     const form = new FormData(e.currentTarget);
     const name = form.get("name") as string;
     const description = form.get("description") as string;
+    const feeValue = form.get("annualFee") as string;
+    const annualFeeCents = feeValue ? Math.round(parseFloat(feeValue) * 100) : null;
 
     try {
       if (editing) {
@@ -62,6 +65,7 @@ export function MembershipClassManager({
           name,
           description,
           sortOrder: editing.sortOrder,
+          annualFeeCents,
           slug,
         });
         setClasses((prev) =>
@@ -74,6 +78,7 @@ export function MembershipClassManager({
           name,
           description,
           sortOrder: classes.length,
+          annualFeeCents,
           slug,
         });
         setClasses((prev) => [...prev, created]);
@@ -119,6 +124,11 @@ export function MembershipClassManager({
               {cls.description && (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {cls.description}
+                </p>
+              )}
+              {cls.annualFeeCents !== null && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Annual fee: ${(cls.annualFeeCents / 100).toFixed(2)}
                 </p>
               )}
             </div>
@@ -184,6 +194,25 @@ export function MembershipClassManager({
                 name="description"
                 defaultValue={editing?.description ?? ""}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mc-fee">Annual Fee (AUD)</Label>
+              <Input
+                id="mc-fee"
+                name="annualFee"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="No fee"
+                defaultValue={
+                  editing?.annualFeeCents
+                    ? (editing.annualFeeCents / 100).toFixed(2)
+                    : ""
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty for no annual fee (e.g. honorary members)
+              </p>
             </div>
             <Button type="submit" disabled={saving}>
               {saving ? "Saving..." : editing ? "Update" : "Create"}
