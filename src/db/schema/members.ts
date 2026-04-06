@@ -46,6 +46,7 @@ export const members = pgTable("members", {
   isFinancial: boolean("is_financial").notNull().default(true),
   joinedAt: timestamp("joined_at", { withTimezone: true }).defaultNow(),
   primaryMemberId: uuid("primary_member_id").references(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (): any => members.id
   ),
   notes: text("notes"), // admin only

@@ -8,6 +8,7 @@ type AvailabilityDay = {
   totalBeds: number;
   bookedBeds: number;
   hasOverride?: boolean;
+  eventLabel?: string | null;
 };
 
 type AvailabilityCalendarProps = {
@@ -17,6 +18,7 @@ type AvailabilityCalendarProps = {
   month: number;
   onMonthChange: (year: number, month: number) => void;
   onDateClick?: (date: string) => void;
+  selectedDates?: { checkIn: string | null; checkOut: string | null };
 };
 
 function getDaysInMonth(year: number, month: number) {
@@ -69,6 +71,7 @@ export function AvailabilityCalendar({
   month,
   onMonthChange,
   onDateClick,
+  selectedDates,
 }: AvailabilityCalendarProps) {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfWeek(year, month);
@@ -91,6 +94,11 @@ export function AvailabilityCalendar({
     } else {
       onMonthChange(year, month + 1);
     }
+  }
+
+  function isDateInRange(dateStr: string): boolean {
+    if (!selectedDates?.checkIn || !selectedDates?.checkOut) return false;
+    return dateStr >= selectedDates.checkIn && dateStr < selectedDates.checkOut;
   }
 
   return (
@@ -130,7 +138,9 @@ export function AvailabilityCalendar({
           const totalBeds = data?.totalBeds ?? 0;
           const bookedBeds = data?.bookedBeds ?? 0;
           const hasOverride = data?.hasOverride ?? false;
+          const eventLabel = data?.eventLabel ?? null;
           const hasData = !!data;
+          const inRange = isDateInRange(dateStr);
 
           const colorClass = hasData
             ? getAvailabilityColor(totalBeds, bookedBeds, hasOverride, mode)
@@ -140,23 +150,33 @@ export function AvailabilityCalendar({
             ? getAvailabilityLabel(totalBeds, bookedBeds, mode)
             : "";
 
+          const rangeClass = inRange ? "ring-2 ring-primary" : "";
+
           return (
             <button
               key={dateStr}
               type="button"
-              className={`h-16 rounded-md p-1 text-left transition-colors hover:ring-2 hover:ring-ring ${colorClass} ${
-                mode === "admin" ? "cursor-pointer" : "cursor-default"
+              className={`h-16 rounded-md p-1 text-left transition-colors hover:ring-2 hover:ring-ring ${colorClass} ${rangeClass} ${
+                onDateClick ? "cursor-pointer" : "cursor-default"
               }`}
-              onClick={() => mode === "admin" && onDateClick?.(dateStr)}
-              disabled={mode === "member"}
+              onClick={() => onDateClick?.(dateStr)}
+              disabled={!onDateClick}
             >
               <div className="text-xs font-medium">{day}</div>
               {hasData && (
                 <div className="text-[10px] leading-tight mt-0.5">
                   {label}
-                  {mode === "admin" && hasOverride && (
+                  {mode === "admin" && hasOverride && !eventLabel && (
                     <span className="ml-0.5" title="Override active">*</span>
                   )}
+                </div>
+              )}
+              {eventLabel && (
+                <div
+                  className="text-[9px] leading-tight text-blue-700 dark:text-blue-400 truncate"
+                  title={eventLabel}
+                >
+                  {eventLabel}
                 </div>
               )}
             </button>

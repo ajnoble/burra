@@ -34,6 +34,7 @@ export const availabilityCache = pgTable(
 export const overrideTypeEnum = pgEnum("override_type", [
   "CLOSURE",
   "REDUCTION",
+  "EVENT",
 ]);
 
 export const availabilityOverrides = pgTable("availability_overrides", {

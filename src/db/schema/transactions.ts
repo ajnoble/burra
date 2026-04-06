@@ -18,6 +18,7 @@ export const transactionTypeEnum = pgEnum("transaction_type", [
   "CREDIT",
   "SUBSCRIPTION",
   "ADJUSTMENT",
+  "INVOICE",
 ]);
 
 export const transactions = pgTable("transactions", {

@@ -41,6 +41,8 @@ type Props = {
   onClose: () => void;
 };
 
+type OverrideType = "CLOSURE" | "REDUCTION" | "EVENT";
+
 export function OverrideForm({
   lodgeId,
   slug,
@@ -57,8 +59,8 @@ export function OverrideForm({
   const [endDate, setEndDate] = useState(
     override?.endDate ?? initialDate ?? ""
   );
-  const [type, setType] = useState<"CLOSURE" | "REDUCTION">(
-    (override?.type as "CLOSURE" | "REDUCTION") ?? "CLOSURE"
+  const [type, setType] = useState<OverrideType>(
+    (override?.type as OverrideType) ?? "CLOSURE"
   );
   const [bedReduction, setBedReduction] = useState(
     override?.bedReduction?.toString() ?? ""
@@ -79,7 +81,7 @@ export function OverrideForm({
         id: override.id,
         startDate,
         endDate,
-        type,
+        type: type as "CLOSURE" | "REDUCTION",
         bedReduction: type === "REDUCTION" ? parseInt(bedReduction, 10) : null,
         reason: reason || null,
         slug,
@@ -89,7 +91,7 @@ export function OverrideForm({
         lodgeId,
         startDate,
         endDate,
-        type,
+        type: type as "CLOSURE" | "REDUCTION",
         bedReduction:
           type === "REDUCTION" ? parseInt(bedReduction, 10) : undefined,
         reason: reason || undefined,
@@ -144,7 +146,7 @@ export function OverrideForm({
             <Label htmlFor="type">Type</Label>
             <Select
               value={type}
-              onValueChange={(v) => v && setType(v as "CLOSURE" | "REDUCTION")}
+              onValueChange={(v) => v && setType(v as OverrideType)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -152,6 +154,7 @@ export function OverrideForm({
               <SelectContent>
                 <SelectItem value="CLOSURE">Full Closure</SelectItem>
                 <SelectItem value="REDUCTION">Bed Reduction</SelectItem>
+                <SelectItem value="EVENT">Event (informational)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -171,13 +174,21 @@ export function OverrideForm({
           )}
 
           <div>
-            <Label htmlFor="reason">Reason (optional)</Label>
+            <Label htmlFor="reason">
+              {type === "EVENT" ? "Event Name (required)" : "Reason (optional)"}
+            </Label>
             <Textarea
               id="reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               rows={2}
+              required={type === "EVENT"}
             />
+            {type === "EVENT" && (
+              <p className="text-xs text-muted-foreground mt-1">
+                This label will be displayed on the calendar. It does not affect availability.
+              </p>
+            )}
           </div>
 
           {error && (

@@ -1,3 +1,5 @@
+"use server";
+
 import { validateBookingDatesSchema } from "./schemas";
 import {
   getSeasonForDates,

@@ -65,11 +65,27 @@ export default async function AdminAvailabilityPage({
     }
   }
 
+  // Build event label map from EVENT overrides
+  const eventLabelMap = new Map<string, string>();
+  for (const o of overrides) {
+    if (o.type === "EVENT" && o.reason) {
+      const start = new Date(o.startDate + "T00:00:00Z");
+      const end = new Date(o.endDate + "T00:00:00Z");
+      const cur = new Date(start);
+      while (cur <= end) {
+        const dateStr = cur.toISOString().split("T")[0];
+        eventLabelMap.set(dateStr, o.reason);
+        cur.setUTCDate(cur.getUTCDate() + 1);
+      }
+    }
+  }
+
   const availabilityWithOverrides = availability.map((a) => ({
     date: a.date,
     totalBeds: a.totalBeds,
     bookedBeds: a.bookedBeds,
     hasOverride: overrideDates.has(a.date),
+    eventLabel: eventLabelMap.get(a.date) ?? null,
   }));
 
   return (

@@ -16,6 +16,7 @@ export {
   bookingStatusEnum,
   bookings,
   bookingGuests,
+  bedHolds,
 } from "./bookings";
 export {
   availabilityCache,

@@ -88,6 +88,39 @@ describe("createOverrideSchema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("accepts a valid event", () => {
+    const result = createOverrideSchema.safeParse({
+      lodgeId: "550e8400-e29b-41d4-a716-446655440000",
+      startDate: "2027-07-01",
+      endDate: "2027-07-03",
+      type: "EVENT",
+      reason: "Inter School Sports",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects event without reason", () => {
+    const result = createOverrideSchema.safeParse({
+      lodgeId: "550e8400-e29b-41d4-a716-446655440000",
+      startDate: "2027-07-01",
+      endDate: "2027-07-03",
+      type: "EVENT",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects event with bedReduction", () => {
+    const result = createOverrideSchema.safeParse({
+      lodgeId: "550e8400-e29b-41d4-a716-446655440000",
+      startDate: "2027-07-01",
+      endDate: "2027-07-03",
+      type: "EVENT",
+      bedReduction: 4,
+      reason: "Working Bee",
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("updateOverrideSchema", () => {
