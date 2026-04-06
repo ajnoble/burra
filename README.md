@@ -94,12 +94,12 @@ drizzle/                        # Generated SQL migrations
 | 2 | Data Model | 21 tables with full migration, demo + Polski seed scripts |
 | 0 | CSV Member Import | 4-step flow: upload, preview with validation, confirm, results |
 | 3 | Organisation & Lodge Admin | Admin layout with sidebar, org settings, membership classes, lodge/room/bed CRUD |
+| 4 | Member Management | Member list with search/filter, add/edit members, family linking, role management, financial status with history |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 4 | Member Management — database, family linking, roles, financial status |
 | 5 | Availability Engine — cache, calendar component, date validation |
 | 6 | Booking Flow — 5-step member booking, concurrency handling, rate limiting |
 | 7 | Stripe Connect — onboarding, payments, webhooks, platform fee |
@@ -196,6 +196,9 @@ npm run test:coverage
 - **Validation schemas** — email, slug, cents, pagination
 - **CSV parser** — header normalisation, required columns, empty handling
 - **Import validator** — required fields, email uniqueness, membership class matching, boolean parsing
+- **Member validation** — create/update schemas, financial status change schema
+- **Member queries** — paginated list, detail, family, financial history, search
+- **Member actions** — create, update, role change, financial status, family linking
 
 ### Development Workflow
 
