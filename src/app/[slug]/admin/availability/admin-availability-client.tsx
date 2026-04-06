@@ -53,7 +53,8 @@ export function AdminAvailabilityClient({
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [editingOverride, setEditingOverride] = useState<Override | null>(null);
 
-  function handleLodgeChange(lodgeId: string) {
+  function handleLodgeChange(lodgeId: string | null) {
+    if (!lodgeId) return;
     const params = new URLSearchParams();
     params.set("lodge", lodgeId);
     params.set("year", String(year));

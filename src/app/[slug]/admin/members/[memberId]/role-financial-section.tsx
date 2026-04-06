@@ -9,7 +9,10 @@ import { Separator } from "@/components/ui/separator";
 import { updateMemberRole } from "@/actions/members/role";
 import { updateFinancialStatus } from "@/actions/members/financial";
 import { FinancialHistoryTable } from "./financial-history-table";
-import { isCommitteeOrAbove } from "@/lib/auth";
+
+function isCommitteeOrAbove(role: string): boolean {
+  return role === "ADMIN" || role === "COMMITTEE";
+}
 
 type HistoryEntry = {
   id: string;

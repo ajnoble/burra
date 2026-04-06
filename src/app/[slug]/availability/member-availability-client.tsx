@@ -36,7 +36,8 @@ export function MemberAvailabilityClient({
 }: Props) {
   const router = useRouter();
 
-  function handleLodgeChange(lodgeId: string) {
+  function handleLodgeChange(lodgeId: string | null) {
+    if (!lodgeId) return;
     const params = new URLSearchParams();
     params.set("lodge", lodgeId);
     params.set("year", String(year));

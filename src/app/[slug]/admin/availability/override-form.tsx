@@ -144,7 +144,7 @@ export function OverrideForm({
             <Label htmlFor="type">Type</Label>
             <Select
               value={type}
-              onValueChange={(v) => setType(v as "CLOSURE" | "REDUCTION")}
+              onValueChange={(v) => v && setType(v as "CLOSURE" | "REDUCTION")}
             >
               <SelectTrigger>
                 <SelectValue />
