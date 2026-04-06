@@ -3,54 +3,9 @@
 import { db } from "@/db/index";
 import { members, membershipClasses, organisationMembers } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { sortMembersWithFamilyFirst as _sortMembersWithFamilyFirst } from "./members-helpers";
 
-type BookableMember = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  primaryMemberId: string | null;
-  membershipClassName: string;
-};
-
-/**
- * Pure sorting function: current member first, family second, others last.
- * Testable without DB.
- */
-export function sortMembersWithFamilyFirst(
-  allMembers: BookableMember[],
-  currentMemberId: string
-): BookableMember[] {
-  const current = allMembers.find((m) => m.id === currentMemberId);
-  if (!current) return allMembers;
-
-  // Determine the family "root" — either the current member or their primary
-  const familyRootId = current.primaryMemberId ?? currentMemberId;
-
-  const familyIds = new Set<string>();
-  familyIds.add(familyRootId);
-  // Add all members linked to the family root
-  for (const m of allMembers) {
-    if (m.primaryMemberId === familyRootId) {
-      familyIds.add(m.id);
-    }
-  }
-
-  const currentMember: BookableMember[] = [];
-  const family: BookableMember[] = [];
-  const others: BookableMember[] = [];
-
-  for (const m of allMembers) {
-    if (m.id === currentMemberId) {
-      currentMember.push(m);
-    } else if (familyIds.has(m.id)) {
-      family.push(m);
-    } else {
-      others.push(m);
-    }
-  }
-
-  return [...currentMember, ...family, ...others];
-}
+export type { BookableMember } from "./members-helpers";
 
 /**
  * Get all org members the current user can add as guests to a booking.
@@ -59,7 +14,13 @@ export function sortMembersWithFamilyFirst(
 export async function getBookableMembers(
   organisationId: string,
   currentMemberId: string
-): Promise<BookableMember[]> {
+): Promise<{
+  id: string;
+  firstName: string;
+  lastName: string;
+  primaryMemberId: string | null;
+  membershipClassName: string;
+}[]> {
   const rows = await db
     .select({
       id: members.id,
@@ -94,5 +55,5 @@ export async function getBookableMembers(
     membershipClassName: r.membershipClassName ?? "Standard",
   }));
 
-  return sortMembersWithFamilyFirst(cleaned, currentMemberId);
+  return _sortMembersWithFamilyFirst(cleaned, currentMemberId);
 }

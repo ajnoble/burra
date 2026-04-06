@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sortMembersWithFamilyFirst } from "../members";
+import { sortMembersWithFamilyFirst } from "../members-helpers";
 
 describe("sortMembersWithFamilyFirst", () => {
   const currentMemberId = "member-1";

@@ -4,20 +4,8 @@ import { db } from "@/db/index";
 import { bedHolds, bookingRounds } from "@/db/schema";
 import { eq, and, lt, gte, ne, sql } from "drizzle-orm";
 import { bedHoldInputSchema } from "./schemas";
+import { calculateExpiresAt as _calculateExpiresAt } from "./holds-helpers";
 
-/**
- * Check if a hold has expired.
- */
-export function isHoldExpired(expiresAt: Date): boolean {
-  return expiresAt.getTime() <= Date.now();
-}
-
-/**
- * Calculate the expiration timestamp from now + minutes.
- */
-export function calculateExpiresAt(minutes: number): Date {
-  return new Date(Date.now() + minutes * 60 * 1000);
-}
 
 /**
  * Remove all expired bed holds. Called lazily before queries.
@@ -107,7 +95,7 @@ export async function createBedHold(
       )
     );
 
-  const expiresAt = calculateExpiresAt(round.holdDurationMinutes);
+  const expiresAt = _calculateExpiresAt(round.holdDurationMinutes);
 
   const [hold] = await db
     .insert(bedHolds)

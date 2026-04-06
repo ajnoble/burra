@@ -2,13 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useBooking, type PricingResult, type GuestPriceInfo } from "../booking-context";
+import { useBooking } from "../booking-context";
 import { formatCurrency } from "@/lib/currency";
-import {
-  calculateGuestPrice,
-  calculateBookingPrice,
-  type GuestPriceResult,
-} from "@/actions/bookings/pricing";
 
 type Lodge = {
   id: string;
@@ -46,10 +41,6 @@ export function ReviewPricing({ organisationId, lodges }: Props) {
         // In production, this calls the server action with real tariff lookup
         // The pricing calculation itself is done client-side for display,
         // but the final price is recalculated server-side during createBooking
-        const guestPrices: GuestPriceInfo[] = [];
-        let subtotal = 0;
-        let discount = 0;
-        let total = 0;
 
         // We need to fetch pricing from server
         const response = await fetch(

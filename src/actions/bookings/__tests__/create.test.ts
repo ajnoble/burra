@@ -43,7 +43,7 @@ vi.mock("@/db/schema", () => ({
   bookingRounds: { id: "id", requiresApproval: "requires_approval" },
 }));
 
-import { validateCreateBookingInput } from "../create";
+import { validateCreateBookingInput } from "../create-helpers";
 
 describe("validateCreateBookingInput", () => {
   it("rejects invalid schema input", () => {

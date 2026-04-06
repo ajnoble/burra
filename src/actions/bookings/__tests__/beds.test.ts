@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { buildBedAvailabilityMap } from "../beds";
+import { buildBedAvailabilityMap } from "../beds-helpers";
 
 describe("buildBedAvailabilityMap", () => {
   it("marks all beds as available when none are booked or held", () => {

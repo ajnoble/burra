@@ -36,7 +36,7 @@ vi.mock("@/db/schema", () => ({
   },
 }));
 
-import { isHoldExpired, calculateExpiresAt } from "../holds";
+import { isHoldExpired, calculateExpiresAt } from "../holds-helpers";
 
 describe("isHoldExpired", () => {
   it("returns true when expiresAt is in the past", () => {

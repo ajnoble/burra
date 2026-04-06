@@ -3,35 +3,10 @@
 import { db } from "@/db/index";
 import { beds, rooms, bookingGuests, bookings, bedHolds } from "@/db/schema";
 import { eq, and, sql, lt, ne, gte } from "drizzle-orm";
+import { buildBedAvailabilityMap as _buildBedAvailabilityMap } from "./beds-helpers";
+import type { BedWithStatus } from "./beds-helpers";
 
-type BedStatus = "available" | "booked" | "held" | "held-by-you";
-
-export type BedWithStatus = {
-  id: string;
-  label: string;
-  roomId: string;
-  sortOrder: number;
-  status: BedStatus;
-};
-
-export function buildBedAvailabilityMap(
-  allBeds: { id: string; label: string; roomId: string; sortOrder: number }[],
-  bookedBedIds: Set<string>,
-  otherHeldBedIds: Set<string>,
-  myHeldBedIds: Set<string> | null
-): BedWithStatus[] {
-  return allBeds.map((bed) => {
-    let status: BedStatus = "available";
-    if (bookedBedIds.has(bed.id)) {
-      status = "booked";
-    } else if (myHeldBedIds?.has(bed.id)) {
-      status = "held-by-you";
-    } else if (otherHeldBedIds.has(bed.id)) {
-      status = "held";
-    }
-    return { id: bed.id, label: bed.label, roomId: bed.roomId, sortOrder: bed.sortOrder, status };
-  });
-}
+export type { BedWithStatus } from "./beds-helpers";
 
 export type RoomWithBeds = {
   id: string;
@@ -119,7 +94,7 @@ export async function getAvailableBeds(
   const myHeldBedIds = new Set(myHeldRows.map((r) => r.bedId));
 
   // Build the availability map
-  const bedsWithStatus = buildBedAvailabilityMap(allBeds, bookedBedIds, otherHeldBedIds, myHeldBedIds);
+  const bedsWithStatus = _buildBedAvailabilityMap(allBeds, bookedBedIds, otherHeldBedIds, myHeldBedIds);
 
   // Group beds by room
   return lodgeRooms.map((room) => ({
