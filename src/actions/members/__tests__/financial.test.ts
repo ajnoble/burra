@@ -2,10 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockUpdate = vi.fn();
 const mockInsert = vi.fn();
+const mockSelect = vi.fn();
 const mockSet = vi.fn();
 const mockValues = vi.fn();
 const mockWhere = vi.fn();
 const mockReturning = vi.fn();
+const mockSendEmail = vi.fn();
 
 vi.mock("@/db/index", () => ({
   db: {
@@ -20,7 +22,7 @@ vi.mock("@/db/index", () => ({
               return {
                 returning: () => {
                   mockReturning();
-                  return [{ id: "member-id" }];
+                  return [{ id: "member-id", email: "jan@example.com", firstName: "Jan" }];
                 },
               };
             },
@@ -37,11 +39,31 @@ vi.mock("@/db/index", () => ({
         },
       };
     },
+    select: (...args: unknown[]) => {
+      mockSelect(...args);
+      return {
+        from: () => ({
+          where: () => [{
+            name: "Demo Club",
+            contactEmail: "admin@demo.com",
+            logoUrl: null,
+          }],
+        }),
+      };
+    },
   },
 }));
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/email/send", () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+}));
+
+vi.mock("@/lib/email/templates/financial-status-changed", () => ({
+  FinancialStatusChangedEmail: () => null,
 }));
 
 import { updateFinancialStatus } from "../financial";
@@ -67,6 +89,12 @@ describe("updateFinancialStatus", () => {
     expect(result.success).toBe(true);
     expect(mockUpdate).toHaveBeenCalled();
     expect(mockInsert).toHaveBeenCalled();
+    expect(mockSendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "jan@example.com",
+        subject: expect.stringContaining("Membership status updated"),
+      })
+    );
   });
 
   it("rejects missing reason", async () => {
