@@ -129,7 +129,7 @@ export {
 
 - [ ] **Step 3: Generate the migration**
 
-Run: `cd /opt/burra && npx drizzle-kit generate`
+Run: `cd /opt/snowgum && npx drizzle-kit generate`
 
 Expected: A new SQL migration file in `drizzle/` creating the `override_type` enum and `availability_overrides` table.
 
@@ -313,7 +313,7 @@ describe("validateBookingDatesSchema", () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/schemas.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/schemas.test.ts`
 
 Expected: FAIL — module `../schemas` not found.
 
@@ -398,7 +398,7 @@ export const validateBookingDatesSchema = z
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/schemas.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/schemas.test.ts`
 
 Expected: All tests PASS.
 
@@ -547,7 +547,7 @@ describe("getOverridesForLodge", () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/queries.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/queries.test.ts`
 
 Expected: FAIL — module `../queries` not found.
 
@@ -623,7 +623,7 @@ export async function getOverridesForLodge(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/queries.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/queries.test.ts`
 
 Expected: All tests PASS.
 
@@ -768,7 +768,7 @@ describe("rebuildAvailabilityCache", () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/rebuild.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/rebuild.test.ts`
 
 Expected: FAIL — module `../rebuild` not found.
 
@@ -911,7 +911,7 @@ export async function seedSeasonAvailability(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/rebuild.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/rebuild.test.ts`
 
 Expected: All tests PASS.
 
@@ -1084,7 +1084,7 @@ describe("deleteAvailabilityOverride", () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/overrides.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/overrides.test.ts`
 
 Expected: FAIL — module `../overrides` not found.
 
@@ -1256,7 +1256,7 @@ export async function deleteAvailabilityOverride(
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/overrides.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/overrides.test.ts`
 
 Expected: All tests PASS.
 
@@ -1478,7 +1478,7 @@ describe("validateBookingDates", () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/validation.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/validation.test.ts`
 
 Expected: FAIL — module `../validation` not found.
 
@@ -1721,7 +1721,7 @@ export async function validateBookingDates(input: {
 
 - [ ] **Step 5: Run tests to verify they pass**
 
-Run: `cd /opt/burra && npx vitest run src/actions/availability/__tests__/validation.test.ts`
+Run: `cd /opt/snowgum && npx vitest run src/actions/availability/__tests__/validation.test.ts`
 
 Expected: All tests PASS.
 
@@ -2239,11 +2239,11 @@ export function AdminAvailabilityClient({
 
 - [ ] **Step 4: Verify the build compiles (may have import issues to fix)**
 
-Run: `cd /opt/burra && npx next build 2>&1 | head -50`
+Run: `cd /opt/snowgum && npx next build 2>&1 | head -50`
 
 Fix any import errors. The Select component may not exist yet — if so, add it:
 
-Run: `cd /opt/burra && npx shadcn@latest add select` (only if Select is not in `src/components/ui/`)
+Run: `cd /opt/snowgum && npx shadcn@latest add select` (only if Select is not in `src/components/ui/`)
 
 - [ ] **Step 5: Commit**
 
@@ -2595,11 +2595,11 @@ export function OverrideForm({
 
 - [ ] **Step 3: Verify build compiles**
 
-Run: `cd /opt/burra && npx next build 2>&1 | head -50`
+Run: `cd /opt/snowgum && npx next build 2>&1 | head -50`
 
 Fix any missing shadcn components. If Dialog is missing:
 
-Run: `cd /opt/burra && npx shadcn@latest add dialog` (only if not already in `src/components/ui/`)
+Run: `cd /opt/snowgum && npx shadcn@latest add dialog` (only if not already in `src/components/ui/`)
 
 - [ ] **Step 4: Commit**
 
@@ -2802,7 +2802,7 @@ export function MemberAvailabilityClient({
 
 - [ ] **Step 3: Verify build compiles**
 
-Run: `cd /opt/burra && npx next build 2>&1 | head -50`
+Run: `cd /opt/snowgum && npx next build 2>&1 | head -50`
 
 - [ ] **Step 4: Commit**
 
@@ -2820,7 +2820,7 @@ git commit -m "feat: add member-facing availability page"
 
 - [ ] **Step 1: Run full quality check**
 
-Run: `cd /opt/burra && npm run check`
+Run: `cd /opt/snowgum && npm run check`
 
 Expected: Lint passes, all tests pass, build succeeds.
 
@@ -2862,7 +2862,7 @@ And add to the Test Coverage section:
 
 - [ ] **Step 3: Run quality check again after README changes**
 
-Run: `cd /opt/burra && npm run check`
+Run: `cd /opt/snowgum && npm run check`
 
 Expected: All passes.
 

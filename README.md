@@ -1,4 +1,4 @@
-# Burra
+# Snowgum
 
 A SaaS booking and membership management platform for member-owned accommodation clubs in Australia. Built to replace legacy systems like CBDWeb with a modern, mobile-first experience.
 
@@ -16,7 +16,7 @@ A SaaS booking and membership management platform for member-owned accommodation
 | **Email** | Resend + React Email |
 | **Rate Limiting** | Upstash Redis |
 | **Testing** | Vitest (unit/integration), Playwright (E2E) |
-| **Deployment** | Vercel |
+| **Deployment** | Docker on VPS |
 
 ## Architecture
 
@@ -128,8 +128,8 @@ drizzle/                        # Generated SQL migrations
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/ajnoble/burra.git
-   cd burra
+   git clone https://github.com/ajnoble/snowgum.git
+   cd snowgum
    ```
 
 2. Install dependencies:
