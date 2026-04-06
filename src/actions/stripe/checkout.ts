@@ -62,6 +62,16 @@ export async function createCheckoutSession(
     return { success: false, error: "This invoice has already been paid" };
   }
 
+  // Block payment for PENDING bookings (awaiting approval)
+  const [bookingStatus] = await db
+    .select({ status: bookings.status })
+    .from(bookings)
+    .where(eq(bookings.id, txn.bookingId!));
+
+  if (bookingStatus?.status === "PENDING") {
+    return { success: false, error: "This booking is awaiting approval. You will be notified when it is approved." };
+  }
+
   if (txn.memberId !== session.memberId) {
     return { success: false, error: "You do not have permission to pay this invoice" };
   }

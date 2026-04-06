@@ -44,6 +44,7 @@ vi.mock("@/db/schema", () => ({
     bookingReference: "booking_reference",
     totalAmountCents: "total_amount_cents",
     primaryMemberId: "primary_member_id",
+    status: "status",
   },
 }));
 
@@ -133,6 +134,13 @@ describe("createCheckoutSession", () => {
       }),
     });
 
+    // Booking status check
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [{ status: "CONFIRMED" }],
+      }),
+    });
+
     mockGetStripeClient.mockReturnValue({
       checkout: {
         sessions: {
@@ -171,6 +179,13 @@ describe("createCheckoutSession", () => {
             stripePaymentIntentId: null,
           }],
         }),
+      }),
+    });
+
+    // Booking status check
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [{ status: "CONFIRMED" }],
       }),
     });
 

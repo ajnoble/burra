@@ -10,6 +10,7 @@ type BookingApprovedEmailProps = {
   checkOutDate: string;
   payUrl: string;
   logoUrl?: string;
+  note?: string;
 };
 
 export function BookingApprovedEmail({
@@ -20,6 +21,7 @@ export function BookingApprovedEmail({
   checkOutDate,
   payUrl,
   logoUrl,
+  note,
 }: BookingApprovedEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
@@ -27,6 +29,11 @@ export function BookingApprovedEmail({
       <Text style={paragraph}>
         Great news — your booking has been approved. Please complete payment to secure your stay.
       </Text>
+      {note && (
+        <Text style={paragraph}>
+          <em>{note}</em>
+        </Text>
+      )}
       <Section style={detailsBox}>
         <Text style={paragraph}>
           <strong>Booking reference:</strong> {bookingReference}
