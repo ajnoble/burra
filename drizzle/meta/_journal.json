@@ -50,6 +50,13 @@
       "when": 1775470009683,
       "tag": "0006_slim_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1775475548839,
+      "tag": "0007_little_praxagora",
+      "breakpoints": true
     }
   ]
 }

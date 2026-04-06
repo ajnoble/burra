@@ -20,6 +20,7 @@ export const membershipClasses = pgTable("membership_classes", {
   description: text("description"),
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+  annualFeeCents: integer("annual_fee_cents"), // null = no fee for this class
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

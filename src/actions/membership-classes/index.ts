@@ -11,6 +11,7 @@ const classSchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
   description: z.string().optional().or(z.literal("")),
   sortOrder: z.number().int().default(0),
+  annualFeeCents: z.number().int().nonnegative().nullable().optional(),
 });
 
 export async function createMembershipClass(
@@ -25,6 +26,7 @@ export async function createMembershipClass(
       name: data.name,
       description: data.description || null,
       sortOrder: data.sortOrder,
+      annualFeeCents: data.annualFeeCents ?? null,
     })
     .returning();
 
@@ -43,6 +45,7 @@ export async function updateMembershipClass(
       name: data.name,
       description: data.description || null,
       sortOrder: data.sortOrder,
+      annualFeeCents: data.annualFeeCents ?? null,
       updatedAt: new Date(),
     })
     .where(eq(membershipClasses.id, input.id))

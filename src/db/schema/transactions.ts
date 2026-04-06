@@ -64,6 +64,7 @@ export const subscriptions = pgTable("subscriptions", {
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   status: subscriptionStatusEnum("status").notNull().default("UNPAID"),
   waivedReason: text("waived_reason"),
+  reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

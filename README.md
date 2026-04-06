@@ -103,12 +103,12 @@ drizzle/                        # Generated SQL migrations
 | 7 | Stripe Connect | Express account onboarding, Stripe Checkout payments, webhook processing, 1% platform fee |
 | 8 | Email Notifications | 12 templates via Resend + React Email, fire-and-forget delivery, admin copy on bookings |
 | 9 | Admin Booking Management | Admin booking list, approve/cancel/modify, bed reassignment, cancellation policies, Stripe refunds, member self-cancel |
+| 10 | Subscription Management | Annual fees per membership class, Stripe Checkout payment, admin waive/adjust/record, daily cron for reminders and grace period |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 10 | Subscription Management — annual fees, payment tracking |
 | 12 | Treasurer Reporting — revenue, occupancy, ledger, CSV exports |
 | 13 | Bulk Communications — filtered email to members |
 | 14 | Waitlist — entry, notification, conversion to booking |

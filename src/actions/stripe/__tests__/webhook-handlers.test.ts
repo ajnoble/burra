@@ -34,6 +34,7 @@ vi.mock("@/db/schema", () => ({
   },
   members: { id: "id", email: "email" },
   organisations: { id: "id", name: "name", contactEmail: "contact_email", logoUrl: "logo_url", slug: "slug" },
+  subscriptions: { id: "id", memberId: "member_id", amountCents: "amount_cents", organisationId: "organisation_id", status: "status", paidAt: "paid_at", stripePaymentIntentId: "stripe_payment_intent_id", updatedAt: "updated_at" },
 }));
 
 const mockSendEmail = vi.fn();
@@ -193,5 +194,72 @@ describe("handleCheckoutSessionExpired", () => {
     } as unknown as Stripe.Checkout.Session);
 
     expect(mockSendEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe("handleCheckoutSessionCompleted — subscription payment", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("marks subscription as PAID and creates transaction when subscriptionId in metadata", async () => {
+    // 1. Idempotency check → no existing SUBSCRIPTION transaction
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [],
+      }),
+    });
+
+    // 2. Subscription lookup → returns subscription data
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [{
+          id: "sub-1",
+          memberId: "m-1",
+          amountCents: 15000,
+          organisationId: "org-1",
+        }],
+      }),
+    });
+
+    // 3. Insert SUBSCRIPTION transaction
+    mockDbInsert.mockReturnValue({
+      values: () => ({ returning: () => [{ id: "txn-sub-1" }] }),
+    });
+
+    // 4. Update subscription
+    mockDbUpdate.mockReturnValue({
+      set: () => ({ where: () => ({}) }),
+    });
+
+    // 5. Email data lookup → returns member/org data
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        innerJoin: () => ({
+          where: () => [{
+            email: "jan@example.com",
+            orgName: "Polski Ski Club",
+            contactEmail: "admin@polski.com",
+            logoUrl: null,
+          }],
+        }),
+      }),
+    });
+
+    const session = {
+      id: "cs_test_sub_123",
+      payment_intent: "pi_test_sub_456",
+      metadata: {
+        subscriptionId: "sub-1",
+        organisationId: "org-1",
+      },
+      amount_total: 15000,
+    };
+
+    await handleCheckoutSessionCompleted(session as unknown as Stripe.Checkout.Session);
+
+    expect(mockDbInsert).toHaveBeenCalled();
+    expect(mockDbUpdate).toHaveBeenCalled();
+    expect(mockSendEmail).toHaveBeenCalled();
   });
 });
