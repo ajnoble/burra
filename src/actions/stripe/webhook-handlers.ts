@@ -45,7 +45,12 @@ export async function handleCheckoutSessionCompleted(
         organisationId: subscriptions.organisationId,
       })
       .from(subscriptions)
-      .where(eq(subscriptions.id, subscriptionId));
+      .where(
+        and(
+          eq(subscriptions.id, subscriptionId),
+          eq(subscriptions.organisationId, organisationId!)
+        )
+      );
 
     if (!sub) return;
 
