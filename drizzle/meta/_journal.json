@@ -43,6 +43,13 @@
       "when": 1775464034667,
       "tag": "0005_spooky_miracleman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775470009683,
+      "tag": "0006_slim_sphinx",
+      "breakpoints": true
     }
   ]
 }

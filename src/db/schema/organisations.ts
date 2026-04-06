@@ -15,6 +15,7 @@ export const organisations = pgTable("organisations", {
   platformFeeBps: integer("platform_fee_bps").notNull().default(100), // 100 bps = 1%
   bookingReminderHours: integer("booking_reminder_hours").notNull().default(48),
   contactEmail: text("contact_email"),
+  defaultApprovalNote: text("default_approval_note"),
   contactPhone: text("contact_phone"),
   websiteUrl: text("website_url"),
   address: text("address"),

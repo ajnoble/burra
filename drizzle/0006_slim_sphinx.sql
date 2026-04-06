@@ -1,0 +1,1 @@
+ALTER TABLE "organisations" ADD COLUMN "default_approval_note" text;
