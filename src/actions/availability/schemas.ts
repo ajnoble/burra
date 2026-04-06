@@ -6,7 +6,7 @@ const baseOverrideSchema = z.object({
   lodgeId: z.string().uuid(),
   startDate: isoDateSchema,
   endDate: isoDateSchema,
-  type: z.enum(["CLOSURE", "REDUCTION"]),
+  type: z.enum(["CLOSURE", "REDUCTION", "EVENT"]),
   bedReduction: z.number().int().positive().optional(),
   reason: z.string().trim().optional(),
 });
@@ -33,13 +33,27 @@ export const createOverrideSchema = baseOverrideSchema.superRefine((data, ctx) =
       path: ["bedReduction"],
     });
   }
+  if (data.type === "EVENT" && data.bedReduction !== undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Bed reduction must not be set for EVENT type",
+      path: ["bedReduction"],
+    });
+  }
+  if (data.type === "EVENT" && (!data.reason || data.reason.trim().length === 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Reason is required for EVENT type (used as the event label)",
+      path: ["reason"],
+    });
+  }
 });
 
 export const updateOverrideSchema = z
   .object({
     startDate: isoDateSchema.optional(),
     endDate: isoDateSchema.optional(),
-    type: z.enum(["CLOSURE", "REDUCTION"]).optional(),
+    type: z.enum(["CLOSURE", "REDUCTION", "EVENT"]).optional(),
     bedReduction: z.number().int().positive().optional().nullable(),
     reason: z.string().trim().optional().nullable(),
   })
