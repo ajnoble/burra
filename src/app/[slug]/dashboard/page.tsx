@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PaymentButton } from "./payment-button";
+import { CancelBookingDialog } from "./cancel-booking-dialog";
+import { cancellationPolicies } from "@/db/schema";
+import { db } from "@/db/index";
+import { eq, and } from "drizzle-orm";
 
 export default async function DashboardPage({
   params,
@@ -30,6 +34,20 @@ export default async function DashboardPage({
   let upcomingBookings: Awaited<ReturnType<typeof getUpcomingBookings>> = [];
   if (org && session) {
     upcomingBookings = await getUpcomingBookings(org.id, session.memberId);
+  }
+
+  let defaultPolicyRules = null;
+  if (org) {
+    const [defaultPolicy] = await db
+      .select({ rules: cancellationPolicies.rules })
+      .from(cancellationPolicies)
+      .where(
+        and(
+          eq(cancellationPolicies.organisationId, org.id),
+          eq(cancellationPolicies.isDefault, true)
+        )
+      );
+    defaultPolicyRules = defaultPolicy?.rules ?? null;
   }
 
   const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive"> = {
@@ -121,6 +139,20 @@ export default async function DashboardPage({
                       amountCents={b.totalAmountCents}
                     />
                   ) : null}
+                  {b.status !== "CANCELLED" && b.status !== "COMPLETED" && session && (
+                    <div className="mt-2">
+                      <CancelBookingDialog
+                        bookingId={b.id}
+                        organisationId={org!.id}
+                        slug={slug}
+                        totalAmountCents={b.totalAmountCents}
+                        balancePaidAt={b.balancePaidAt?.toISOString() ?? null}
+                        checkInDate={b.checkInDate}
+                        policyRules={defaultPolicyRules}
+                        memberId={session.memberId}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
