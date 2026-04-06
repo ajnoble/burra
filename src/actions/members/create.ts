@@ -1,11 +1,14 @@
 "use server";
 
 import { db } from "@/db/index";
-import { members, organisationMembers } from "@/db/schema";
+import { members, organisationMembers, organisations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { createMemberSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import React from "react";
+import { sendEmail } from "@/lib/email/send";
+import { WelcomeEmail } from "@/lib/email/templates/welcome";
 
 type CreateMemberInput = {
   organisationId: string;
@@ -67,6 +70,32 @@ export async function createMember(
     organisationId: input.organisationId,
     memberId: member.id,
     role: data.role,
+  });
+
+  // Fetch org details for email
+  const [org] = await db
+    .select({
+      name: organisations.name,
+      contactEmail: organisations.contactEmail,
+      logoUrl: organisations.logoUrl,
+    })
+    .from(organisations)
+    .where(eq(organisations.id, input.organisationId));
+
+  // Send welcome email (fire-and-forget)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  sendEmail({
+    to: data.email,
+    subject: `Welcome to ${org?.name ?? input.slug}`,
+    template: React.createElement(WelcomeEmail, {
+      orgName: org?.name ?? input.slug,
+      firstName: data.firstName,
+      loginUrl: `${appUrl}/${input.slug}/login`,
+      memberNumber: data.memberNumber || undefined,
+      logoUrl: org?.logoUrl || undefined,
+    }),
+    replyTo: org?.contactEmail || undefined,
+    orgName: org?.name ?? input.slug,
   });
 
   revalidatePath(`/${input.slug}/admin/members`);
