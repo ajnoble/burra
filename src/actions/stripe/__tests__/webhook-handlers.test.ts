@@ -30,10 +30,26 @@ vi.mock("@/db/schema", () => ({
     id: "id",
     balancePaidAt: "balance_paid_at",
     updatedAt: "updated_at",
+    bookingReference: "booking_reference",
   },
+  members: { id: "id", email: "email" },
+  organisations: { id: "id", name: "name", contactEmail: "contact_email", logoUrl: "logo_url", slug: "slug" },
 }));
 
-import { handleCheckoutSessionCompleted } from "../webhook-handlers";
+const mockSendEmail = vi.fn();
+vi.mock("@/lib/email/send", () => ({
+  sendEmail: (...args: unknown[]) => mockSendEmail(...args),
+}));
+
+vi.mock("@/lib/email/templates/payment-received", () => ({
+  PaymentReceivedEmail: () => null,
+}));
+
+vi.mock("@/lib/email/templates/payment-expired", () => ({
+  PaymentExpiredEmail: () => null,
+}));
+
+import { handleCheckoutSessionCompleted, handleCheckoutSessionExpired } from "../webhook-handlers";
 
 describe("handleCheckoutSessionCompleted", () => {
   beforeEach(() => {
@@ -67,6 +83,22 @@ describe("handleCheckoutSessionCompleted", () => {
     mockDbUpdate.mockReturnValue({
       set: () => ({ where: () => ({}) }),
     });
+    // Get email data for payment received email
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        innerJoin: () => ({
+          innerJoin: () => ({
+            where: () => [{
+              bookingReference: "PSKI-2027-0042",
+              email: "jan@example.com",
+              orgName: "Polski Ski Club",
+              contactEmail: "admin@polski.com",
+              logoUrl: null,
+            }],
+          }),
+        }),
+      }),
+    });
 
     const session = {
       id: "cs_test_123",
@@ -83,6 +115,7 @@ describe("handleCheckoutSessionCompleted", () => {
 
     expect(mockDbInsert).toHaveBeenCalled();
     expect(mockDbUpdate).toHaveBeenCalled();
+    expect(mockSendEmail).toHaveBeenCalled();
   });
 
   it("skips processing if payment already exists (idempotent)", async () => {
@@ -108,5 +141,57 @@ describe("handleCheckoutSessionCompleted", () => {
 
     expect(mockDbInsert).not.toHaveBeenCalled();
     expect(mockDbUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe("handleCheckoutSessionExpired", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("sends Payment Expired email", async () => {
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        innerJoin: () => ({
+          innerJoin: () => ({
+            innerJoin: () => ({
+              where: () => [{
+                bookingReference: "PSKI-2027-0042",
+                email: "jan@example.com",
+                orgName: "Polski Ski Club",
+                contactEmail: "admin@polski.com",
+                logoUrl: null,
+                slug: "polski",
+                amountCents: 84000,
+              }],
+            }),
+          }),
+        }),
+      }),
+    });
+
+    await handleCheckoutSessionExpired({
+      id: "cs_test_expired",
+      metadata: {
+        transactionId: "txn-1",
+        bookingId: "bkg-1",
+        organisationId: "org-1",
+      },
+    } as unknown as Stripe.Checkout.Session);
+
+    expect(mockSendEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: expect.stringContaining("expired"),
+      })
+    );
+  });
+
+  it("does nothing when metadata is missing", async () => {
+    await handleCheckoutSessionExpired({
+      id: "cs_test_expired",
+      metadata: {},
+    } as unknown as Stripe.Checkout.Session);
+
+    expect(mockSendEmail).not.toHaveBeenCalled();
   });
 });

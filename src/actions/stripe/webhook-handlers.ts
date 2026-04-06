@@ -1,8 +1,13 @@
 import { db } from "@/db/index";
 import { transactions, bookings } from "@/db/schema";
+import { members, organisations } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type Stripe from "stripe";
 import { applyBasisPoints } from "@/lib/currency";
+import { sendEmail } from "@/lib/email/send";
+import React from "react";
+import { PaymentReceivedEmail } from "@/lib/email/templates/payment-received";
+import { PaymentExpiredEmail } from "@/lib/email/templates/payment-expired";
 
 export async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
@@ -68,4 +73,75 @@ export async function handleCheckoutSessionCompleted(
       updatedAt: new Date(),
     })
     .where(eq(bookings.id, bookingId));
+
+  // Get member email, booking ref, and org details for email
+  const [emailData] = await db
+    .select({
+      bookingReference: bookings.bookingReference,
+      email: members.email,
+      orgName: organisations.name,
+      contactEmail: organisations.contactEmail,
+      logoUrl: organisations.logoUrl,
+    })
+    .from(bookings)
+    .innerJoin(members, eq(members.id, invoice.memberId))
+    .innerJoin(organisations, eq(organisations.id, invoice.organisationId))
+    .where(eq(bookings.id, bookingId));
+
+  if (emailData) {
+    sendEmail({
+      to: emailData.email,
+      subject: `Payment received — ${emailData.bookingReference}`,
+      template: React.createElement(PaymentReceivedEmail, {
+        orgName: emailData.orgName,
+        bookingReference: emailData.bookingReference,
+        amountCents: amountCents,
+        paidDate: new Date().toISOString().split("T")[0],
+        logoUrl: emailData.logoUrl || undefined,
+      }),
+      replyTo: emailData.contactEmail || undefined,
+      orgName: emailData.orgName,
+    });
+  }
+}
+
+export async function handleCheckoutSessionExpired(
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const { transactionId, bookingId, organisationId } = session.metadata ?? {};
+  if (!transactionId || !bookingId || !organisationId) return;
+
+  const [data] = await db
+    .select({
+      bookingReference: bookings.bookingReference,
+      email: members.email,
+      orgName: organisations.name,
+      contactEmail: organisations.contactEmail,
+      logoUrl: organisations.logoUrl,
+      slug: organisations.slug,
+      amountCents: transactions.amountCents,
+    })
+    .from(transactions)
+    .innerJoin(bookings, eq(bookings.id, transactions.bookingId))
+    .innerJoin(members, eq(members.id, transactions.memberId))
+    .innerJoin(organisations, eq(organisations.id, transactions.organisationId))
+    .where(eq(transactions.id, transactionId));
+
+  if (!data) return;
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  sendEmail({
+    to: data.email,
+    subject: `Payment session expired — ${data.bookingReference}`,
+    template: React.createElement(PaymentExpiredEmail, {
+      orgName: data.orgName,
+      bookingReference: data.bookingReference,
+      amountCents: data.amountCents,
+      payUrl: `${appUrl}/${data.slug}/dashboard`,
+      logoUrl: data.logoUrl || undefined,
+    }),
+    replyTo: data.contactEmail || undefined,
+    orgName: data.orgName,
+  });
 }
