@@ -3,12 +3,14 @@ import { redirect } from "next/navigation";
 import { getOrgBySlug } from "@/lib/org";
 import { getSessionMember } from "@/lib/auth";
 import { getUpcomingBookings } from "@/actions/bookings/queries";
+import { getActiveSeasonForOrg, getMemberSubscription } from "@/actions/subscriptions/queries";
 import { formatCurrency } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { PaymentButton } from "./payment-button";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
+import { SubscriptionCard } from "./subscription-card";
 import { cancellationPolicies } from "@/db/schema";
 import { db } from "@/db/index";
 import { eq, and } from "drizzle-orm";
@@ -35,6 +37,12 @@ export default async function DashboardPage({
   if (org && session) {
     upcomingBookings = await getUpcomingBookings(org.id, session.memberId);
   }
+
+  const activeSeason = org ? await getActiveSeasonForOrg(org.id) : null;
+  const memberSubscription =
+    org && session && activeSeason
+      ? await getMemberSubscription(org.id, session.memberId, activeSeason.id)
+      : null;
 
   let defaultPolicyRules = null;
   if (org) {
@@ -158,13 +166,22 @@ export default async function DashboardPage({
             </div>
           )}
         </div>
+        {memberSubscription && (
+          <SubscriptionCard
+            subscription={memberSubscription}
+            organisationId={org!.id}
+            slug={slug}
+            stripeConnected={!!org?.stripeConnectOnboardingComplete}
+          />
+        )}
         <div className="rounded-lg border p-4">
           <h3 className="font-medium">Outstanding Balance</h3>
           <p className="text-sm text-muted-foreground mt-1">
             {formatCurrency(
               upcomingBookings
                 .filter((b) => !b.balancePaidAt)
-                .reduce((sum, b) => sum + b.totalAmountCents, 0)
+                .reduce((sum, b) => sum + b.totalAmountCents, 0) +
+              (memberSubscription && memberSubscription.status === "UNPAID" ? memberSubscription.amountCents : 0)
             )}
           </p>
         </div>
