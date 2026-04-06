@@ -61,6 +61,7 @@ export async function getMemberBookings(
       totalAmountCents: bookings.totalAmountCents,
       status: bookings.status,
       createdAt: bookings.createdAt,
+      balancePaidAt: bookings.balancePaidAt,
     })
     .from(bookings)
     .innerJoin(lodges, eq(lodges.id, bookings.lodgeId))
@@ -89,9 +90,27 @@ export async function getMemberBookings(
     guestCounts.map((g) => [g.bookingId, Number(g.count)])
   );
 
+  const invoiceTxns = await db
+    .select({
+      bookingId: transactions.bookingId,
+      transactionId: transactions.id,
+    })
+    .from(transactions)
+    .where(
+      and(
+        sql`${transactions.bookingId} IN ${bookingIds}`,
+        eq(transactions.type, "INVOICE")
+      )
+    );
+
+  const invoiceMap = new Map(
+    invoiceTxns.map((t) => [t.bookingId, t.transactionId])
+  );
+
   return rows.map((r) => ({
     ...r,
     guestCount: countMap.get(r.id) ?? 0,
+    invoiceTransactionId: invoiceMap.get(r.id) ?? null,
   }));
 }
 

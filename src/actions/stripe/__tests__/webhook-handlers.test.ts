@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type Stripe from "stripe";
 
 const mockDbSelect = vi.fn();
 const mockDbInsert = vi.fn();
@@ -78,7 +79,7 @@ describe("handleCheckoutSessionCompleted", () => {
       amount_total: 84000,
     };
 
-    await handleCheckoutSessionCompleted(session as any);
+    await handleCheckoutSessionCompleted(session as unknown as Stripe.Checkout.Session);
 
     expect(mockDbInsert).toHaveBeenCalled();
     expect(mockDbUpdate).toHaveBeenCalled();
@@ -103,7 +104,7 @@ describe("handleCheckoutSessionCompleted", () => {
       amount_total: 84000,
     };
 
-    await handleCheckoutSessionCompleted(session as any);
+    await handleCheckoutSessionCompleted(session as unknown as Stripe.Checkout.Session);
 
     expect(mockDbInsert).not.toHaveBeenCalled();
     expect(mockDbUpdate).not.toHaveBeenCalled();

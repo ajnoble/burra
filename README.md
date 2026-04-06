@@ -98,13 +98,13 @@ drizzle/                        # Generated SQL migrations
 | 3 | Organisation & Lodge Admin | Admin layout with sidebar, org settings, membership classes, lodge/room/bed CRUD |
 | 4 | Member Management | Member list with search/filter, add/edit members, family linking, role management, financial status with history |
 | 5 | Availability Engine | Cache rebuild, admin overrides (closures/reductions), calendar component (admin + member), booking date validation |
+| 6 | Booking Flow | 5-step member booking wizard, concurrency handling with SELECT FOR UPDATE, timed bed holds, per-guest pricing |
+| 7 | Stripe Connect | Express account onboarding, Stripe Checkout payments, webhook processing, 1% platform fee |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 6 | Booking Flow — 5-step member booking, concurrency handling, rate limiting |
-| 7 | Stripe Connect — onboarding, payments, webhooks, platform fee |
 | 8 | Email Notifications — 11 templates via Resend + React Email |
 | 9 | Admin Booking Management — approve, modify, cancel, room allocation |
 | 10 | Subscription Management — annual fees, payment tracking |

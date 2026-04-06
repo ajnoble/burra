@@ -23,11 +23,11 @@ export type CheckoutSessionInput = {
   cancelUrl: string;
 };
 
-export function buildCheckoutSessionParams(input: CheckoutSessionInput): Stripe.Checkout.SessionCreateParams {
+export function buildCheckoutSessionParams(input: CheckoutSessionInput) {
   const platformFeeCents = applyBasisPoints(input.amountCents, input.platformFeeBps);
 
   return {
-    mode: "payment",
+    mode: "payment" as const,
     line_items: [
       {
         price_data: {
