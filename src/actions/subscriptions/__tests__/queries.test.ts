@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { getSubscriptionSummary } from "../queries";
 
 describe("getSubscriptionSummary", () => {
-  it("returns zeros for empty list", () => {
-    const result = getSubscriptionSummary([]);
+  it("returns zeros for empty list", async () => {
+    const result = await getSubscriptionSummary([]);
     expect(result).toEqual({
       totalExpected: 0,
       totalCollected: 0,
@@ -12,14 +12,14 @@ describe("getSubscriptionSummary", () => {
     });
   });
 
-  it("computes totals correctly for mixed statuses", () => {
+  it("computes totals correctly for mixed statuses", async () => {
     const subs = [
       { status: "PAID", amountCents: 15000 },
       { status: "PAID", amountCents: 20000 },
       { status: "UNPAID", amountCents: 10000 },
       { status: "WAIVED", amountCents: 5000 },
     ];
-    const result = getSubscriptionSummary(subs);
+    const result = await getSubscriptionSummary(subs);
     expect(result).toEqual({
       totalExpected: 50000,
       totalCollected: 35000,
@@ -28,12 +28,12 @@ describe("getSubscriptionSummary", () => {
     });
   });
 
-  it("handles all PAID subscriptions", () => {
+  it("handles all PAID subscriptions", async () => {
     const subs = [
       { status: "PAID", amountCents: 10000 },
       { status: "PAID", amountCents: 10000 },
     ];
-    const result = getSubscriptionSummary(subs);
+    const result = await getSubscriptionSummary(subs);
     expect(result).toEqual({
       totalExpected: 20000,
       totalCollected: 20000,
@@ -42,12 +42,12 @@ describe("getSubscriptionSummary", () => {
     });
   });
 
-  it("handles all UNPAID subscriptions", () => {
+  it("handles all UNPAID subscriptions", async () => {
     const subs = [
       { status: "UNPAID", amountCents: 10000 },
       { status: "UNPAID", amountCents: 5000 },
     ];
-    const result = getSubscriptionSummary(subs);
+    const result = await getSubscriptionSummary(subs);
     expect(result).toEqual({
       totalExpected: 15000,
       totalCollected: 0,
@@ -56,11 +56,11 @@ describe("getSubscriptionSummary", () => {
     });
   });
 
-  it("handles all WAIVED subscriptions", () => {
+  it("handles all WAIVED subscriptions", async () => {
     const subs = [
       { status: "WAIVED", amountCents: 8000 },
     ];
-    const result = getSubscriptionSummary(subs);
+    const result = await getSubscriptionSummary(subs);
     expect(result).toEqual({
       totalExpected: 8000,
       totalCollected: 0,

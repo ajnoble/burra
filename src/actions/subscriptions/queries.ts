@@ -42,12 +42,12 @@ export type SubscriptionSummary = {
 };
 
 // ---------------------------------------------------------------------------
-// Pure function — no DB, no "use server" semantics
+// Pure summary computation (async only because this file uses "use server")
 // ---------------------------------------------------------------------------
 
-export function getSubscriptionSummary(
+export async function getSubscriptionSummary(
   subs: { status: string; amountCents: number }[]
-): SubscriptionSummary {
+): Promise<SubscriptionSummary> {
   let totalExpected = 0;
   let totalCollected = 0;
   let totalOutstanding = 0;
