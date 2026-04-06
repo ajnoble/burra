@@ -76,6 +76,7 @@ src/
     seed-polski.ts              # Polski Ski Club config
     index.ts                    # Drizzle client
   lib/
+    email/                      # Resend client, sendEmail helper, 12 templates
     import/                     # CSV parsing and validation
     supabase/                   # Supabase client helpers
     auth.ts                     # Session and role helpers
@@ -100,12 +101,12 @@ drizzle/                        # Generated SQL migrations
 | 5 | Availability Engine | Cache rebuild, admin overrides (closures/reductions), calendar component (admin + member), booking date validation |
 | 6 | Booking Flow | 5-step member booking wizard, concurrency handling with SELECT FOR UPDATE, timed bed holds, per-guest pricing |
 | 7 | Stripe Connect | Express account onboarding, Stripe Checkout payments, webhook processing, 1% platform fee |
+| 8 | Email Notifications | 12 templates via Resend + React Email, fire-and-forget delivery, admin copy on bookings |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 8 | Email Notifications — 11 templates via Resend + React Email |
 | 9 | Admin Booking Management — approve, modify, cancel, room allocation |
 | 10 | Subscription Management — annual fees, payment tracking |
 | 11 | Cancellation Policies — config, refund calculation, cancellation flow |
@@ -206,6 +207,8 @@ npm run test:coverage
 - **Cache rebuild** — date range generation, override application, season seeding
 - **Override actions** — create, update, delete with cache rebuild
 - **Booking date validation** — all 7 rules: season, round, min/max nights, past dates, availability
+- **Email templates** — all 12 template rendering tests, layout component, sendEmail helper
+- **Email integrations** — Welcome on member create, Booking Confirmation on booking create, Payment Received/Expired on webhooks, Financial Status Changed on status update
 
 ### Development Workflow
 
