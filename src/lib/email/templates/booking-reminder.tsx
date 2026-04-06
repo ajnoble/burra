@@ -1,13 +1,6 @@
 import { Text, Section } from "@react-email/components";
 import { EmailLayout } from "./layout";
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr + "T00:00:00").toLocaleDateString("en-AU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+import { formatDate } from "../format";
 
 type Guest = { firstName: string; lastName: string };
 

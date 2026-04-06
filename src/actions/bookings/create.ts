@@ -306,6 +306,7 @@ export async function createBooking(
         bookingReference: booking.bookingReference,
         bookingId: booking.id,
         totalAmountCents: bookingTotal.totalAmountCents,
+        status,
       };
     });
 
@@ -333,25 +334,27 @@ export async function createBooking(
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // Send booking confirmation to member
-    sendEmail({
-      to: session.email,
-      subject: `Booking confirmed — ${result.bookingReference}`,
-      template: React.createElement(BookingConfirmationEmail, {
+    // Send booking confirmation only when actually confirmed (not pending approval)
+    if (result.status === "CONFIRMED") {
+      sendEmail({
+        to: session.email,
+        subject: `Booking confirmed — ${result.bookingReference}`,
+        template: React.createElement(BookingConfirmationEmail, {
+          orgName: org?.name ?? slug,
+          bookingReference: result.bookingReference,
+          lodgeName: lodge?.name ?? "Lodge",
+          checkInDate: data.checkInDate,
+          checkOutDate: data.checkOutDate,
+          totalNights: nights,
+          guests: guestMembers,
+          totalAmountCents: result.totalAmountCents,
+          payUrl: `${appUrl}/${slug}/dashboard`,
+          logoUrl: org?.logoUrl || undefined,
+        }),
+        replyTo: org?.contactEmail || undefined,
         orgName: org?.name ?? slug,
-        bookingReference: result.bookingReference,
-        lodgeName: lodge?.name ?? "Lodge",
-        checkInDate: data.checkInDate,
-        checkOutDate: data.checkOutDate,
-        totalNights: nights,
-        guests: guestMembers,
-        totalAmountCents: result.totalAmountCents,
-        payUrl: `${appUrl}/${slug}/dashboard`,
-        logoUrl: org?.logoUrl || undefined,
-      }),
-      replyTo: org?.contactEmail || undefined,
-      orgName: org?.name ?? slug,
-    });
+      });
+    }
 
     // Send admin notification
     if (org?.contactEmail) {
