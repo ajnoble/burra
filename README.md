@@ -57,12 +57,14 @@ src/
   app/                          # Next.js App Router pages
     [slug]/                     # Per-club routes
       admin/                    # Admin pages (role-protected)
+        availability/           # Availability calendar and overrides
         lodges/                 # Lodge, room, bed management
         members/import/         # CSV member import flow
         settings/               # Org settings, membership classes
       dashboard/                # Member dashboard
       login/                    # Auth
   actions/                      # Server actions (mutations)
+    availability/               # Cache rebuild, overrides, validation
     lodges/
     membership-classes/
     members/
@@ -95,12 +97,12 @@ drizzle/                        # Generated SQL migrations
 | 0 | CSV Member Import | 4-step flow: upload, preview with validation, confirm, results |
 | 3 | Organisation & Lodge Admin | Admin layout with sidebar, org settings, membership classes, lodge/room/bed CRUD |
 | 4 | Member Management | Member list with search/filter, add/edit members, family linking, role management, financial status with history |
+| 5 | Availability Engine | Cache rebuild, admin overrides (closures/reductions), calendar component (admin + member), booking date validation |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 5 | Availability Engine — cache, calendar component, date validation |
 | 6 | Booking Flow — 5-step member booking, concurrency handling, rate limiting |
 | 7 | Stripe Connect — onboarding, payments, webhooks, platform fee |
 | 8 | Email Notifications — 11 templates via Resend + React Email |
@@ -199,6 +201,11 @@ npm run test:coverage
 - **Member validation** — create/update schemas, financial status change schema
 - **Member queries** — paginated list, detail, family, financial history, search
 - **Member actions** — create, update, role change, financial status, family linking
+- **Availability schemas** — override create/update, booking date validation inputs
+- **Availability queries** — month availability, date range, overrides by lodge
+- **Cache rebuild** — date range generation, override application, season seeding
+- **Override actions** — create, update, delete with cache rebuild
+- **Booking date validation** — all 7 rules: season, round, min/max nights, past dates, availability
 
 ### Development Workflow
 
