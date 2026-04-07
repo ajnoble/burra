@@ -18,7 +18,7 @@ export function InviteEmail({
 }: InviteEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
-      <Text style={heading}>You're invited to {orgName}</Text>
+      <Text style={heading}>You&apos;re invited to {orgName}</Text>
       <Text style={paragraph}>Hi {firstName},</Text>
       <Text style={paragraph}>
         An account has been created for you. Click the button below to set your
