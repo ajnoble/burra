@@ -27,7 +27,7 @@ import {
 } from "./pricing";
 import { validateBookingDates } from "@/actions/availability/validation";
 import { revalidatePath } from "next/cache";
-import { validateCreateBookingInput } from "./create-helpers";
+import { validateCreateBookingInput, getBalanceDueDateForRound } from "./create-helpers";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { BookingConfirmationEmail } from "@/lib/email/templates/booking-confirmation";
@@ -111,6 +111,10 @@ export async function createBooking(
   if (!round) {
     return { success: false, error: "Booking round not found" };
   }
+
+  const balanceDueDate = round.requiresApproval
+    ? null  // Set on approval instead
+    : await getBalanceDueDateForRound(data.bookingRoundId);
 
   const nights = countNights(data.checkInDate, data.checkOutDate);
   const nightDates = getNightDates(data.checkInDate, data.checkOutDate);
@@ -253,6 +257,7 @@ export async function createBooking(
           totalAmountCents: bookingTotal.totalAmountCents,
           requiresApproval: round.requiresApproval,
           bookingReference,
+          ...(balanceDueDate && { balanceDueDate }),
         })
         .returning();
 
