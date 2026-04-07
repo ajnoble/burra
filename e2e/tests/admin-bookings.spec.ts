@@ -23,7 +23,7 @@ test.describe("Admin bookings", () => {
     const bookingRef = adminPage.getByText(/PSC-20/).first();
     await bookingRef.click();
     await adminPage.waitForURL("**/admin/bookings/**");
-    await expect(adminPage.getByText(/PSC-20/)).toBeVisible();
+    await expect(adminPage.getByRole("heading", { name: /PSC-20/ })).toBeVisible();
   });
 
   test("approve action visible on pending booking", async ({ adminPage }) => {
