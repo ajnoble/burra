@@ -40,7 +40,11 @@ vi.mock("drizzle-orm", () => ({
 function makeSelectChain(rows: unknown[]) {
   return {
     from: () => ({
-      where: () => rows,
+      where: () => {
+        const result = rows as unknown[];
+        (result as Record<string, unknown>).groupBy = () => rows;
+        return result;
+      },
     }),
   };
 }

@@ -73,7 +73,11 @@ vi.mock("date-fns", () => ({
 function makeSelectChain(rows: unknown[]) {
   return {
     from: () => ({
-      where: () => rows,
+      where: () => {
+        const result = rows as unknown[];
+        (result as Record<string, unknown>).groupBy = () => rows;
+        return result;
+      },
       innerJoin: () => ({
         innerJoin: () => ({
           where: () => ({

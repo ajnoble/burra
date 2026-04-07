@@ -23,7 +23,7 @@ test.describe("Admin reports", () => {
   test("member balances has financial status filter", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/reports/member-balances");
     await expect(adminPage.getByRole("heading", { name: "Member Balances" })).toBeVisible();
-    await expect(adminPage.getByText("Financial Status")).toBeVisible();
+    await expect(adminPage.locator("label").filter({ hasText: "Financial Status" })).toBeVisible();
   });
 
   test("CSV export triggers download", async ({ adminPage }) => {
@@ -37,12 +37,12 @@ test.describe("Admin reports", () => {
 
   test("subscription status has season filter", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/reports/subscription-status");
-    await expect(adminPage.getByText("Season")).toBeVisible();
+    await expect(adminPage.locator("label").filter({ hasText: "Season" })).toBeVisible();
   });
 
   test("occupancy report has lodge filter", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/reports/occupancy");
-    await expect(adminPage.getByText("Lodge")).toBeVisible();
+    await expect(adminPage.locator("label").filter({ hasText: /^Lodge$/ })).toBeVisible();
   });
 
   test("empty report shows message", async ({ adminPage }) => {

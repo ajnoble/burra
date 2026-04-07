@@ -3,7 +3,7 @@
 import { db } from "@/db/index";
 import { transactions, subscriptions } from "@/db/schema";
 import { and, eq, gte, lte, sql, inArray } from "drizzle-orm";
-import { format, startOfMonth, endOfMonth, subYears } from "date-fns";
+import { startOfMonth, endOfMonth, subYears } from "date-fns";
 
 export type MonthlyRevenue = {
   month: string; // YYYY-MM
@@ -122,6 +122,10 @@ export async function getTreasurerStats(
         lte(transactions.createdAt, fyEnd),
         inArray(transactions.type, ALL_RELEVANT_TYPES)
       )
+    )
+    .groupBy(
+      sql`TO_CHAR(${transactions.createdAt}, 'YYYY-MM')`,
+      transactions.type
     );
 
   // Group monthly rows into MonthlyRevenue[]

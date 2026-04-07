@@ -165,7 +165,8 @@ export async function getBookingOfficerStats(
         gte(availabilityCache.date, today),
         lte(availabilityCache.date, thirtyDaysLater)
       )
-    );
+    )
+    .groupBy(availabilityCache.date);
 
   const occupancyForecast: OccupancyDay[] = (
     forecastRows as Array<{
