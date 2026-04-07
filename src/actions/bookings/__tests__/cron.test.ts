@@ -379,14 +379,24 @@ describe("processBookingPaymentCron", () => {
       totalAmountCents: 80000,
     });
 
+    // Booking 3: "cancellation_policy" (default) — refundOverrideCents undefined
+    const bookingPolicy = makeBooking({
+      bookingId: "booking-policy",
+      bookingReference: "BSKI-2026-0003",
+      balanceDueDate: "2026-03-20",
+      orgPaymentGraceDays: 7,
+      autoCancelRefundPolicy: null, // null falls back to "cancellation_policy"
+      totalAmountCents: 60000,
+    });
+
     mockWhere
       .mockReturnValueOnce([]) // pass 1
-      .mockReturnValueOnce([bookingNone, bookingFull]) // pass 2
+      .mockReturnValueOnce([bookingNone, bookingFull, bookingPolicy]) // pass 2
       .mockReturnValue(Promise.resolve()); // pass 3
 
     await processBookingPaymentCron();
 
-    expect(mockCancelBooking).toHaveBeenCalledTimes(2);
+    expect(mockCancelBooking).toHaveBeenCalledTimes(3);
 
     // "none" → refundOverrideCents = 0
     expect(mockCancelBooking).toHaveBeenNthCalledWith(
@@ -405,6 +415,15 @@ describe("processBookingPaymentCron", () => {
         refundOverrideCents: 80000,
       })
     );
+
+    // "cancellation_policy" (null) → refundOverrideCents undefined (cancelBooking handles it)
+    expect(mockCancelBooking).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        bookingId: "booking-policy",
+      })
+    );
+    expect(mockCancelBooking.mock.calls[2][0].refundOverrideCents).toBeUndefined();
   });
 
   // ─── Test 8: Cleans up expired bed holds ────────────────────────────────
