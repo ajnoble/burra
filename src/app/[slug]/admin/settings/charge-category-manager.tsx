@@ -90,7 +90,7 @@ export function ChargeCategoryManager({
 
   async function handleToggle(cat: ChargeCategory) {
     try {
-      await toggleChargeCategory(cat.id, !cat.isActive, slug);
+      await toggleChargeCategory(cat.id, !cat.isActive, slug, organisationId);
       setCategories((prev) =>
         prev.map((c) =>
           c.id === cat.id ? { ...c, isActive: !c.isActive } : c

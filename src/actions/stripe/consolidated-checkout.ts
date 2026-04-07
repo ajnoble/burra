@@ -9,6 +9,7 @@ import {
   bookings,
   chargeCategories,
   checkoutLineItems,
+  members,
 } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { getStripeClient, buildConsolidatedCheckoutParams } from "@/lib/stripe";
@@ -153,6 +154,27 @@ export async function createConsolidatedCheckoutSession(
     return { success: false, error: "No items to pay" };
   }
 
+  // Verify the payer owns all charges (self or family dependents)
+  const familyDependents = await db
+    .select({ id: members.id })
+    .from(members)
+    .where(
+      and(
+        eq(members.organisationId, input.organisationId),
+        eq(members.primaryMemberId, session.memberId)
+      )
+    );
+
+  const allowedMemberIds = new Set([
+    session.memberId,
+    ...familyDependents.map((d) => d.id),
+  ]);
+
+  const unauthorizedItem = items.find((i) => !allowedMemberIds.has(i.memberId));
+  if (unauthorizedItem) {
+    return { success: false, error: "You can only pay charges for yourself or your family members" };
+  }
+
   const totalAmountCents = items.reduce((sum, i) => sum + i.amountCents, 0);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -160,13 +182,14 @@ export async function createConsolidatedCheckoutSession(
   const params = buildConsolidatedCheckoutParams({
     connectedAccountId: org.stripeConnectAccountId,
     organisationId: input.organisationId,
-    checkoutSessionId: "",
     lineItems: items.map((i) => ({ name: i.name, amountCents: i.amountCents })),
     totalAmountCents,
     platformFeeBps: org.platformFeeBps,
     successUrl: `${appUrl}/${input.slug}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${appUrl}/${input.slug}/payment/cancelled`,
   });
+
+  params.metadata.payerMemberId = session.memberId;
 
   const checkoutSession = await stripe.checkout.sessions.create(params, {
     stripeAccount: org.stripeConnectAccountId,

@@ -21,9 +21,9 @@ export async function handleCheckoutSessionCompleted(
 
   if (!paymentIntentId) return;
 
-  const { consolidatedCheckoutId } = session.metadata ?? {};
+  const { isConsolidated } = session.metadata ?? {};
 
-  if (consolidatedCheckoutId !== undefined) {
+  if (isConsolidated === "true") {
     // Consolidated checkout — process each line item
     const lineItems = await db
       .select({
@@ -40,6 +40,14 @@ export async function handleCheckoutSessionCompleted(
 
     const { organisationId } = session.metadata ?? {};
     if (!organisationId) return;
+
+    // Look up the org's platform fee
+    const [orgData] = await db
+      .select({ platformFeeBps: organisations.platformFeeBps })
+      .from(organisations)
+      .where(eq(organisations.id, organisationId));
+
+    const feeBps = orgData?.platformFeeBps ?? 100;
 
     // Idempotency: check if we already processed this session
     const [existingTxn] = await db
@@ -66,7 +74,7 @@ export async function handleCheckoutSessionCompleted(
           amountCents: item.amountCents,
           stripePaymentIntentId: paymentIntentId,
           stripeCheckoutSessionId: session.id,
-          platformFeeCents: applyBasisPoints(item.amountCents, 100),
+          platformFeeCents: applyBasisPoints(item.amountCents, feeBps),
           description: `Consolidated payment — ${item.chargeType.replace(/_/g, " ").toLowerCase()}`,
         })
         .returning();
@@ -120,8 +128,8 @@ export async function handleCheckoutSessionCompleted(
       });
     }
 
-    // Send consolidated receipt email to the payer (first line item's member)
-    const payerMemberId = lineItems[0].memberId;
+    // Send consolidated receipt email to the payer
+    const payerMemberId = session.metadata?.payerMemberId || lineItems[0].memberId;
     const [emailData] = await db
       .select({
         email: members.email,

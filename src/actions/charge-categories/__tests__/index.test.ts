@@ -53,6 +53,11 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getSessionMember: vi.fn().mockResolvedValue({ memberId: "admin-1", role: "ADMIN" }),
+  canAccessAdmin: vi.fn().mockReturnValue(true),
+}));
+
 import { createChargeCategory, updateChargeCategory, toggleChargeCategory } from "../index";
 
 beforeEach(() => {
@@ -108,7 +113,7 @@ describe("updateChargeCategory", () => {
 
 describe("toggleChargeCategory", () => {
   it("toggles isActive", async () => {
-    await toggleChargeCategory("cat-1", false, "demo");
+    await toggleChargeCategory("cat-1", false, "demo", "11111111-1111-1111-8111-111111111111");
     expect(mockUpdate).toHaveBeenCalled();
     expect(mockSet).toHaveBeenCalledWith(
       expect.objectContaining({ isActive: false })

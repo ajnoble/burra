@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { ChargeCreatedEmail } from "@/lib/email/templates/charge-created";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
 type CreateChargeInput = {
   organisationId: string;
@@ -28,6 +29,11 @@ type CreateChargeResult = {
 export async function createCharge(
   input: CreateChargeInput
 ): Promise<CreateChargeResult> {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   if (input.amountCents <= 0) {
     return { success: false, error: "Amount must be greater than zero" };
   }

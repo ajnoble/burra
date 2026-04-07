@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { ChargeCreatedEmail } from "@/lib/email/templates/charge-created";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
 type BulkCreateInput = {
   organisationId: string;
@@ -28,6 +29,11 @@ type BulkCreateResult = {
 export async function bulkCreateCharges(
   input: BulkCreateInput
 ): Promise<BulkCreateResult> {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   if (input.memberIds.length === 0) {
     return { success: false, error: "No members selected" };
   }

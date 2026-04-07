@@ -2,7 +2,7 @@
 
 import { db } from "@/db/index";
 import { oneOffCharges, chargeCategories, members } from "@/db/schema";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, inArray } from "drizzle-orm";
 
 export type ChargeWithDetails = {
   id: string;
@@ -115,13 +115,32 @@ export async function getChargesForFamily(
 
   const memberIds = [primaryMemberId, ...familyMembers.map((m) => m.id)];
 
-  const allCharges: ChargeWithDetails[] = [];
-  for (const mid of memberIds) {
-    const charges = await getChargesForMember(organisationId, mid);
-    allCharges.push(...charges);
-  }
+  const rows = await db
+    .select({
+      id: oneOffCharges.id,
+      memberId: oneOffCharges.memberId,
+      memberFirstName: members.firstName,
+      memberLastName: members.lastName,
+      categoryId: oneOffCharges.categoryId,
+      categoryName: chargeCategories.name,
+      description: oneOffCharges.description,
+      amountCents: oneOffCharges.amountCents,
+      dueDate: oneOffCharges.dueDate,
+      status: oneOffCharges.status,
+      waivedReason: oneOffCharges.waivedReason,
+      paidAt: oneOffCharges.paidAt,
+      createdAt: oneOffCharges.createdAt,
+    })
+    .from(oneOffCharges)
+    .innerJoin(chargeCategories, eq(chargeCategories.id, oneOffCharges.categoryId))
+    .innerJoin(members, eq(members.id, oneOffCharges.memberId))
+    .where(
+      and(
+        eq(oneOffCharges.organisationId, organisationId),
+        inArray(oneOffCharges.memberId, memberIds)
+      )
+    )
+    .orderBy(desc(oneOffCharges.createdAt));
 
-  return allCharges.sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  );
+  return rows;
 }

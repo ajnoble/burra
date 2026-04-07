@@ -4,6 +4,7 @@ import { db } from "@/db/index";
 import { oneOffCharges, transactions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
 type StatusResult = { success: boolean; error?: string };
 
@@ -13,6 +14,11 @@ export async function waiveCharge(input: {
   reason: string;
   slug: string;
 }): Promise<StatusResult> {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   const [charge] = await db
     .select({ id: oneOffCharges.id, status: oneOffCharges.status })
     .from(oneOffCharges)
@@ -46,6 +52,11 @@ export async function cancelCharge(input: {
   organisationId: string;
   slug: string;
 }): Promise<StatusResult> {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   const [charge] = await db
     .select({ id: oneOffCharges.id, status: oneOffCharges.status })
     .from(oneOffCharges)
@@ -75,6 +86,11 @@ export async function markChargeAsPaid(input: {
   organisationId: string;
   slug: string;
 }): Promise<StatusResult> {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   const [charge] = await db
     .select({
       id: oneOffCharges.id,

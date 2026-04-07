@@ -72,6 +72,11 @@ vi.mock("@/db/schema", () => ({
     amountCents: "amount_cents",
     memberId: "member_id",
   },
+  members: {
+    id: "id",
+    organisationId: "organisation_id",
+    primaryMemberId: "primary_member_id",
+  },
 }));
 
 import { createConsolidatedCheckoutSession } from "../consolidated-checkout";
@@ -224,6 +229,12 @@ describe("createConsolidatedCheckoutSession", () => {
         }),
       }),
     });
+    // family dependents query
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [],
+      }),
+    });
 
     mockGetStripeClient.mockReturnValue({
       checkout: {
@@ -288,6 +299,12 @@ describe("createConsolidatedCheckoutSession", () => {
           memberId: "m1",
           amountCents: 20000,
         }],
+      }),
+    });
+    // family dependents query
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [],
       }),
     });
 

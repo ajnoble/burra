@@ -5,6 +5,7 @@ import { chargeCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
 const categorySchema = z.object({
   organisationId: z.string().uuid(),
@@ -16,6 +17,11 @@ const categorySchema = z.object({
 export async function createChargeCategory(
   input: z.infer<typeof categorySchema> & { slug: string }
 ) {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    throw new Error("Unauthorized");
+  }
+
   const data = categorySchema.parse(input);
 
   const [created] = await db
@@ -35,6 +41,11 @@ export async function createChargeCategory(
 export async function updateChargeCategory(
   input: { id: string; slug: string } & z.infer<typeof categorySchema>
 ) {
+  const session = await getSessionMember(input.organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    throw new Error("Unauthorized");
+  }
+
   const data = categorySchema.parse(input);
 
   const [updated] = await db
@@ -55,8 +66,14 @@ export async function updateChargeCategory(
 export async function toggleChargeCategory(
   id: string,
   isActive: boolean,
-  slug: string
+  slug: string,
+  organisationId: string
 ) {
+  const session = await getSessionMember(organisationId);
+  if (!session || !canAccessAdmin(session.role)) {
+    throw new Error("Unauthorized");
+  }
+
   await db
     .update(chargeCategories)
     .set({ isActive, updatedAt: new Date() })

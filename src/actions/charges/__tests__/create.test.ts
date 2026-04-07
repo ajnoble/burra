@@ -81,6 +81,11 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getSessionMember: vi.fn().mockResolvedValue({ memberId: "admin-1", role: "ADMIN" }),
+  canAccessAdmin: vi.fn().mockReturnValue(true),
+}));
+
 import { createCharge } from "../create";
 
 beforeEach(() => {

@@ -54,7 +54,6 @@ export function buildCheckoutSessionParams(input: CheckoutSessionInput) {
 export type ConsolidatedCheckoutInput = {
   connectedAccountId: string;
   organisationId: string;
-  checkoutSessionId: string;
   lineItems: Array<{
     name: string;
     amountCents: number;
@@ -82,8 +81,9 @@ export function buildConsolidatedCheckoutParams(input: ConsolidatedCheckoutInput
       application_fee_amount: platformFeeCents,
     },
     metadata: {
-      consolidatedCheckoutId: input.checkoutSessionId,
-      organisationId: input.organisationId,
+      isConsolidated: "true" as string,
+      organisationId: input.organisationId as string,
+      payerMemberId: "" as string,
     },
     success_url: input.successUrl,
     cancel_url: input.cancelUrl,
