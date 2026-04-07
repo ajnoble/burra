@@ -2,6 +2,7 @@
 
 import { db } from "@/db/index";
 import { bookings, members, organisations, lodges } from "@/db/schema";
+import { getBalanceDueDateForRound } from "./create-helpers";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
@@ -39,6 +40,7 @@ export async function approveBooking(
       checkOutDate: bookings.checkOutDate,
       lodgeId: bookings.lodgeId,
       primaryMemberId: bookings.primaryMemberId,
+      bookingRoundId: bookings.bookingRoundId,
     })
     .from(bookings)
     .where(
@@ -59,6 +61,8 @@ export async function approveBooking(
     };
   }
 
+  const balanceDueDate = await getBalanceDueDateForRound(booking.bookingRoundId!);
+
   // Update booking: status → CONFIRMED, approvedAt → now(), approvedByMemberId → approver
   await db
     .update(bookings)
@@ -67,6 +71,7 @@ export async function approveBooking(
       approvedAt: new Date(),
       approvedByMemberId: input.approverMemberId,
       updatedAt: new Date(),
+      ...(balanceDueDate && { balanceDueDate }),
     })
     .where(eq(bookings.id, input.bookingId));
 

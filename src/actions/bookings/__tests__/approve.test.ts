@@ -76,7 +76,7 @@ vi.mock("@/db/index", () => ({
               },
             }),
             where: () => {
-              // Booking check (call 0), org details (call 1), lodge details (call 2), member email (call 3)
+              // Booking check (call 0), balanceDueDate (call 1), org details (call 2), lodge details (call 3), member email (call 4)
               if (callIndex === 0)
                 return [
                   {
@@ -87,9 +87,11 @@ vi.mock("@/db/index", () => ({
                     checkOutDate: "2027-07-16",
                     lodgeId: "lodge-1",
                     primaryMemberId: "member-1",
+                    bookingRoundId: "round-1",
                   },
                 ];
-              if (callIndex === 1)
+              if (callIndex === 1) return [{ balanceDueDate: "2027-06-15" }];
+              if (callIndex === 2)
                 return [
                   {
                     name: "Demo Club",
@@ -99,8 +101,8 @@ vi.mock("@/db/index", () => ({
                     defaultApprovalNote: "Welcome!",
                   },
                 ];
-              if (callIndex === 2) return [{ name: "Main Lodge" }];
-              if (callIndex === 3)
+              if (callIndex === 3) return [{ name: "Main Lodge" }];
+              if (callIndex === 4)
                 return [
                   {
                     email: "sarah@test.com",

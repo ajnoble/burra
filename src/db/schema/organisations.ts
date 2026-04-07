@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, boolean, integer, jsonb } from "drizzle-orm/pg-core";
 
 export const organisations = pgTable("organisations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -17,6 +17,8 @@ export const organisations = pgTable("organisations", {
   contactEmail: text("contact_email"),
   defaultApprovalNote: text("default_approval_note"),
   subscriptionGraceDays: integer("subscription_grace_days").notNull().default(14),
+  bookingPaymentGraceDays: integer("booking_payment_grace_days").notNull().default(7),
+  bookingPaymentReminderDays: jsonb("booking_payment_reminder_days").$type<number[]>().notNull().default([7, 1]),
   contactPhone: text("contact_phone"),
   websiteUrl: text("website_url"),
   address: text("address"),

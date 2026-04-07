@@ -25,6 +25,8 @@ type Org = {
   address: string | null;
   timezone: string;
   subscriptionGraceDays: number;
+  bookingPaymentGraceDays: number;
+  bookingPaymentReminderDays: number[];
 };
 
 export function OrgSettingsForm({ org }: { org: Org }) {
@@ -46,6 +48,11 @@ export function OrgSettingsForm({ org }: { org: Org }) {
         address: form.get("address") as string,
         timezone: form.get("timezone") as string,
         subscriptionGraceDays: parseInt(form.get("subscriptionGraceDays") as string, 10),
+        bookingPaymentGraceDays: parseInt(form.get("bookingPaymentGraceDays") as string, 10),
+        bookingPaymentReminderDays: (form.get("bookingPaymentReminderDays") as string)
+          .split(",")
+          .map((s) => parseInt(s.trim(), 10))
+          .filter((n) => !isNaN(n)),
       });
       toast.success("Settings saved");
     } catch (err) {
@@ -131,6 +138,33 @@ export function OrgSettingsForm({ org }: { org: Org }) {
             />
             <p className="text-xs text-muted-foreground">
               Days after subscription due date before marking members as non-financial
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bookingPaymentGraceDays">Booking Payment Grace Period (days)</Label>
+            <Input
+              id="bookingPaymentGraceDays"
+              name="bookingPaymentGraceDays"
+              type="number"
+              min="0"
+              max="90"
+              defaultValue={org.bookingPaymentGraceDays}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Days after payment due date before auto-cancelling unpaid bookings
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="bookingPaymentReminderDays">Payment Reminder Schedule</Label>
+            <Input
+              id="bookingPaymentReminderDays"
+              name="bookingPaymentReminderDays"
+              defaultValue={org.bookingPaymentReminderDays.join(", ")}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Comma-separated days before due date to send payment reminders (e.g. 7, 1)
             </p>
           </div>
           <Button type="submit" disabled={saving}>

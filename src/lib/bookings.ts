@@ -166,6 +166,8 @@ export type AdminBookingDetail = {
   cancellationReason: string | null;
   refundAmountCents: number | null;
   balancePaidAt: Date | null;
+  balanceDueDate: string | null;
+  paymentRemindersSentAt: Record<string, string> | null;
   adminNotes: string | null;
   notes: string | null;
   createdAt: Date;
@@ -222,6 +224,8 @@ export async function getAdminBookingDetail(
       cancellationReason: bookings.cancellationReason,
       refundAmountCents: bookings.refundAmountCents,
       balancePaidAt: bookings.balancePaidAt,
+      balanceDueDate: bookings.balanceDueDate,
+      paymentRemindersSentAt: bookings.paymentRemindersSentAt,
       adminNotes: bookings.adminNotes,
       notes: bookings.notes,
       createdAt: bookings.createdAt,

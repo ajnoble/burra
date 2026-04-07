@@ -9,6 +9,7 @@ import { BookingActions } from "./booking-actions";
 import { ModifyDatesForm } from "./modify-dates-form";
 import { ReassignBedsForm } from "./reassign-beds-form";
 import { AdminNotesForm } from "./admin-notes-form";
+import { EditDueDateForm } from "./edit-due-date-form";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/currency";
 import { Separator } from "@/components/ui/separator";
@@ -147,6 +148,41 @@ export default async function BookingDetailPage({
                   : "Unpaid"}
               </span>
             </div>
+            {booking.balanceDueDate && !booking.balancePaidAt && (
+              <div className="flex justify-between text-sm">
+                <span>Payment due</span>
+                <span className="flex items-center gap-2">
+                  {booking.balanceDueDate}
+                  {(() => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const due = new Date(booking.balanceDueDate + "T00:00:00");
+                    const diff = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                    if (diff < 0) return <Badge variant="destructive">Overdue</Badge>;
+                    if (diff <= 7) return <Badge variant="outline">{diff}d left</Badge>;
+                    return null;
+                  })()}
+                </span>
+              </div>
+            )}
+            {booking.status !== "CANCELLED" && booking.status !== "COMPLETED" && !booking.balancePaidAt && (
+              <EditDueDateForm
+                bookingId={booking.id}
+                organisationId={org.id}
+                currentDueDate={booking.balanceDueDate}
+                slug={slug}
+              />
+            )}
+            {booking.paymentRemindersSentAt &&
+              Object.keys(booking.paymentRemindersSentAt).length > 0 && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  <span className="font-medium">Reminders sent:</span>{" "}
+                  {Object.entries(booking.paymentRemindersSentAt)
+                    .sort(([a], [b]) => Number(b) - Number(a))
+                    .map(([days, date]) => `${days}d (${new Date(date).toLocaleDateString()})`)
+                    .join(", ")}
+                </div>
+              )}
             {booking.refundAmountCents && (
               <div className="flex justify-between text-sm text-destructive">
                 <span>Refund</span>
