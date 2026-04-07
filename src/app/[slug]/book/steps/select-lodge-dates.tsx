@@ -46,6 +46,7 @@ type Props = {
   seasons: Season[];
   openRounds: OpenRound[];
   slug: string;
+  memberId: string;
 };
 
 type AvailabilityDay = {
@@ -56,7 +57,7 @@ type AvailabilityDay = {
   eventLabel?: string | null;
 };
 
-export function SelectLodgeDates({ lodges, seasons, openRounds, slug }: Props) {
+export function SelectLodgeDates({ lodges, seasons, openRounds, slug, memberId }: Props) {
   const booking = useBooking();
 
   const [selectedLodgeId, setSelectedLodgeId] = useState(
@@ -194,7 +195,7 @@ export function SelectLodgeDates({ lodges, seasons, openRounds, slug }: Props) {
         checkIn: checkIn!,
         checkOut: checkOut!,
         bookingRoundId: selectedRoundId,
-        memberId: "", // Will use session on server
+        memberId,
       });
 
       if (!result.valid) {

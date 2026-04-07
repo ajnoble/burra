@@ -74,6 +74,7 @@ function WizardContent({
           seasons={seasons}
           openRounds={openRounds}
           slug={slug}
+          memberId={memberId}
         />
       )}
       {step === 2 && (
