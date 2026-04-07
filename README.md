@@ -106,13 +106,13 @@ drizzle/                        # Generated SQL migrations
 | 10 | Subscription Management | Annual fees per membership class, Stripe Checkout payment, admin waive/adjust/record, daily cron for reminders and grace period |
 | 11 | Authentication & Onboarding | Magic link login, password reset, invite-based onboarding, logout, org-picker, setup script |
 | 12 | Treasurer Reporting | Role dashboards (treasurer/officer/committee), 7 reports, CSV export (Xero-compatible) |
+| 13 | One-Off Charges | Locker fees, events, family billing consolidation, bulk charges |
+| 14 | Booking Engine Rules | Auto-cancel unpaid bookings, configurable payment deadlines, grace periods, email reminders |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 13 | One-Off Charges & Family Billing — locker fees, events, family consolidation |
-| 14 | Booking Engine Rules — auto-cancel unpaid, minimum nights |
 | 15 | Bulk Communications — filtered email + SMS to members |
 | 16 | Waitlist — entry, notification, conversion to booking |
 | 17 | Document Library — upload, access control |
