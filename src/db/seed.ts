@@ -15,6 +15,8 @@ import {
   bookings,
   bookingGuests,
   availabilityCache,
+  chargeCategories,
+  oneOffCharges,
 } from "./schema";
 
 const DEMO_NAMES = [
@@ -387,6 +389,83 @@ async function seed() {
   }
   await db.insert(availabilityCache).values(cacheRows);
   console.log(`Created ${cacheRows.length} availability cache rows`);
+
+  // Charge Categories
+  const [lockerCat, cleaningCat, keyCat, eventCat] = await db
+    .insert(chargeCategories)
+    .values([
+      { organisationId: org.id, name: "Locker Fee", description: "Annual locker rental", sortOrder: 0 },
+      { organisationId: org.id, name: "Cleaning Fee", description: "Post-stay cleaning charge", sortOrder: 1 },
+      { organisationId: org.id, name: "Key Deposit", description: "Key deposit (refundable)", sortOrder: 2 },
+      { organisationId: org.id, name: "Event Fee", description: "Special event or activity fee", sortOrder: 3 },
+    ])
+    .returning();
+  console.log("Created 4 charge categories");
+
+  // Sample One-off Charges
+  const adminMemberId = memberIds[0];
+  await db.insert(oneOffCharges).values([
+    {
+      organisationId: org.id,
+      memberId: memberIds[0],
+      categoryId: lockerCat.id,
+      description: "Locker #12",
+      amountCents: 5000,
+      status: "UNPAID",
+      dueDate: "2026-05-01",
+      createdByMemberId: adminMemberId,
+    },
+    {
+      organisationId: org.id,
+      memberId: memberIds[1],
+      categoryId: cleaningCat.id,
+      description: "Extra cleaning after group stay",
+      amountCents: 7500,
+      status: "PAID",
+      paidAt: new Date(),
+      createdByMemberId: adminMemberId,
+    },
+    {
+      organisationId: org.id,
+      memberId: memberIds[2],
+      categoryId: keyCat.id,
+      description: "Replacement key",
+      amountCents: 2500,
+      status: "UNPAID",
+      dueDate: "2026-06-15",
+      createdByMemberId: adminMemberId,
+    },
+    {
+      organisationId: org.id,
+      memberId: memberIds[3],
+      categoryId: eventCat.id,
+      description: "Club dinner 2026",
+      amountCents: 9500,
+      status: "PAID",
+      paidAt: new Date(),
+      createdByMemberId: adminMemberId,
+    },
+    {
+      organisationId: org.id,
+      memberId: memberIds[4],
+      categoryId: lockerCat.id,
+      description: "Locker #7",
+      amountCents: 5000,
+      status: "WAIVED",
+      createdByMemberId: adminMemberId,
+    },
+    {
+      organisationId: org.id,
+      memberId: memberIds[5],
+      categoryId: cleaningCat.id,
+      description: "Deep clean after extended stay",
+      amountCents: 12000,
+      status: "UNPAID",
+      dueDate: "2026-07-01",
+      createdByMemberId: adminMemberId,
+    },
+  ]);
+  console.log("Created 6 sample one-off charges");
 
   console.log("\nSeed complete!");
   process.exit(0);
