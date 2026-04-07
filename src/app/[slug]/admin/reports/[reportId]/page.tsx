@@ -15,7 +15,7 @@ import { formatOrgDate } from "@/lib/dates";
 import { db } from "@/db/index";
 import { lodges, seasons } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { ExportButton } from "./export-button";
 import { ReportFilters } from "./report-filters";
 import { ReportTable } from "./report-table";
@@ -359,7 +359,7 @@ export default async function ReportDetailPage({
     ];
 
     const thirtyDaysLater = format(
-      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      addDays(new Date(), 30),
       "yyyy-MM-dd"
     );
 
