@@ -50,64 +50,96 @@ export function MemberTable({
 
   return (
     <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Class</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Family</TableHead>
-            <TableHead>Joined</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {members.length === 0 ? (
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                No members found.
-              </TableCell>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Class</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Family</TableHead>
+              <TableHead>Joined</TableHead>
             </TableRow>
-          ) : (
-            members.map((member) => (
-              <TableRow
-                key={member.id}
-                className="cursor-pointer"
-                onClick={() =>
-                  router.push(`/${slug}/admin/members/${member.id}`)
-                }
-              >
-                <TableCell className="font-medium">
-                  {member.firstName} {member.lastName}
-                </TableCell>
-                <TableCell>{member.email}</TableCell>
-                <TableCell>{member.membershipClassName ?? "—"}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{member.role}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={member.isFinancial ? "default" : "destructive"}>
-                    {member.isFinancial ? "Financial" : "Unfinancial"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {member.primaryMemberId ? (
-                    <Badge variant="outline">Family</Badge>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell>
-                  {member.joinedAt
-                    ? new Date(member.joinedAt).toLocaleDateString("en-AU")
-                    : "—"}
+          </TableHeader>
+          <TableBody>
+            {members.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  No members found.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              members.map((member) => (
+                <TableRow
+                  key={member.id}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    router.push(`/${slug}/admin/members/${member.id}`)
+                  }
+                >
+                  <TableCell className="font-medium">
+                    {member.firstName} {member.lastName}
+                  </TableCell>
+                  <TableCell>{member.email}</TableCell>
+                  <TableCell>{member.membershipClassName ?? "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{member.role}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={member.isFinancial ? "default" : "destructive"}>
+                      {member.isFinancial ? "Financial" : "Unfinancial"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {member.primaryMemberId ? (
+                      <Badge variant="outline">Family</Badge>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {member.joinedAt
+                      ? new Date(member.joinedAt).toLocaleDateString("en-AU")
+                      : "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {members.map((member) => (
+          <div
+            key={member.id}
+            className="rounded-lg border p-4 space-y-1 cursor-pointer active:bg-muted/50"
+            onClick={() => router.push(`/${slug}/admin/members/${member.id}`)}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{member.firstName} {member.lastName}</span>
+              <Badge variant={member.isFinancial ? "default" : "destructive"}>
+                {member.isFinancial ? "Financial" : "Unfinancial"}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">{member.email}</p>
+            <div className="flex items-center gap-2 text-sm">
+              <Badge variant="outline">{member.role}</Badge>
+              {member.membershipClassName && (
+                <span className="text-muted-foreground">{member.membershipClassName}</span>
+              )}
+              {member.primaryMemberId && <Badge variant="outline">Family</Badge>}
+            </div>
+          </div>
+        ))}
+        {members.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">No members found.</p>
+        )}
+      </div>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">

@@ -124,7 +124,8 @@ export function ChargesTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-md border">
+      {/* Desktop table */}
+      <div className="hidden md:block rounded-md border">
         <table className="w-full text-sm">
           <thead className="bg-muted/50">
             <tr>
@@ -198,6 +199,66 @@ export function ChargesTable({
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {charges.map((charge) => (
+          <div key={charge.id} className="rounded-lg border p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">{charge.categoryName}</span>
+              <Badge variant={STATUS_BADGE[charge.status] ?? "outline"}>
+                {charge.status}
+              </Badge>
+            </div>
+            {showMemberName && (
+              <p className="text-sm text-muted-foreground">
+                {charge.memberFirstName} {charge.memberLastName}
+              </p>
+            )}
+            {charge.description && (
+              <p className="text-sm text-muted-foreground">{charge.description}</p>
+            )}
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">{formatCurrency(charge.amountCents)}</span>
+              {charge.dueDate && (
+                <span className="text-muted-foreground">
+                  Due: {new Date(charge.dueDate).toLocaleDateString("en-AU")}
+                </span>
+              )}
+            </div>
+            {charge.status === "UNPAID" && (
+              <div className="flex gap-2 pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loading === charge.id + "-paid"}
+                  onClick={() => handleMarkPaid(charge.id)}
+                >
+                  Mark Paid
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setWaiveDialog({ chargeId: charge.id, open: true });
+                    setWaiveReason("");
+                  }}
+                >
+                  Waive
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={loading === charge.id + "-cancel"}
+                  onClick={() => handleCancel(charge.id)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
 
       <Dialog
