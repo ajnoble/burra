@@ -12,6 +12,28 @@ vi.mock("@/lib/email/send", () => ({
   sendEmail: (...args: unknown[]) => mockSendEmail(...args),
 }));
 
+const mockListUsers = vi.fn().mockResolvedValue({ data: { users: [] } });
+const mockCreateUser = vi.fn().mockResolvedValue({
+  data: { user: { id: "auth-user-id" } },
+  error: null,
+});
+const mockGenerateLink = vi.fn().mockResolvedValue({
+  data: { properties: { action_link: "https://example.com/invite" } },
+  error: null,
+});
+
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => ({
+    auth: {
+      admin: {
+        listUsers: mockListUsers,
+        createUser: mockCreateUser,
+        generateLink: mockGenerateLink,
+      },
+    },
+  }),
+}));
+
 // Track select call count so we can return different results for different queries
 let selectCallCount = 0;
 
@@ -27,6 +49,7 @@ vi.mock("@/db/index", () => ({
               mockReturning();
               return [{ id: "new-member-id", email: "james@example.com" }];
             },
+            onConflictDoNothing: () => {},
           };
         },
       };
@@ -73,6 +96,15 @@ import { createMember } from "../create";
 beforeEach(() => {
   vi.clearAllMocks();
   selectCallCount = 0;
+  mockListUsers.mockResolvedValue({ data: { users: [] } });
+  mockCreateUser.mockResolvedValue({
+    data: { user: { id: "auth-user-id" } },
+    error: null,
+  });
+  mockGenerateLink.mockResolvedValue({
+    data: { properties: { action_link: "https://example.com/invite" } },
+    error: null,
+  });
 });
 
 describe("createMember", () => {
@@ -85,11 +117,10 @@ describe("createMember", () => {
     membershipClassId: "660e8400-e29b-41d4-a716-446655440000",
   };
 
-  it("inserts member and org member records", async () => {
+  it("inserts profile, member and org member records", async () => {
     await createMember(validInput);
-    // Two inserts: members + organisationMembers
-    expect(mockInsert).toHaveBeenCalledTimes(2);
-    expect(mockValues).toHaveBeenCalledTimes(2);
+    // Three inserts: profiles + members + organisationMembers
+    expect(mockInsert).toHaveBeenCalledTimes(3);
   });
 
   it("rejects invalid email", async () => {
@@ -111,7 +142,25 @@ describe("createMember", () => {
     expect(mockInsert).not.toHaveBeenCalled();
   });
 
-  it("sends a Welcome email after successful member creation", async () => {
+  it("sends an invite email for new auth users", async () => {
+    await createMember(validInput);
+
+    expect(mockSendEmail).toHaveBeenCalledTimes(1);
+
+    const emailArgs = mockSendEmail.mock.calls[0][0];
+    expect(emailArgs.to).toBe("james@example.com");
+    expect(emailArgs.subject).toBe("You're invited to Demo Club");
+    expect(emailArgs.orgName).toBe("Demo Club");
+    expect(emailArgs.replyTo).toBe("admin@demo.com");
+    expect(emailArgs.template).toBeDefined();
+    expect(emailArgs.template.type).toBeDefined();
+  });
+
+  it("sends a welcome email for existing auth users", async () => {
+    mockListUsers.mockResolvedValueOnce({
+      data: { users: [{ id: "existing-user-id", email: "james@example.com" }] },
+    });
+
     await createMember(validInput);
 
     expect(mockSendEmail).toHaveBeenCalledTimes(1);
@@ -119,10 +168,5 @@ describe("createMember", () => {
     const emailArgs = mockSendEmail.mock.calls[0][0];
     expect(emailArgs.to).toBe("james@example.com");
     expect(emailArgs.subject).toBe("Welcome to Demo Club");
-    expect(emailArgs.orgName).toBe("Demo Club");
-    expect(emailArgs.replyTo).toBe("admin@demo.com");
-    // template should be a React element
-    expect(emailArgs.template).toBeDefined();
-    expect(emailArgs.template.type).toBeDefined();
   });
 });
