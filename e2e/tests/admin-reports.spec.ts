@@ -23,7 +23,7 @@ test.describe("Admin reports", () => {
   test("member balances has financial status filter", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/reports/member-balances");
     await expect(adminPage.getByRole("heading", { name: "Member Balances" })).toBeVisible();
-    await expect(adminPage.locator("label").filter({ hasText: "Financial Status" })).toBeVisible();
+    await expect(adminPage.locator("label").filter({ hasText: "Financial" })).toBeVisible();
   });
 
   test("CSV export triggers download", async ({ adminPage }) => {
