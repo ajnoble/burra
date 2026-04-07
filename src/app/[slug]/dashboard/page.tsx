@@ -48,7 +48,7 @@ export default async function DashboardPage({
       : null;
 
   // Get family charges for consolidated view
-  let outstandingItems: Array<{
+  const outstandingItems: Array<{
     type: "ONE_OFF_CHARGE" | "SUBSCRIPTION" | "BOOKING_INVOICE";
     id: string;
     description: string;
