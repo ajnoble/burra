@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getOrgBySlug } from "@/lib/org";
-import { getSessionMember } from "@/lib/auth";
+import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 import { getUpcomingBookings } from "@/actions/bookings/queries";
 import { getActiveSeasonForOrg, getMemberSubscription } from "@/actions/subscriptions/queries";
 import { formatCurrency } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import { PaymentButton } from "./payment-button";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
 import { SubscriptionCard } from "./subscription-card";
@@ -87,6 +88,12 @@ export default async function DashboardPage({
           <form action={async () => { "use server"; const { logout: doLogout } = await import("@/actions/auth/logout"); await doLogout(slug); }}>
             <Button variant="ghost" type="submit">Sign out</Button>
           </form>
+          {session && canAccessAdmin(session.role) && (
+            <Button variant="outline" render={<Link href={`/${slug}/admin/dashboard`} />}>
+              <ShieldCheck className="h-4 w-4 mr-1.5" />
+              Admin
+            </Button>
+          )}
           <Button render={<Link href={`/${slug}/book`} />}>
             Book a Stay
           </Button>
