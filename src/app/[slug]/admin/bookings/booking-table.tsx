@@ -69,64 +69,104 @@ export function BookingTable({
 
   return (
     <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Reference</TableHead>
-            <TableHead>Member</TableHead>
-            <TableHead>Dates</TableHead>
-            <TableHead>Lodge</TableHead>
-            <TableHead>Guests</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {bookings.length === 0 ? (
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell
-                colSpan={7}
-                className="text-center text-muted-foreground py-8"
-              >
-                No bookings found.
-              </TableCell>
+              <TableHead>Reference</TableHead>
+              <TableHead>Member</TableHead>
+              <TableHead>Dates</TableHead>
+              <TableHead>Lodge</TableHead>
+              <TableHead>Guests</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
-          ) : (
-            bookings.map((booking) => (
-              <TableRow
-                key={booking.id}
-                className="cursor-pointer"
-                onClick={() =>
-                  router.push(`/${slug}/admin/bookings/${booking.id}`)
-                }
-              >
-                <TableCell className="font-medium font-mono text-sm">
-                  {booking.bookingReference}
-                </TableCell>
-                <TableCell>
-                  {booking.memberFirstName} {booking.memberLastName}
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm">
-                    {new Date(booking.checkInDate).toLocaleDateString("en-AU")}
-                    {" — "}
-                    {new Date(booking.checkOutDate).toLocaleDateString("en-AU")}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    ({booking.totalNights}n)
-                  </span>
-                </TableCell>
-                <TableCell>{booking.lodgeName}</TableCell>
-                <TableCell>{booking.guestCount}</TableCell>
-                <TableCell>{formatCurrency(booking.totalAmountCents)}</TableCell>
-                <TableCell>
-                  <StatusBadge status={booking.status} />
+          </TableHeader>
+          <TableBody>
+            {bookings.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  No bookings found.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              bookings.map((booking) => (
+                <TableRow
+                  key={booking.id}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    router.push(`/${slug}/admin/bookings/${booking.id}`)
+                  }
+                >
+                  <TableCell className="font-medium font-mono text-sm">
+                    {booking.bookingReference}
+                  </TableCell>
+                  <TableCell>
+                    {booking.memberFirstName} {booking.memberLastName}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {new Date(booking.checkInDate).toLocaleDateString("en-AU")}
+                      {" — "}
+                      {new Date(booking.checkOutDate).toLocaleDateString("en-AU")}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-1">
+                      ({booking.totalNights}n)
+                    </span>
+                  </TableCell>
+                  <TableCell>{booking.lodgeName}</TableCell>
+                  <TableCell>{booking.guestCount}</TableCell>
+                  <TableCell>{formatCurrency(booking.totalAmountCents)}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={booking.status} />
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {bookings.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No bookings found.</p>
+        ) : (
+          bookings.map((booking) => (
+            <div
+              key={booking.id}
+              className="rounded-lg border p-4 space-y-2 cursor-pointer active:bg-muted/50"
+              onClick={() => router.push(`/${slug}/admin/bookings/${booking.id}`)}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-sm font-medium">{booking.bookingReference}</span>
+                <StatusBadge status={booking.status} />
+              </div>
+              <p className="text-sm font-medium">
+                {booking.memberFirstName} {booking.memberLastName}
+              </p>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{booking.lodgeName}</span>
+                <span>{booking.guestCount} guest{booking.guestCount !== 1 ? "s" : ""}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {new Date(booking.checkInDate).toLocaleDateString("en-AU")}
+                  {" — "}
+                  {new Date(booking.checkOutDate).toLocaleDateString("en-AU")}
+                  {" "}
+                  <span className="text-xs">({booking.totalNights}n)</span>
+                </span>
+                <span className="font-medium">{formatCurrency(booking.totalAmountCents)}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">

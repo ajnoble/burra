@@ -107,87 +107,135 @@ export function SubscriptionTable({
 
   return (
     <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Member</TableHead>
-            <TableHead>Class</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Paid</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {subscriptions.length === 0 ? (
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell
-                colSpan={7}
-                className="text-center text-muted-foreground py-8"
-              >
-                No subscriptions found.
-              </TableCell>
+              <TableHead>Member</TableHead>
+              <TableHead>Class</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Due Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Paid</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
-          ) : (
-            subscriptions.map((sub) => (
-              <TableRow key={sub.id}>
-                <TableCell>
-                  <div className="font-medium">{sub.memberName}</div>
-                  <div className="text-xs text-muted-foreground">{sub.memberEmail}</div>
-                </TableCell>
-                <TableCell>{sub.membershipClassName}</TableCell>
-                <TableCell>{formatCurrency(sub.amountCents)}</TableCell>
-                <TableCell>
-                  {new Date(sub.dueDate).toLocaleDateString("en-AU")}
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={sub.status} />
-                </TableCell>
-                <TableCell>
-                  {sub.paidAt
-                    ? new Date(sub.paidAt).toLocaleDateString("en-AU")
-                    : "—"}
-                </TableCell>
-                <TableCell>
-                  {sub.status === "UNPAID" && (
-                    <div className="flex flex-wrap gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleWaive(sub.id)}
-                      >
-                        Waive
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAdjust(sub.id)}
-                      >
-                        Adjust
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRecordPayment(sub.id)}
-                      >
-                        Record Payment
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRemind(sub.id)}
-                      >
-                        Remind
-                      </Button>
-                    </div>
-                  )}
+          </TableHeader>
+          <TableBody>
+            {subscriptions.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={7}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  No subscriptions found.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              subscriptions.map((sub) => (
+                <TableRow key={sub.id}>
+                  <TableCell>
+                    <div className="font-medium">{sub.memberName}</div>
+                    <div className="text-xs text-muted-foreground">{sub.memberEmail}</div>
+                  </TableCell>
+                  <TableCell>{sub.membershipClassName}</TableCell>
+                  <TableCell>{formatCurrency(sub.amountCents)}</TableCell>
+                  <TableCell>
+                    {new Date(sub.dueDate).toLocaleDateString("en-AU")}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={sub.status} />
+                  </TableCell>
+                  <TableCell>
+                    {sub.paidAt
+                      ? new Date(sub.paidAt).toLocaleDateString("en-AU")
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {sub.status === "UNPAID" && (
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleWaive(sub.id)}
+                        >
+                          Waive
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAdjust(sub.id)}
+                        >
+                          Adjust
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRecordPayment(sub.id)}
+                        >
+                          Record Payment
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRemind(sub.id)}
+                        >
+                          Remind
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
+        {subscriptions.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">No subscriptions found.</p>
+        ) : (
+          subscriptions.map((sub) => (
+            <div key={sub.id} className="rounded-lg border p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-sm">{sub.memberName}</div>
+                  <div className="text-xs text-muted-foreground">{sub.memberEmail}</div>
+                </div>
+                <StatusBadge status={sub.status} />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">{sub.membershipClassName}</span>
+                <span className="font-medium">{formatCurrency(sub.amountCents)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Due: {new Date(sub.dueDate).toLocaleDateString("en-AU")}</span>
+                {sub.paidAt && (
+                  <span>Paid: {new Date(sub.paidAt).toLocaleDateString("en-AU")}</span>
+                )}
+              </div>
+              {sub.status === "UNPAID" && (
+                <div className="flex flex-wrap gap-1 pt-1">
+                  <Button variant="outline" size="sm" onClick={() => handleWaive(sub.id)}>
+                    Waive
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleAdjust(sub.id)}>
+                    Adjust
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleRecordPayment(sub.id)}>
+                    Record Payment
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleRemind(sub.id)}>
+                    Remind
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">

@@ -147,8 +147,8 @@ export function PreviewStep({
           )}
         </div>
 
-        {/* Preview table */}
-        <div className="rounded-md border overflow-x-auto">
+        {/* Preview table — desktop */}
+        <div className="hidden md:block rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -195,6 +195,31 @@ export function PreviewStep({
               ))}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Preview cards — mobile */}
+        <div className="md:hidden space-y-3">
+          {previewRows.map((row) => (
+            <div
+              key={row.row}
+              className={`rounded-lg border p-3 space-y-1 ${row.isValid ? "" : "border-destructive/30 bg-destructive/5"}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs text-muted-foreground">Row {row.row}</span>
+                {row.isValid ? (
+                  <Badge variant="outline" className="text-green-700 border-green-300">OK</Badge>
+                ) : (
+                  <Badge variant="destructive">Error</Badge>
+                )}
+              </div>
+              <p className="text-sm font-medium">{row.data.first_name} {row.data.last_name}</p>
+              <p className="text-xs text-muted-foreground font-mono">{row.data.email}</p>
+              <p className="text-xs text-muted-foreground">{row.data.membership_class}</p>
+              {row.errors.length > 0 && (
+                <p className="text-xs text-destructive">{row.errors.join("; ")}</p>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* Actions */}

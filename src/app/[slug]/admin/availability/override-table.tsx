@@ -50,53 +50,95 @@ export function OverrideTable({ overrides, onEdit, slug }: Props) {
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Dates</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead>Details</TableHead>
-          <TableHead>Reason</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Desktop table */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Dates</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Details</TableHead>
+              <TableHead>Reason</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {overrides.map((o) => (
+              <TableRow key={o.id}>
+                <TableCell className="text-sm">
+                  {o.startDate} to {o.endDate}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={o.type === "CLOSURE" ? "destructive" : "outline"}>
+                    {o.type}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-sm">
+                  {o.type === "REDUCTION" && o.bedReduction
+                    ? `${o.bedReduction} beds`
+                    : "Full closure"}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {o.reason || "—"}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => onEdit(o)}>
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(o.id)}
+                      disabled={deleting === o.id}
+                    >
+                      {deleting === o.id ? "Deleting..." : "Delete"}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3">
         {overrides.map((o) => (
-          <TableRow key={o.id}>
-            <TableCell className="text-sm">
-              {o.startDate} to {o.endDate}
-            </TableCell>
-            <TableCell>
+          <div key={o.id} className="rounded-lg border p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm">{o.startDate} to {o.endDate}</span>
               <Badge variant={o.type === "CLOSURE" ? "destructive" : "outline"}>
                 {o.type}
               </Badge>
-            </TableCell>
-            <TableCell className="text-sm">
-              {o.type === "REDUCTION" && o.bedReduction
-                ? `${o.bedReduction} beds`
-                : "Full closure"}
-            </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {o.reason || "—"}
-            </TableCell>
-            <TableCell className="text-right">
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => onEdit(o)}>
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(o.id)}
-                  disabled={deleting === o.id}
-                >
-                  {deleting === o.id ? "Deleting..." : "Delete"}
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span>
+                {o.type === "REDUCTION" && o.bedReduction
+                  ? `${o.bedReduction} beds`
+                  : "Full closure"}
+              </span>
+              {o.reason && (
+                <span className="text-muted-foreground">{o.reason}</span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onEdit(o)}>
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDelete(o.id)}
+                disabled={deleting === o.id}
+              >
+                {deleting === o.id ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+    </>
   );
 }
