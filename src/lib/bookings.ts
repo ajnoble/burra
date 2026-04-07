@@ -167,7 +167,7 @@ export type AdminBookingDetail = {
   refundAmountCents: number | null;
   balancePaidAt: Date | null;
   balanceDueDate: string | null;
-  paymentRemindersSentAt: Date | null;
+  paymentRemindersSentAt: Record<string, string> | null;
   adminNotes: string | null;
   notes: string | null;
   createdAt: Date;
