@@ -37,7 +37,9 @@ jobs:
             git fetch origin main
             git checkout main
             git pull origin main
-            docker compose up -d --build
+            npm install --ignore-scripts
+            npx drizzle-kit push
+            docker compose up -d --build --no-cache
             docker exec treasure-nginx nginx -s reload
 
   e2e:
