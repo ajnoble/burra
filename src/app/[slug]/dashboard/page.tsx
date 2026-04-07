@@ -83,9 +83,14 @@ export default async function DashboardPage({
             Welcome back, {session?.firstName ?? user.email}
           </p>
         </div>
-        <Button render={<Link href={`/${slug}/book`} />}>
-          Book a Stay
-        </Button>
+        <div className="flex items-center gap-2">
+          <form action={async () => { "use server"; const { logout: doLogout } = await import("@/actions/auth/logout"); await doLogout(slug); }}>
+            <Button variant="ghost" type="submit">Sign out</Button>
+          </form>
+          <Button render={<Link href={`/${slug}/book`} />}>
+            Book a Stay
+          </Button>
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-lg border p-4 sm:col-span-2 lg:col-span-2">

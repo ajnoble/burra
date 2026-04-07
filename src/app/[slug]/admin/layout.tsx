@@ -65,7 +65,12 @@ export default async function AdminLayout({
           <p className="text-xs text-muted-foreground truncate">
             {session.firstName} {session.lastName}
           </p>
-          <p className="text-xs text-muted-foreground">{session.role}</p>
+          <p className="text-xs text-muted-foreground mb-3">{session.role}</p>
+          <form action={async () => { "use server"; const { logout: doLogout } = await import("@/actions/auth/logout"); await doLogout(slug); }}>
+            <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground" type="submit">
+              Sign out
+            </Button>
+          </form>
         </div>
       </aside>
 

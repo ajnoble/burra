@@ -104,6 +104,7 @@ drizzle/                        # Generated SQL migrations
 | 8 | Email Notifications | 12 templates via Resend + React Email, fire-and-forget delivery, admin copy on bookings |
 | 9 | Admin Booking Management | Admin booking list, approve/cancel/modify, bed reassignment, cancellation policies, Stripe refunds, member self-cancel |
 | 10 | Subscription Management | Annual fees per membership class, Stripe Checkout payment, admin waive/adjust/record, daily cron for reminders and grace period |
+| 11 | Authentication & Onboarding | Magic link login, password reset, invite-based onboarding, logout, org-picker, setup script |
 
 ### Planned (Build Order)
 
