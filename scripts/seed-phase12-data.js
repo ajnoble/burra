@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Seed Phase 12 financial data for Polski Ski Club
  * Adds transactions for existing bookings and subscriptions
