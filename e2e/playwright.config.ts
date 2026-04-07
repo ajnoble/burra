@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: "./tests",
+  testDir: ".",
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
@@ -10,7 +10,7 @@ export default defineConfig({
     timeout: 10_000,
   },
   use: {
-    baseURL: "http://localhost:3010",
+    baseURL: "http://172.20.0.2:3010",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     actionTimeout: 15_000,
