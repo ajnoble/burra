@@ -51,6 +51,45 @@ export function buildCheckoutSessionParams(input: CheckoutSessionInput) {
   };
 }
 
+export type ConsolidatedCheckoutInput = {
+  connectedAccountId: string;
+  organisationId: string;
+  checkoutSessionId: string;
+  lineItems: Array<{
+    name: string;
+    amountCents: number;
+  }>;
+  totalAmountCents: number;
+  platformFeeBps: number;
+  successUrl: string;
+  cancelUrl: string;
+};
+
+export function buildConsolidatedCheckoutParams(input: ConsolidatedCheckoutInput) {
+  const platformFeeCents = applyBasisPoints(input.totalAmountCents, input.platformFeeBps);
+
+  return {
+    mode: "payment" as const,
+    line_items: input.lineItems.map((item) => ({
+      price_data: {
+        currency: "aud",
+        product_data: { name: item.name },
+        unit_amount: item.amountCents,
+      },
+      quantity: 1,
+    })),
+    payment_intent_data: {
+      application_fee_amount: platformFeeCents,
+    },
+    metadata: {
+      consolidatedCheckoutId: input.checkoutSessionId,
+      organisationId: input.organisationId,
+    },
+    success_url: input.successUrl,
+    cancel_url: input.cancelUrl,
+  };
+}
+
 export type SubscriptionCheckoutInput = {
   connectedAccountId: string;
   subscriptionId: string;
