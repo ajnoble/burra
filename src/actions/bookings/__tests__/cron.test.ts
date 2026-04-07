@@ -126,9 +126,7 @@ vi.mock("@/lib/email/templates/booking-auto-cancelled", () => ({
   BookingAutoCancelledEmail: vi.fn(),
 }));
 
-vi.mock("@/lib/email/templates/admin-booking-notification", () => ({
-  AdminBookingNotificationEmail: vi.fn(),
-}));
+// AdminBookingNotificationEmail no longer imported by cron — cancelBooking sends admin emails
 
 vi.mock("./cancel", () => ({
   cancelBooking: (...args: unknown[]) => mockCancelBooking(...args),

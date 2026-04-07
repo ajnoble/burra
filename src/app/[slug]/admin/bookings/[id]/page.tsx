@@ -173,6 +173,16 @@ export default async function BookingDetailPage({
                 slug={slug}
               />
             )}
+            {booking.paymentRemindersSentAt &&
+              Object.keys(booking.paymentRemindersSentAt).length > 0 && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  <span className="font-medium">Reminders sent:</span>{" "}
+                  {Object.entries(booking.paymentRemindersSentAt)
+                    .sort(([a], [b]) => Number(b) - Number(a))
+                    .map(([days, date]) => `${days}d (${new Date(date).toLocaleDateString()})`)
+                    .join(", ")}
+                </div>
+              )}
             {booking.refundAmountCents && (
               <div className="flex justify-between text-sm text-destructive">
                 <span>Refund</span>

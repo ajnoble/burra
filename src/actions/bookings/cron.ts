@@ -5,7 +5,6 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { BookingPaymentReminderEmail } from "@/lib/email/templates/booking-payment-reminder";
 import { BookingAutoCancelledEmail } from "@/lib/email/templates/booking-auto-cancelled";
-import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booking-notification";
 import { cancelBooking } from "./cancel";
 
 export type BookingPaymentCronResult = {
@@ -111,6 +110,11 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
 
     const daysRemaining = daysUntil(booking.balanceDueDate);
 
+    // Skip reminders for bookings already past grace period — they'll be auto-cancelled in Pass 2
+    const gracePeriodDays =
+      booking.roundPaymentGraceDays ?? booking.orgPaymentGraceDays ?? 7;
+    if (-daysRemaining >= gracePeriodDays) continue;
+
     // Resolve reminder days: round override ?? org default
     const reminderDays: number[] =
       booking.roundPaymentReminderDays ?? booking.orgPaymentReminderDays ?? [7, 1];
@@ -121,7 +125,6 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
     const alreadySent = booking.paymentRemindersSentAt ?? {};
 
     // Find the first threshold where daysRemaining <= threshold AND not yet sent
-    let matched = false;
     for (const threshold of sorted) {
       if (daysRemaining <= threshold && !alreadySent[String(threshold)]) {
         // Send reminder
@@ -156,12 +159,9 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
           .where(eq(bookings.id, booking.bookingId));
 
         remindersSent++;
-        matched = true;
         break; // Only one reminder per booking per cron run
       }
     }
-
-    void matched; // suppress unused-variable lint
   }
 
   // ─── Pass 2: Auto-Cancel ────────────────────────────────────────────────
@@ -203,6 +203,7 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
     if (result.success) {
       bookingsCancelled++;
 
+      // Send auto-cancel specific email (cancelBooking already sends admin notification)
       sendEmail({
         to: booking.memberEmail,
         subject: `Booking auto-cancelled — ${booking.bookingReference}`,
@@ -219,25 +220,6 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
         replyTo: booking.contactEmail || undefined,
         orgName: booking.orgName,
       });
-
-      if (booking.contactEmail) {
-        sendEmail({
-          to: booking.contactEmail,
-          subject: `[Admin] Booking auto-cancelled — ${booking.bookingReference}`,
-          template: React.createElement(AdminBookingNotificationEmail, {
-            orgName: booking.orgName,
-            bookingReference: booking.bookingReference,
-            memberName: `${booking.memberFirstName} ${booking.memberLastName}`,
-            lodgeName: booking.lodgeName,
-            checkInDate: booking.checkInDate,
-            checkOutDate: booking.checkOutDate,
-            action: "cancelled" as const,
-            adminUrl: `${appUrl}/${booking.orgSlug}/admin/bookings/${booking.bookingId}`,
-            logoUrl: booking.logoUrl || undefined,
-          }),
-          orgName: booking.orgName,
-        });
-      }
     }
   }
 
