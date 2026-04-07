@@ -58,36 +58,53 @@ export function CommitteeTab({ data }: Props) {
         {data.membersByClass.length === 0 ? (
           <p className="text-sm text-muted-foreground">No membership data</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 pr-4 font-medium text-muted-foreground">
-                    Class
-                  </th>
-                  <th className="text-left py-2 pr-4 font-medium text-muted-foreground">
-                    Total
-                  </th>
-                  <th className="text-left py-2 pr-4 font-medium text-muted-foreground">
-                    Financial
-                  </th>
-                  <th className="text-left py-2 font-medium text-muted-foreground">
-                    Non-Financial
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.membersByClass.map((row) => (
-                  <tr key={row.className} className="border-b last:border-0">
-                    <td className="py-2 pr-4">{row.className}</td>
-                    <td className="py-2 pr-4">{row.count}</td>
-                    <td className="py-2 pr-4">{row.financialCount}</td>
-                    <td className="py-2">{row.count - row.financialCount}</td>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">
+                      Class
+                    </th>
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">
+                      Total
+                    </th>
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">
+                      Financial
+                    </th>
+                    <th className="text-left py-2 font-medium text-muted-foreground">
+                      Non-Financial
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {data.membersByClass.map((row) => (
+                    <tr key={row.className} className="border-b last:border-0">
+                      <td className="py-2 pr-4">{row.className}</td>
+                      <td className="py-2 pr-4">{row.count}</td>
+                      <td className="py-2 pr-4">{row.financialCount}</td>
+                      <td className="py-2">{row.count - row.financialCount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {data.membersByClass.map((row) => (
+                <div key={row.className} className="rounded-lg border p-3 space-y-1">
+                  <span className="font-medium text-sm">{row.className}</span>
+                  <div className="flex gap-4 text-sm text-muted-foreground">
+                    <span>Total: {row.count}</span>
+                    <span>Financial: {row.financialCount}</span>
+                    <span>Non-Financial: {row.count - row.financialCount}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { label: "Seasons", href: "/seasons", committeeOnly: true },
   { label: "Tariffs", href: "/tariffs", committeeOnly: true },
   { label: "Subscriptions", href: "/subscriptions", committeeOnly: true },
+  { label: "Charges", href: "/charges", committeeOnly: true },
   { label: "Waitlist", href: "/waitlist", committeeOnly: false },
   { label: "Reports", href: "/reports", committeeOnly: true },
   { label: "Communications", href: "/communications", committeeOnly: true },

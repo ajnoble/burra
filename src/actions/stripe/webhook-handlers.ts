@@ -1,6 +1,7 @@
 import { db } from "@/db/index";
 import { transactions, bookings, subscriptions } from "@/db/schema";
 import { members, organisations } from "@/db/schema";
+import { oneOffCharges, checkoutLineItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type Stripe from "stripe";
 import { applyBasisPoints } from "@/lib/currency";
@@ -8,6 +9,7 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { PaymentReceivedEmail } from "@/lib/email/templates/payment-received";
 import { PaymentExpiredEmail } from "@/lib/email/templates/payment-expired";
+import { ConsolidatedPaymentReceivedEmail } from "@/lib/email/templates/consolidated-payment-received";
 
 export async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
@@ -18,6 +20,146 @@ export async function handleCheckoutSessionCompleted(
       : session.payment_intent?.id;
 
   if (!paymentIntentId) return;
+
+  const { isConsolidated } = session.metadata ?? {};
+
+  if (isConsolidated === "true") {
+    // Consolidated checkout — process each line item
+    const lineItems = await db
+      .select({
+        id: checkoutLineItems.id,
+        chargeType: checkoutLineItems.chargeType,
+        chargeId: checkoutLineItems.chargeId,
+        amountCents: checkoutLineItems.amountCents,
+        memberId: checkoutLineItems.memberId,
+      })
+      .from(checkoutLineItems)
+      .where(eq(checkoutLineItems.stripeCheckoutSessionId, session.id));
+
+    if (lineItems.length === 0) return;
+
+    const { organisationId } = session.metadata ?? {};
+    if (!organisationId) return;
+
+    // Look up the org's platform fee
+    const [orgData] = await db
+      .select({ platformFeeBps: organisations.platformFeeBps })
+      .from(organisations)
+      .where(eq(organisations.id, organisationId));
+
+    const feeBps = orgData?.platformFeeBps ?? 100;
+
+    // Idempotency: check if we already processed this session
+    const [existingTxn] = await db
+      .select({ id: transactions.id })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.stripeCheckoutSessionId, session.id),
+          eq(transactions.type, "PAYMENT")
+        )
+      );
+    if (existingTxn) return;
+
+    const emailLineItems: Array<{ description: string; memberName: string; amountCents: number }> = [];
+
+    for (const item of lineItems) {
+      // Create PAYMENT transaction for each line item
+      const [txn] = await db
+        .insert(transactions)
+        .values({
+          organisationId,
+          memberId: item.memberId,
+          type: "PAYMENT",
+          amountCents: item.amountCents,
+          stripePaymentIntentId: paymentIntentId,
+          stripeCheckoutSessionId: session.id,
+          platformFeeCents: applyBasisPoints(item.amountCents, feeBps),
+          description: `Consolidated payment — ${item.chargeType.replace(/_/g, " ").toLowerCase()}`,
+        })
+        .returning();
+
+      // Update source record based on charge type
+      if (item.chargeType === "ONE_OFF_CHARGE") {
+        await db
+          .update(oneOffCharges)
+          .set({
+            status: "PAID",
+            paidAt: new Date(),
+            stripePaymentIntentId: paymentIntentId,
+            transactionId: txn.id,
+            updatedAt: new Date(),
+          })
+          .where(eq(oneOffCharges.id, item.chargeId));
+      } else if (item.chargeType === "SUBSCRIPTION") {
+        await db
+          .update(subscriptions)
+          .set({
+            status: "PAID",
+            paidAt: new Date(),
+            stripePaymentIntentId: paymentIntentId,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, item.chargeId));
+      } else if (item.chargeType === "BOOKING_INVOICE") {
+        const [invoiceTxn] = await db
+          .select({ bookingId: transactions.bookingId })
+          .from(transactions)
+          .where(eq(transactions.id, item.chargeId));
+
+        if (invoiceTxn?.bookingId) {
+          await db
+            .update(bookings)
+            .set({ balancePaidAt: new Date(), updatedAt: new Date() })
+            .where(eq(bookings.id, invoiceTxn.bookingId));
+        }
+      }
+
+      // Get member name for receipt email
+      const [memberData] = await db
+        .select({ firstName: members.firstName, lastName: members.lastName })
+        .from(members)
+        .where(eq(members.id, item.memberId));
+
+      emailLineItems.push({
+        description: item.chargeType.replace(/_/g, " ").toLowerCase(),
+        memberName: memberData ? `${memberData.firstName} ${memberData.lastName}` : "Unknown",
+        amountCents: item.amountCents,
+      });
+    }
+
+    // Send consolidated receipt email to the payer
+    const payerMemberId = session.metadata?.payerMemberId || lineItems[0].memberId;
+    const [emailData] = await db
+      .select({
+        email: members.email,
+        orgName: organisations.name,
+        contactEmail: organisations.contactEmail,
+        logoUrl: organisations.logoUrl,
+      })
+      .from(members)
+      .innerJoin(organisations, eq(organisations.id, organisationId))
+      .where(eq(members.id, payerMemberId));
+
+    if (emailData) {
+      const totalAmount = lineItems.reduce((sum, i) => sum + i.amountCents, 0);
+      sendEmail({
+        to: emailData.email,
+        subject: `Payment received — ${emailLineItems.length} item${emailLineItems.length > 1 ? "s" : ""}`,
+        template: React.createElement(ConsolidatedPaymentReceivedEmail, {
+          orgName: emailData.orgName,
+          lineItems: emailLineItems,
+          totalAmountCents: totalAmount,
+          paidDate: new Date().toISOString().split("T")[0],
+          logoUrl: emailData.logoUrl || undefined,
+        }),
+        replyTo: emailData.contactEmail || undefined,
+        orgName: emailData.orgName,
+      });
+    }
+
+    return;
+  }
 
   const { transactionId, bookingId, organisationId, subscriptionId } = session.metadata ?? {};
 

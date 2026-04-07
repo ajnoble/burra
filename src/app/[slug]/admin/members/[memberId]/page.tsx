@@ -2,8 +2,8 @@ import { getOrgBySlug } from "@/lib/org";
 import { notFound } from "next/navigation";
 import { getMemberById, getFamilyMembers, getFinancialHistory } from "@/lib/members";
 import { db } from "@/db/index";
-import { membershipClasses } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { membershipClasses, chargeCategories } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,8 @@ import { getSessionMember } from "@/lib/auth";
 import { MemberProfileForm } from "./member-profile-form";
 import { FamilySection } from "./family-section";
 import { RoleFinancialSection } from "./role-financial-section";
+import { MemberChargesSection } from "./member-charges-section";
+import { getChargesForMember, getChargesForFamily } from "@/actions/charges/queries";
 
 export default async function MemberDetailPage({
   params,
@@ -40,6 +42,23 @@ export default async function MemberDetailPage({
   }
 
   const financialHistory = await getFinancialHistory(org.id, memberId);
+
+  // Fetch charges — show family charges if this is a primary member (has dependents)
+  const hasDependents = dependents.length > 0;
+  const memberCharges = hasDependents
+    ? await getChargesForFamily(org.id, memberId)
+    : await getChargesForMember(org.id, memberId);
+
+  const categories = await db
+    .select({ id: chargeCategories.id, name: chargeCategories.name })
+    .from(chargeCategories)
+    .where(
+      and(
+        eq(chargeCategories.organisationId, org.id),
+        eq(chargeCategories.isActive, true)
+      )
+    )
+    .orderBy(chargeCategories.sortOrder);
 
   return (
     <div className="p-6">
@@ -125,6 +144,23 @@ export default async function MemberDetailPage({
             sessionMemberId={session.memberId}
             sessionRole={session.role}
             financialHistory={financialHistory}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Charges</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MemberChargesSection
+            charges={memberCharges}
+            organisationId={org.id}
+            slug={slug}
+            memberId={memberId}
+            categories={categories}
+            sessionMemberId={session.memberId}
+            showMemberName={hasDependents}
           />
         </CardContent>
       </Card>

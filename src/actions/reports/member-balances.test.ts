@@ -35,6 +35,13 @@ vi.mock("@/db/schema", () => ({
     status: "status",
     createdAt: "created_at",
   },
+  oneOffCharges: {
+    id: "id",
+    organisationId: "organisation_id",
+    memberId: "member_id",
+    amountCents: "amount_cents",
+    status: "status",
+  },
 }));
 
 vi.mock("drizzle-orm", () => ({
@@ -138,6 +145,7 @@ describe("getMemberBalances", () => {
         totalPaidCents: 20000,
         totalRefundedCents: 2000,
         totalInvoicedCents: 25000,
+        totalUnpaidChargesCents: 0,
       },
     ];
     mockSelect.mockImplementation(() => makeSelectChain(rawRows));
@@ -172,6 +180,7 @@ describe("getMemberBalances", () => {
         totalPaidCents: 30000,
         totalRefundedCents: 0,
         totalInvoicedCents: 10000,
+        totalUnpaidChargesCents: 0,
       },
     ];
     mockSelect.mockImplementation(() => makeSelectChain(rawRows));
@@ -197,6 +206,7 @@ describe("getMemberBalances", () => {
         totalPaidCents: 0,
         totalRefundedCents: 0,
         totalInvoicedCents: 5000,
+        totalUnpaidChargesCents: 0,
       },
       {
         memberId: "m-4",
@@ -208,6 +218,7 @@ describe("getMemberBalances", () => {
         totalPaidCents: 5000,
         totalRefundedCents: 0,
         totalInvoicedCents: 5000,
+        totalUnpaidChargesCents: 0,
       },
     ];
     mockSelect.mockImplementation(() => makeSelectChain(rawRows));
@@ -233,5 +244,32 @@ describe("getMemberBalances", () => {
 
     expect(result.page).toBe(3);
     expect(result.pageSize).toBe(50);
+  });
+
+  it("includes unpaid one-off charges in outstanding balance", async () => {
+    const rawRows = [
+      {
+        memberId: "m-5",
+        firstName: "Eve",
+        lastName: "Green",
+        membershipClassName: "Full Member",
+        isFinancial: true,
+        subscriptionStatus: "PAID",
+        totalPaidCents: 10000,
+        totalRefundedCents: 0,
+        totalInvoicedCents: 10000,
+        totalUnpaidChargesCents: 3500,
+      },
+    ];
+    mockSelect.mockImplementation(() => makeSelectChain(rawRows));
+
+    const result = await getMemberBalances({
+      organisationId: "org-123",
+    });
+
+    expect(result.rows).toHaveLength(1);
+    const row = result.rows[0];
+    // outstanding = invoiced - paid + refunded + unpaidCharges = 10000 - 10000 + 0 + 3500 = 3500
+    expect(row.outstandingBalanceCents).toBe(3500);
   });
 });

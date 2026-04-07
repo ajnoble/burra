@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { OrgSettingsForm } from "./org-settings-form";
 import { MembershipClassManager } from "./membership-class-manager";
 import { CancellationPolicyManager } from "./cancellation-policy-manager";
+import { ChargeCategoryManager } from "./charge-category-manager";
 import { StripeConnectCard } from "./stripe-connect-card";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db/index";
-import { membershipClasses, cancellationPolicies } from "@/db/schema";
+import { membershipClasses, cancellationPolicies, chargeCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyOnboardingStatus } from "@/actions/stripe/onboarding";
 
@@ -29,6 +30,12 @@ export default async function SettingsPage({
     .select()
     .from(cancellationPolicies)
     .where(eq(cancellationPolicies.organisationId, org.id));
+
+  const categories = await db
+    .select()
+    .from(chargeCategories)
+    .where(eq(chargeCategories.organisationId, org.id))
+    .orderBy(chargeCategories.sortOrder);
 
   const onboarding = await verifyOnboardingStatus(org.id);
 
@@ -63,6 +70,14 @@ export default async function SettingsPage({
       <CancellationPolicyManager
         organisationId={org.id}
         initialPolicies={policies}
+      />
+
+      <Separator className="my-8" />
+
+      <h2 className="text-xl font-bold mb-4">Charge Categories</h2>
+      <ChargeCategoryManager
+        organisationId={org.id}
+        initialCategories={categories}
       />
     </div>
   );

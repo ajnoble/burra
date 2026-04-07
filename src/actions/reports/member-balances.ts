@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db/index";
-import { members, membershipClasses, transactions, subscriptions } from "@/db/schema";
+import { members, membershipClasses, transactions, subscriptions, oneOffCharges } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 export type MemberBalancesFilters = {
@@ -74,6 +74,13 @@ export async function getMemberBalances(
       totalPaidCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'PAYMENT' THEN ${transactions.amountCents} ELSE 0 END), 0)`,
       totalRefundedCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'REFUND' THEN ABS(${transactions.amountCents}) ELSE 0 END), 0)`,
       totalInvoicedCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'INVOICE' THEN ${transactions.amountCents} ELSE 0 END), 0)`,
+      totalUnpaidChargesCents: sql<number>`COALESCE((
+  SELECT SUM(${oneOffCharges.amountCents})
+  FROM ${oneOffCharges}
+  WHERE ${oneOffCharges.memberId} = ${members.id}
+    AND ${oneOffCharges.organisationId} = ${members.organisationId}
+    AND ${oneOffCharges.status} = 'UNPAID'
+), 0)`,
     })
     .from(members)
     .leftJoin(membershipClasses, eq(membershipClasses.id, members.membershipClassId))
@@ -106,9 +113,14 @@ export async function getMemberBalances(
       totalPaidCents: number;
       totalRefundedCents: number;
       totalInvoicedCents: number;
+      totalUnpaidChargesCents: number;
     }>
   ).map((row) => {
-    const outstanding = Number(row.totalInvoicedCents) - Number(row.totalPaidCents) + Number(row.totalRefundedCents);
+    const outstanding =
+      Number(row.totalInvoicedCents) -
+      Number(row.totalPaidCents) +
+      Number(row.totalRefundedCents) +
+      Number(row.totalUnpaidChargesCents);
     return {
       memberId: row.memberId,
       firstName: row.firstName,

@@ -4,6 +4,7 @@ import { getOrgBySlug } from "@/lib/org";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 import { getUpcomingBookings } from "@/actions/bookings/queries";
 import { getActiveSeasonForOrg, getMemberSubscription } from "@/actions/subscriptions/queries";
+import { getChargesForFamily, getChargesForMember } from "@/actions/charges/queries";
 import { formatCurrency } from "@/lib/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,8 @@ import { ShieldCheck } from "lucide-react";
 import { PaymentButton } from "./payment-button";
 import { CancelBookingDialog } from "./cancel-booking-dialog";
 import { SubscriptionCard } from "./subscription-card";
-import { cancellationPolicies } from "@/db/schema";
+import { FamilyChargesSection } from "./family-charges-section";
+import { cancellationPolicies, members as membersTable } from "@/db/schema";
 import { db } from "@/db/index";
 import { eq, and } from "drizzle-orm";
 
@@ -44,6 +46,73 @@ export default async function DashboardPage({
     org && session && activeSeason
       ? await getMemberSubscription(org.id, session.memberId, activeSeason.id)
       : null;
+
+  // Get family charges for consolidated view
+  const outstandingItems: Array<{
+    type: "ONE_OFF_CHARGE" | "SUBSCRIPTION" | "BOOKING_INVOICE";
+    id: string;
+    description: string;
+    memberName: string;
+    amountCents: number;
+    dueDate?: string | null;
+  }> = [];
+
+  if (org && session) {
+    const dependents = await db
+      .select({ id: membersTable.id })
+      .from(membersTable)
+      .where(
+        and(
+          eq(membersTable.organisationId, org.id),
+          eq(membersTable.primaryMemberId, session.memberId)
+        )
+      );
+
+    const isPrimary = dependents.length > 0;
+    const memberName = `${session.firstName} ${session.lastName}`;
+
+    // Get one-off charges
+    const charges = isPrimary
+      ? await getChargesForFamily(org.id, session.memberId)
+      : await getChargesForMember(org.id, session.memberId);
+
+    for (const c of charges) {
+      if (c.status === "UNPAID") {
+        outstandingItems.push({
+          type: "ONE_OFF_CHARGE",
+          id: c.id,
+          description: c.categoryName + (c.description ? ` — ${c.description}` : ""),
+          memberName: `${c.memberFirstName} ${c.memberLastName}`,
+          amountCents: c.amountCents,
+          dueDate: c.dueDate,
+        });
+      }
+    }
+
+    // Add unpaid bookings
+    for (const b of upcomingBookings) {
+      if (!b.balancePaidAt && b.invoiceTransactionId) {
+        outstandingItems.push({
+          type: "BOOKING_INVOICE",
+          id: b.invoiceTransactionId,
+          description: `Booking ${b.bookingReference}`,
+          memberName,
+          amountCents: b.totalAmountCents,
+        });
+      }
+    }
+
+    // Add unpaid subscription
+    if (memberSubscription && memberSubscription.status === "UNPAID") {
+      outstandingItems.push({
+        type: "SUBSCRIPTION",
+        id: memberSubscription.id,
+        description: "Membership Subscription",
+        memberName,
+        amountCents: memberSubscription.amountCents,
+      });
+    }
+  }
 
   let defaultPolicyRules = null;
   if (org) {
@@ -186,17 +255,20 @@ export default async function DashboardPage({
             stripeConnected={!!org?.stripeConnectOnboardingComplete}
           />
         )}
-        <div className="rounded-lg border p-4">
-          <h3 className="font-medium">Outstanding Balance</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            {formatCurrency(
-              upcomingBookings
-                .filter((b) => !b.balancePaidAt)
-                .reduce((sum, b) => sum + b.totalAmountCents, 0) +
-              (memberSubscription && memberSubscription.status === "UNPAID" ? memberSubscription.amountCents : 0)
-            )}
-          </p>
-        </div>
+        {outstandingItems.length > 0 && org ? (
+          <FamilyChargesSection
+            items={outstandingItems}
+            organisationId={org.id}
+            slug={slug}
+          />
+        ) : (
+          <div className="rounded-lg border p-4">
+            <h3 className="font-medium">Outstanding Balance</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {formatCurrency(0)}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
