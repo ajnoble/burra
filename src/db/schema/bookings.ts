@@ -7,6 +7,7 @@ import {
   timestamp,
   boolean,
   date,
+  jsonb,
 } from "drizzle-orm/pg-core";
 import { organisations } from "./organisations";
 import { lodges, beds, rooms } from "./lodges";
@@ -60,6 +61,7 @@ export const bookings = pgTable("bookings", {
   bookingReference: text("booking_reference").notNull().unique(), // e.g. BSKI-2027-0042
   notes: text("notes"), // member-visible
   adminNotes: text("admin_notes"), // admin only
+  paymentRemindersSentAt: jsonb("payment_reminders_sent_at").$type<Record<string, string>>(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
