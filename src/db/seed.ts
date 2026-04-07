@@ -63,6 +63,8 @@ async function seed() {
       slug: "demo",
       contactEmail: "admin@alpinedemo.example.com",
       timezone: "Australia/Melbourne",
+      bookingPaymentGraceDays: 7,
+      bookingPaymentReminderDays: [7, 1],
     })
     .returning();
   console.log(`Created organisation: ${org.name}`);
@@ -161,6 +163,7 @@ async function seed() {
         maxNightsPerMember: 14,
         maxNightsPerBooking: 7,
         sortOrder: 0,
+        balanceDueDate: "2027-06-15",
       },
       {
         seasonId: season.id,
