@@ -46,6 +46,10 @@ export const bookingRounds = pgTable("booking_rounds", {
   maxNightsPerBooking: integer("max_nights_per_booking"),
   holdDurationMinutes: integer("hold_duration_minutes").default(10),
   requiresApproval: boolean("requires_approval").notNull().default(false),
+  balanceDueDate: date("balance_due_date"),
+  paymentGraceDays: integer("payment_grace_days"),
+  paymentReminderDays: jsonb("payment_reminder_days").$type<number[]>(),
+  autoCancelRefundPolicy: text("auto_cancel_refund_policy"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
