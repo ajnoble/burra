@@ -176,8 +176,12 @@ drizzle/                        # Generated SQL migrations
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:seed` | Seed demo data (Alpine Demo Club) |
 | `npm run db:seed:polski` | Seed Polski Ski Club config |
+| `npm run test:e2e` | Run E2E tests (headless Chromium) |
+| `npm run test:e2e:ui` | Interactive Playwright UI |
 
 ## Testing
+
+### Unit / Integration Tests
 
 Tests use [Vitest](https://vitest.dev/) and live alongside the code in `__tests__/` directories.
 
@@ -191,6 +195,23 @@ npm run test:watch
 # With coverage
 npm run test:coverage
 ```
+
+### E2E Tests (Playwright)
+
+Run against the production container on the VPS (Docker internal IP `172.20.0.2:3010`):
+
+```bash
+npm run test:e2e          # Run all E2E tests (headless)
+npm run test:e2e:ui       # Interactive Playwright UI
+```
+
+E2E tests cover 6 critical flows: login, booking, admin members, dashboard, admin bookings, and org picker. They use seeded test accounts (password: `testpass123`):
+
+- **Admin:** marek.kowalski@example.com
+- **Booking Officer:** anna.nowak@example.com
+- **Member:** katarzyna.wojcik@example.com
+
+> **Note:** E2E tests currently run against the production database on the VPS. A dedicated test environment with isolated data should be set up before expanding the test suite to include write operations (e.g. creating members, making bookings).
 
 ### Test Coverage
 
