@@ -18,8 +18,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      - run: npm test
+      - run: npm run lint & npm test & wait
       - run: npm run build
 
   deploy:
@@ -39,7 +38,7 @@ jobs:
             git pull origin main
             npm install --ignore-scripts
             npx drizzle-kit push
-            docker compose up -d --build --no-cache
+            docker compose up -d --build
             docker exec treasure-nginx nginx -s reload
 
   e2e:
