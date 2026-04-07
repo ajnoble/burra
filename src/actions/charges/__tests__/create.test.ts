@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockInsert = vi.fn();
 const mockValues = vi.fn();
 const mockReturning = vi.fn();
+const mockSelect = vi.fn();
+const mockFrom = vi.fn();
+const mockInnerJoin = vi.fn();
+const mockWhere = vi.fn();
 
 vi.mock("@/db/index", () => ({
   db: {
@@ -33,11 +37,44 @@ vi.mock("@/db/index", () => ({
         },
       };
     },
+    select: (...args: unknown[]) => {
+      mockSelect(...args);
+      const chain = {
+        from: (...fArgs: unknown[]) => {
+          mockFrom(...fArgs);
+          return chain;
+        },
+        innerJoin: (...jArgs: unknown[]) => {
+          mockInnerJoin(...jArgs);
+          return chain;
+        },
+        where: (...wArgs: unknown[]) => {
+          mockWhere(...wArgs);
+          return [];
+        },
+      };
+      return chain;
+    },
   },
 }));
 
 vi.mock("@/db/schema", () => ({
   oneOffCharges: { id: "oneOffCharges" },
+  members: { id: "members", email: "email" },
+  chargeCategories: { id: "chargeCategories", name: "name" },
+  organisations: { id: "organisations", name: "name", slug: "slug", contactEmail: "contactEmail", logoUrl: "logoUrl" },
+}));
+
+vi.mock("drizzle-orm", () => ({
+  eq: vi.fn(),
+}));
+
+vi.mock("@/lib/email/send", () => ({
+  sendEmail: vi.fn(),
+}));
+
+vi.mock("@/lib/email/templates/charge-created", () => ({
+  ChargeCreatedEmail: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({

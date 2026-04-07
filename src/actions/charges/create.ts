@@ -1,8 +1,12 @@
 "use server";
 
 import { db } from "@/db/index";
-import { oneOffCharges } from "@/db/schema";
+import { oneOffCharges, members, chargeCategories, organisations } from "@/db/schema";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
+import { sendEmail } from "@/lib/email/send";
+import React from "react";
+import { ChargeCreatedEmail } from "@/lib/email/templates/charge-created";
 
 type CreateChargeInput = {
   organisationId: string;
@@ -43,6 +47,39 @@ export async function createCharge(
 
   revalidatePath(`/${input.slug}/admin/members/${input.memberId}`);
   revalidatePath(`/${input.slug}/admin/charges`);
+
+  const [emailData] = await db
+    .select({
+      email: members.email,
+      categoryName: chargeCategories.name,
+      orgName: organisations.name,
+      orgSlug: organisations.slug,
+      contactEmail: organisations.contactEmail,
+      logoUrl: organisations.logoUrl,
+    })
+    .from(members)
+    .innerJoin(organisations, eq(organisations.id, input.organisationId))
+    .innerJoin(chargeCategories, eq(chargeCategories.id, input.categoryId))
+    .where(eq(members.id, input.memberId));
+
+  if (emailData) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    sendEmail({
+      to: emailData.email,
+      subject: `New charge — ${emailData.categoryName}`,
+      template: React.createElement(ChargeCreatedEmail, {
+        orgName: emailData.orgName,
+        categoryName: emailData.categoryName,
+        description: input.description,
+        amountCents: input.amountCents,
+        dueDate: input.dueDate,
+        payUrl: `${appUrl}/${emailData.orgSlug}/dashboard`,
+        logoUrl: emailData.logoUrl || undefined,
+      }),
+      replyTo: emailData.contactEmail || undefined,
+      orgName: emailData.orgName,
+    });
+  }
 
   return { success: true, charge };
 }
