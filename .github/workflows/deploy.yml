@@ -39,3 +39,31 @@ jobs:
             git pull origin main
             docker compose up -d --build
             docker exec treasure-nginx nginx -s reload
+
+  e2e:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run E2E tests on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            cd /opt/snowgum
+            npx playwright install chromium --with-deps 2>/dev/null || true
+            npm run test:e2e 2>&1
+      - name: Upload traces on failure
+        if: failure()
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/snowgum
+            if [ -d e2e/test-results ]; then
+              echo "E2E test results exist — check VPS at /opt/snowgum/e2e/test-results"
+            fi
