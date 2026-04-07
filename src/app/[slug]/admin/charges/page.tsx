@@ -7,6 +7,7 @@ import { chargeCategories, members } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { ChargesTable } from "./charges-table";
 import { NewChargeDialog } from "./new-charge-dialog";
+import { BulkChargeDialog } from "./bulk-charge-dialog";
 
 export default async function AdminChargesPage({
   params,
@@ -54,13 +55,22 @@ export default async function AdminChargesPage({
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Charges</h1>
-        <NewChargeDialog
-          organisationId={org.id}
-          slug={slug}
-          categories={categories}
-          members={allMembers}
-          sessionMemberId={session.memberId}
-        />
+        <div className="flex gap-2">
+          <BulkChargeDialog
+            organisationId={org.id}
+            slug={slug}
+            categories={categories}
+            members={allMembers}
+            sessionMemberId={session.memberId}
+          />
+          <NewChargeDialog
+            organisationId={org.id}
+            slug={slug}
+            categories={categories}
+            members={allMembers}
+            sessionMemberId={session.memberId}
+          />
+        </div>
       </div>
 
       <ChargesTable
