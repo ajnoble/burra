@@ -5,6 +5,11 @@ node_modules
 .git
 .github
 .superpowers
+.worktrees
+worktrees
 coverage
 docs
 *.md
+e2e
+test-results
+drizzle/meta
