@@ -133,7 +133,7 @@ export default async function ReportDetailPage({
       stripeRef: row.stripeRef ?? "",
     }));
 
-    const xeroRows = formatLedgerForXero(result.rows);
+    const xeroRows = await formatLedgerForXero(result.rows);
     exportColumns = XERO_COLUMN_MAP;
     exportData = xeroRows.map((r) => ({
       date: r.date,

@@ -96,7 +96,7 @@ export async function getTransactionLedger(
   };
 }
 
-export function formatLedgerForXero(rows: LedgerRow[]): XeroRow[] {
+export async function formatLedgerForXero(rows: LedgerRow[]): Promise<XeroRow[]> {
   return rows.map((row) => ({
     date: format(row.date, "dd/MM/yyyy"),
     amount: (row.amountCents / 100).toFixed(2),

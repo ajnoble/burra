@@ -106,48 +106,48 @@ describe("formatLedgerForXero", () => {
     stripeRef: "pi_abc123",
   };
 
-  it("formats date in Australian dd/MM/yyyy format", () => {
-    const [row] = formatLedgerForXero([baseRow]);
+  it("formats date in Australian dd/MM/yyyy format", async () => {
+    const [row] = await formatLedgerForXero([baseRow]);
     expect(row.date).toBe("15/07/2025");
   });
 
-  it("formats amountCents as decimal amount string", () => {
-    const [row] = formatLedgerForXero([baseRow]);
+  it("formats amountCents as decimal amount string", async () => {
+    const [row] = await formatLedgerForXero([baseRow]);
     expect(row.amount).toBe("150.00");
   });
 
-  it("formats payee as firstName + lastName", () => {
-    const [row] = formatLedgerForXero([baseRow]);
+  it("formats payee as firstName + lastName", async () => {
+    const [row] = await formatLedgerForXero([baseRow]);
     expect(row.payee).toBe("Jane Smith");
   });
 
-  it("passes through description", () => {
-    const [row] = formatLedgerForXero([baseRow]);
+  it("passes through description", async () => {
+    const [row] = await formatLedgerForXero([baseRow]);
     expect(row.description).toBe("Booking payment");
   });
 
-  it("passes through stripeRef as reference", () => {
-    const [row] = formatLedgerForXero([baseRow]);
+  it("passes through stripeRef as reference", async () => {
+    const [row] = await formatLedgerForXero([baseRow]);
     expect(row.reference).toBe("pi_abc123");
   });
 
-  it("uses empty string for reference when stripeRef is null", () => {
+  it("uses empty string for reference when stripeRef is null", async () => {
     const row: LedgerRow = { ...baseRow, stripeRef: null };
-    const [xeroRow] = formatLedgerForXero([row]);
+    const [xeroRow] = await formatLedgerForXero([row]);
     expect(xeroRow.reference).toBe("");
   });
 
-  it("formats REFUND as negative amount", () => {
+  it("formats REFUND as negative amount", async () => {
     const refundRow: LedgerRow = {
       ...baseRow,
       type: "REFUND",
       amountCents: -5000,
     };
-    const [xeroRow] = formatLedgerForXero([refundRow]);
+    const [xeroRow] = await formatLedgerForXero([refundRow]);
     expect(xeroRow.amount).toBe("-50.00");
   });
 
-  it("returns empty array for empty input", () => {
-    expect(formatLedgerForXero([])).toEqual([]);
+  it("returns empty array for empty input", async () => {
+    expect(await formatLedgerForXero([])).toEqual([]);
   });
 });
