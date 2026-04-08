@@ -13,7 +13,10 @@ export function CustomFieldsSection({
 
   function formatValue(type: string, value: string): string {
     if (!value) return "\u2014";
-    if (type === "checkbox") return value === "true" ? "Yes" : "No";
+    if (type === "checkbox") {
+      const truthy = ["true", "yes", "1"];
+      return truthy.includes(value.toLowerCase()) ? "Yes" : "No";
+    }
     return value;
   }
 

@@ -110,7 +110,7 @@ describe("updateCustomField", () => {
 
 describe("toggleCustomField", () => {
   it("deactivates a field", async () => {
-    await toggleCustomField("cf-1", false, "test-club");
+    await toggleCustomField("cf-1", "org-1", false, "test-club");
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ isActive: false })
     );

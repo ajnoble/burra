@@ -143,7 +143,7 @@ export function CustomFieldManager({
 
   async function handleToggle(field: CustomField) {
     try {
-      await toggleCustomField(field.id, !field.isActive, slug);
+      await toggleCustomField(field.id, organisationId, !field.isActive, slug);
       setFields((prev) =>
         prev.map((f) =>
           f.id === field.id ? { ...f, isActive: !f.isActive } : f

@@ -100,16 +100,31 @@ export async function updateCustomField(input: UpdateCustomFieldInput) {
 
 export async function toggleCustomField(
   fieldId: string,
+  organisationId: string,
   isActive: boolean,
   slug: string
 ) {
   const [updated] = await db
     .update(customFields)
     .set({ isActive, updatedAt: new Date() })
-    .where(eq(customFields.id, fieldId))
+    .where(and(eq(customFields.id, fieldId), eq(customFields.organisationId, organisationId)))
     .returning();
 
   if (!updated) throw new Error("Field not found");
+
+  const session = await getSessionMember(organisationId);
+  if (session) {
+    createAuditLog({
+      organisationId,
+      actorMemberId: session.memberId,
+      action: "CUSTOM_FIELD_UPDATED",
+      entityType: "custom_field",
+      entityId: fieldId,
+      previousValue: null,
+      newValue: { isActive },
+    }).catch(console.error);
+  }
+
   revalidatePath(`/${slug}/admin/settings`);
   return updated;
 }

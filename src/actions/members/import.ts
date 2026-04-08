@@ -157,12 +157,19 @@ export async function executeImport(
       for (const [cfKey, cfDef] of customFieldMap) {
         const cfValue = (row.data as Record<string, string | undefined>)[cfKey];
         if (cfValue && cfValue.trim()) {
-          const validation = validateCustomFieldValue(cfDef.type, cfValue.trim(), cfDef.options);
+          const trimmed = cfValue.trim();
+          const validation = validateCustomFieldValue(cfDef.type, trimmed, cfDef.options);
           if (validation.valid) {
+            // Normalize checkbox values to "true"/"false"
+            let normalizedValue = trimmed;
+            if (cfDef.type === "checkbox") {
+              const truthy = ["true", "yes", "1"];
+              normalizedValue = truthy.includes(trimmed.toLowerCase()) ? "true" : "false";
+            }
             await db.insert(customFieldValues).values({
               customFieldId: cfDef.id,
               memberId: member.id,
-              value: cfValue.trim(),
+              value: normalizedValue,
             });
           }
         }
