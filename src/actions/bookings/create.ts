@@ -13,6 +13,7 @@ import {
   bookingRounds,
   organisations,
   lodges,
+  waitlistEntries,
 } from "@/db/schema";
 import { eq, and, sql, lt } from "drizzle-orm";
 import { getSessionMember } from "@/lib/auth";
@@ -383,6 +384,24 @@ export async function createBooking(
 
     revalidatePath(`/${slug}/dashboard`);
     revalidatePath(`/${slug}/book`);
+
+    // Convert matching waitlist entry if this member was notified
+    try {
+      await db
+        .update(waitlistEntries)
+        .set({ status: "CONVERTED" })
+        .where(
+          and(
+            eq(waitlistEntries.memberId, session.memberId),
+            eq(waitlistEntries.lodgeId, data.lodgeId),
+            eq(waitlistEntries.status, "NOTIFIED"),
+            sql`${waitlistEntries.checkInDate} <= ${data.checkOutDate}`,
+            sql`${waitlistEntries.checkOutDate} >= ${data.checkInDate}`
+          )
+        );
+    } catch {
+      // Non-critical — don't fail the booking if waitlist update fails
+    }
 
     return {
       success: true,
