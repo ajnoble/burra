@@ -31,7 +31,7 @@ export function AdminDocumentsClient({
   const searchParams = useSearchParams();
   const [editDoc, setEditDoc] = useState<DocumentRow | null>(null);
 
-  function setFilter(key: string, value: string) {
+  function setFilter(key: string, value: string | null) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
       params.set(key, value);
@@ -57,7 +57,7 @@ export function AdminDocumentsClient({
         />
         <Select
           value={searchParams.get("categoryId") ?? ""}
-          onValueChange={(v: string) => setFilter("categoryId", v)}
+          onValueChange={(v: string | null) => setFilter("categoryId", v)}
         >
           <SelectTrigger className="sm:w-48">
             <SelectValue placeholder="All categories" />
@@ -73,7 +73,7 @@ export function AdminDocumentsClient({
         </Select>
         <Select
           value={searchParams.get("accessLevel") ?? ""}
-          onValueChange={(v: string) => setFilter("accessLevel", v)}
+          onValueChange={(v: string | null) => setFilter("accessLevel", v)}
         >
           <SelectTrigger className="sm:w-44">
             <SelectValue placeholder="All access levels" />

@@ -135,7 +135,7 @@ export function EditDialog({
 
           <div className="space-y-2">
             <Label htmlFor="edit-category">Category</Label>
-            <Select value={categoryId} onValueChange={(v: string) => setCategoryId(v ?? "")}>
+            <Select value={categoryId} onValueChange={(v: string | null) => setCategoryId(v ?? "")}>
               <SelectTrigger id="edit-category">
                 <SelectValue placeholder="Uncategorized" />
               </SelectTrigger>
@@ -152,7 +152,7 @@ export function EditDialog({
 
           <div className="space-y-2">
             <Label htmlFor="edit-access">Access Level</Label>
-            <Select value={accessLevel} onValueChange={(v: string) => setAccessLevel(v ?? "MEMBER")}>
+            <Select value={accessLevel} onValueChange={(v: string | null) => setAccessLevel(v ?? "MEMBER")}>
               <SelectTrigger id="edit-access">
                 <SelectValue />
               </SelectTrigger>
