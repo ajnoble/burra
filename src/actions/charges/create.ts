@@ -9,6 +9,7 @@ import React from "react";
 import { ChargeCreatedEmail } from "@/lib/email/templates/charge-created";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 import { createAuditLog } from "@/lib/audit-log";
+import { calculateGst } from "@/lib/currency";
 
 type CreateChargeInput = {
   organisationId: string;
@@ -39,6 +40,18 @@ export async function createCharge(
     return { success: false, error: "Amount must be greater than zero" };
   }
 
+  const [org] = await db
+    .select({
+      gstEnabled: organisations.gstEnabled,
+      gstRateBps: organisations.gstRateBps,
+    })
+    .from(organisations)
+    .where(eq(organisations.id, input.organisationId));
+
+  const gstAmountCents = org?.gstEnabled
+    ? calculateGst(input.amountCents, org.gstRateBps)
+    : 0;
+
   const [charge] = await db
     .insert(oneOffCharges)
     .values({
@@ -49,6 +62,7 @@ export async function createCharge(
       amountCents: input.amountCents,
       dueDate: input.dueDate || null,
       createdByMemberId: input.createdByMemberId,
+      gstAmountCents,
     })
     .returning();
 

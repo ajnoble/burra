@@ -8,6 +8,7 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { ChargeCreatedEmail } from "@/lib/email/templates/charge-created";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
+import { calculateGst } from "@/lib/currency";
 
 type BulkCreateInput = {
   organisationId: string;
@@ -42,6 +43,18 @@ export async function bulkCreateCharges(
     return { success: false, error: "Amount must be greater than zero" };
   }
 
+  const [orgGst] = await db
+    .select({
+      gstEnabled: organisations.gstEnabled,
+      gstRateBps: organisations.gstRateBps,
+    })
+    .from(organisations)
+    .where(eq(organisations.id, input.organisationId));
+
+  const gstAmountCents = orgGst?.gstEnabled
+    ? calculateGst(input.amountCents, orgGst.gstRateBps)
+    : 0;
+
   const values = input.memberIds.map((memberId) => ({
     organisationId: input.organisationId,
     memberId,
@@ -50,6 +63,7 @@ export async function bulkCreateCharges(
     amountCents: input.amountCents,
     dueDate: input.dueDate || null,
     createdByMemberId: input.createdByMemberId,
+    gstAmountCents,
   }));
 
   const created = await db.insert(oneOffCharges).values(values).returning();
