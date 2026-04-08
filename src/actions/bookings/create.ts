@@ -34,6 +34,7 @@ import React from "react";
 import { BookingConfirmationEmail } from "@/lib/email/templates/booking-confirmation";
 import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booking-notification";
 import { createAuditLog } from "@/lib/audit-log";
+import { calculateGst } from "@/lib/currency";
 
 
 type CreateBookingResult = {
@@ -238,6 +239,18 @@ export async function createBooking(
         guestPrices.map((g) => g.price)
       );
 
+      const [orgGst] = await tx
+        .select({
+          gstEnabled: organisations.gstEnabled,
+          gstRateBps: organisations.gstRateBps,
+        })
+        .from(organisations)
+        .where(eq(organisations.id, data.organisationId));
+
+      const bookingGstAmountCents = orgGst?.gstEnabled
+        ? calculateGst(bookingTotal.totalAmountCents, orgGst.gstRateBps)
+        : 0;
+
       // Generate reference
       const bookingReference = generateBookingReference(slug);
       const status = round.requiresApproval ? "PENDING" : "CONFIRMED";
@@ -257,6 +270,7 @@ export async function createBooking(
           subtotalCents: bookingTotal.subtotalCents,
           discountAmountCents: bookingTotal.discountAmountCents,
           totalAmountCents: bookingTotal.totalAmountCents,
+          gstAmountCents: bookingGstAmountCents,
           requiresApproval: round.requiresApproval,
           bookingReference,
           ...(balanceDueDate && { balanceDueDate }),
