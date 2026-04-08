@@ -27,8 +27,8 @@ test.describe("Admin communications", () => {
   test("SMS channel shows character counter", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/communications/compose");
     await adminPage.getByRole("button", { name: "SMS" }).click();
-    await expect(adminPage.getByPlaceholder("Plain text SMS message")).toBeVisible();
-    await expect(adminPage.getByText(/\/160/)).toBeVisible();
+    await expect(adminPage.getByPlaceholder("SMS message text...")).toBeVisible();
+    await expect(adminPage.getByText(/0\/160/)).toBeVisible();
   });
 
   test("templates tab shows empty state", async ({ adminPage }) => {
@@ -41,7 +41,7 @@ test.describe("Admin communications", () => {
     await adminPage.goto("/polski/admin/communications?tab=settings");
     await adminPage.getByRole("tab", { name: "Settings" }).click();
     await expect(adminPage.getByText("SMS Phone Number")).toBeVisible();
-    await expect(adminPage.getByText("Automated SMS Triggers")).toBeVisible();
+    await expect(adminPage.getByText("Send pre-arrival SMS reminders")).toBeVisible();
   });
 
   test("booking officer cannot access communications", async ({ officerPage }) => {
@@ -52,6 +52,6 @@ test.describe("Admin communications", () => {
   test("recipient list loads with members", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/communications/compose");
     await adminPage.waitForTimeout(1000);
-    await expect(adminPage.getByText(/Sending to \d+ member/)).toBeVisible();
+    await expect(adminPage.getByText(/\d+ recipients/)).toBeVisible();
   });
 });
