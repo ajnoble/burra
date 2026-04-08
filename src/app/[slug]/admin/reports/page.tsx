@@ -12,6 +12,7 @@ const REPORTS = [
   { id: "occupancy", title: "Occupancy Report", description: "Daily bed utilisation by lodge — total, booked, available, and occupancy %." },
   { id: "arrivals-departures", title: "Arrivals & Departures", description: "Daily arrivals and departures with member details and payment status." },
   { id: "booking-summary", title: "Booking Summary", description: "All bookings with guest counts, amounts, and status breakdown." },
+  { id: "gst-summary", title: "GST Summary", description: "GST collected by period and category — BAS-ready for ATO reporting." },
 ];
 
 export default async function ReportsPage({

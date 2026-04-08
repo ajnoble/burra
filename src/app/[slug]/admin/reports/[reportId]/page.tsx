@@ -9,6 +9,7 @@ import { getSubscriptionStatus } from "@/actions/reports/subscription-status";
 import { getOccupancyReport } from "@/actions/reports/occupancy";
 import { getArrivalsAndDepartures } from "@/actions/reports/arrivals-departures";
 import { getBookingSummary } from "@/actions/reports/booking-summary";
+import { getGstSummary } from "@/actions/reports/gst-summary";
 import { XERO_COLUMN_MAP } from "@/actions/reports/export-csv";
 import { formatCurrency } from "@/lib/currency";
 import { formatOrgDate } from "@/lib/dates";
@@ -28,6 +29,7 @@ const REPORT_TITLES: Record<string, string> = {
   "occupancy": "Occupancy Report",
   "arrivals-departures": "Arrivals & Departures",
   "booking-summary": "Booking Summary",
+  "gst-summary": "GST Summary",
 };
 
 const ALLOWED_REPORT_IDS = Object.keys(REPORT_TITLES);
@@ -540,6 +542,86 @@ export default async function ReportDetailPage({
       status: row.status,
     }));
     exportFilename = `booking-summary-${today}.csv`;
+  } else if (reportId === "gst-summary") {
+    if (!org.gstEnabled) {
+      return (
+        <div className="p-6">
+          <nav className="text-sm text-muted-foreground mb-4">
+            <Link href={`/${slug}/admin/reports`} className="hover:underline">
+              Reports
+            </Link>
+            {" /"}
+          </nav>
+          <h1 className="text-2xl font-bold mb-4">GST Summary</h1>
+          <p className="text-muted-foreground">
+            GST is not enabled for this organisation. Enable GST in{" "}
+            <Link href={`/${slug}/admin/settings`} className="underline">
+              Settings
+            </Link>{" "}
+            to use this report.
+          </p>
+        </div>
+      );
+    }
+
+    filterFields = [
+      { key: "dateFrom", label: "From", type: "date" },
+      { key: "dateTo", label: "To", type: "date" },
+      {
+        key: "granularity",
+        label: "Period",
+        type: "select",
+        options: [
+          { value: "monthly", label: "Monthly" },
+          { value: "quarterly", label: "Quarterly" },
+        ],
+      },
+    ];
+    columns = [
+      { key: "period", header: "Period" },
+      { key: "bookingGst", header: "Bookings GST", align: "right" },
+      { key: "subscriptionGst", header: "Subscriptions GST", align: "right" },
+      { key: "chargeGst", header: "Charges GST", align: "right" },
+      { key: "totalGst", header: "Total GST Collected", align: "right" },
+    ];
+
+    const granularity =
+      sp_str("granularity") === "quarterly" ? "quarterly" : "monthly";
+
+    const now = new Date();
+    const quarterStart = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+    const quarterEnd = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3 + 3, 0);
+
+    const result = await getGstSummary({
+      organisationId: org.id,
+      dateFrom: sp_str("dateFrom") ?? format(quarterStart, "yyyy-MM-dd"),
+      dateTo: sp_str("dateTo") ?? format(quarterEnd, "yyyy-MM-dd"),
+      granularity,
+    });
+
+    displayRows = result.rows.map((row) => ({
+      period: row.period,
+      bookingGst: formatCurrency(row.bookingGstCents),
+      subscriptionGst: formatCurrency(row.subscriptionGstCents),
+      chargeGst: formatCurrency(row.chargeGstCents),
+      totalGst: formatCurrency(row.totalGstCents),
+    }));
+
+    exportColumns = [
+      { key: "period", header: "Period" },
+      { key: "bookingGst", header: "Bookings GST" },
+      { key: "subscriptionGst", header: "Subscriptions GST" },
+      { key: "chargeGst", header: "Charges GST" },
+      { key: "totalGst", header: "Total GST Collected" },
+    ];
+    exportData = result.rows.map((row) => ({
+      period: row.period,
+      bookingGst: (row.bookingGstCents / 100).toFixed(2),
+      subscriptionGst: (row.subscriptionGstCents / 100).toFixed(2),
+      chargeGst: (row.chargeGstCents / 100).toFixed(2),
+      totalGst: (row.totalGstCents / 100).toFixed(2),
+    }));
+    exportFilename = `gst-summary-${today}.csv`;
   }
 
   const title = REPORT_TITLES[reportId];
