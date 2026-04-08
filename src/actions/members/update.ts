@@ -7,6 +7,7 @@ import { updateMemberSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { getSessionMember } from "@/lib/auth";
 import { createAuditLog, diffChanges } from "@/lib/audit-log";
+import { saveCustomFieldValues } from "@/actions/custom-fields/values";
 
 type UpdateMemberInput = {
   memberId: string;
@@ -20,6 +21,7 @@ type UpdateMemberInput = {
   memberNumber?: string;
   membershipClassId?: string;
   notes?: string;
+  customFieldValues?: Array<{ fieldId: string; value: string }>;
 };
 
 export async function updateMember(
@@ -82,6 +84,15 @@ export async function updateMember(
         newValue: diff.newValue,
       }).catch(console.error);
     }
+  }
+
+  if (input.customFieldValues && input.customFieldValues.length > 0) {
+    await saveCustomFieldValues({
+      memberId,
+      organisationId,
+      slug,
+      values: input.customFieldValues,
+    });
   }
 
   revalidatePath(`/${slug}/admin/members`);
