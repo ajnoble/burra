@@ -114,12 +114,12 @@ drizzle/                        # Generated SQL migrations
 | 13 | One-Off Charges | Locker fees, events, family billing consolidation, bulk charges |
 | 14 | Booking Engine Rules | Auto-cancel unpaid bookings, configurable payment deadlines, grace periods, email reminders |
 | 15 | Bulk Communications | Compose email + SMS with markdown editor and live preview, reusable templates, recipient filtering with manual add/remove, delivery tracking via Resend and Telnyx webhooks, automated SMS triggers (pre-arrival, payment reminders) |
+| 16 | Waitlist | Join waitlist for fully-booked dates, admin notification with 48h expiry, auto-conversion on booking, daily expiry cron |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 16 | Waitlist — entry, notification, conversion to booking |
 | 17 | Document Library — upload, access control |
 | 18 | Audit Log — viewer, filtering, export |
 | 19 | Xero Integration — OAuth2, invoice sync, bank feed |
@@ -247,6 +247,11 @@ E2E tests cover 7 critical flows: login, booking, admin members, dashboard, admi
 - **Bulk communications** — compose, send, recipient resolution, retry failed, template CRUD, settings, delivery tracking
 - **SMS client** — Telnyx send, webhook status updates
 - **Markdown rendering** — markdown to sanitized HTML conversion
+- **Waitlist join** — auth, financial check, season/lodge validation, fully-booked check, duplicate detection, confirmation email
+- **Waitlist queries** — paginated list, filters (status, lodge), single entry lookup
+- **Waitlist notify** — auth/role check, status transition, expiry setting, spot-available email
+- **Waitlist remove** — auth/role check, entry deletion
+- **Waitlist expiry** — cron transitions stale NOTIFIED to EXPIRED
 
 ### Development Workflow
 
