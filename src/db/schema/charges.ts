@@ -59,6 +59,7 @@ export const oneOffCharges = pgTable("one_off_charges", {
     .notNull()
     .references(() => members.id),
   reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+  gstAmountCents: integer("gst_amount_cents").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -79,6 +80,7 @@ export const checkoutLineItems = pgTable("checkout_line_items", {
   chargeType: checkoutChargeTypeEnum("charge_type").notNull(),
   chargeId: uuid("charge_id").notNull(),
   amountCents: integer("amount_cents").notNull(),
+  gstAmountCents: integer("gst_amount_cents").notNull().default(0),
   memberId: uuid("member_id")
     .notNull()
     .references(() => members.id),

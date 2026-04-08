@@ -26,6 +26,9 @@ export const organisations = pgTable("organisations", {
   smsPreArrivalEnabled: boolean("sms_pre_arrival_enabled").notNull().default(false),
   smsPreArrivalHours: integer("sms_pre_arrival_hours").notNull().default(24),
   smsPaymentReminderEnabled: boolean("sms_payment_reminder_enabled").notNull().default(false),
+  gstEnabled: boolean("gst_enabled").notNull().default(false),
+  gstRateBps: integer("gst_rate_bps").notNull().default(1000), // 1000 bps = 10%
+  abnNumber: text("abn_number"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

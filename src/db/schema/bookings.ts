@@ -46,6 +46,7 @@ export const bookings = pgTable("bookings", {
   subtotalCents: integer("subtotal_cents").notNull(),
   discountAmountCents: integer("discount_amount_cents").notNull().default(0),
   totalAmountCents: integer("total_amount_cents").notNull(),
+  gstAmountCents: integer("gst_amount_cents").notNull().default(0),
   depositAmountCents: integer("deposit_amount_cents").notNull().default(0),
   depositPaidAt: timestamp("deposit_paid_at", { withTimezone: true }),
   balanceDueDate: date("balance_due_date"),

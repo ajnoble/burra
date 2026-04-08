@@ -35,6 +35,7 @@ export const transactions = pgTable("transactions", {
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   stripeCheckoutSessionId: text("stripe_checkout_session_id"),
   platformFeeCents: integer("platform_fee_cents"),
+  gstAmountCents: integer("gst_amount_cents").notNull().default(0),
   description: text("description").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
@@ -64,6 +65,7 @@ export const subscriptions = pgTable("subscriptions", {
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   status: subscriptionStatusEnum("status").notNull().default("UNPAID"),
   waivedReason: text("waived_reason"),
+  gstAmountCents: integer("gst_amount_cents").notNull().default(0),
   reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
