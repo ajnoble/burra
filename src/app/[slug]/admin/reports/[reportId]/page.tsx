@@ -202,7 +202,7 @@ export default async function ReportDetailPage({
       { key: "netRevenue", header: "Net Revenue" },
       { key: "gstCollected", header: "GST Collected" },
       { key: "platformFees", header: "Platform Fees" },
-    ]);
+    ];
     exportData = result.rows.map((row) => ({
       period: row.period,
       bookingRevenue: (row.bookingRevenueCents / 100).toFixed(2),

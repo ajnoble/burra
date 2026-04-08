@@ -24,6 +24,8 @@ export function serialiseCsv(
 export const XERO_COLUMN_MAP: CsvColumn[] = [
   { key: "date", header: "Date" },
   { key: "amount", header: "Amount" },
+  { key: "taxAmount", header: "Tax Amount" },
+  { key: "taxType", header: "Tax Type" },
   { key: "payee", header: "Payee" },
   { key: "description", header: "Description" },
   { key: "reference", header: "Reference" },

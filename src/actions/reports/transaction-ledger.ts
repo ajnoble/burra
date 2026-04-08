@@ -12,6 +12,7 @@ export type LedgerRow = {
   memberLastName: string;
   type: "PAYMENT" | "REFUND" | "CREDIT" | "SUBSCRIPTION" | "ADJUSTMENT" | "INVOICE";
   amountCents: number;
+  gstAmountCents: number;
   description: string;
   stripeRef: string | null;
 };
@@ -35,6 +36,8 @@ export type LedgerFilters = {
 export type XeroRow = {
   date: string;
   amount: string;
+  taxAmount: string;
+  taxType: string;
   payee: string;
   description: string;
   reference: string;
@@ -78,6 +81,7 @@ export async function getTransactionLedger(
       memberLastName: members.lastName,
       type: transactions.type,
       amountCents: transactions.amountCents,
+      gstAmountCents: transactions.gstAmountCents,
       description: transactions.description,
       stripeRef: transactions.stripePaymentIntentId,
     })
@@ -96,10 +100,12 @@ export async function getTransactionLedger(
   };
 }
 
-export async function formatLedgerForXero(rows: LedgerRow[]): Promise<XeroRow[]> {
+export async function formatLedgerForXero(rows: LedgerRow[], gstEnabled: boolean): Promise<XeroRow[]> {
   return rows.map((row) => ({
     date: format(row.date, "dd/MM/yyyy"),
     amount: (row.amountCents / 100).toFixed(2),
+    taxAmount: (row.gstAmountCents / 100).toFixed(2),
+    taxType: gstEnabled ? "GST on Income" : "No GST",
     payee: `${row.memberFirstName} ${row.memberLastName}`,
     description: row.description,
     reference: row.stripeRef ?? "",

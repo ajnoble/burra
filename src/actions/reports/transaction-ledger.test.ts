@@ -102,38 +102,39 @@ describe("formatLedgerForXero", () => {
     memberLastName: "Smith",
     type: "PAYMENT",
     amountCents: 15000,
+    gstAmountCents: 1364,
     description: "Booking payment",
     stripeRef: "pi_abc123",
   };
 
   it("formats date in Australian dd/MM/yyyy format", async () => {
-    const [row] = await formatLedgerForXero([baseRow]);
+    const [row] = await formatLedgerForXero([baseRow], true);
     expect(row.date).toBe("15/07/2025");
   });
 
   it("formats amountCents as decimal amount string", async () => {
-    const [row] = await formatLedgerForXero([baseRow]);
+    const [row] = await formatLedgerForXero([baseRow], true);
     expect(row.amount).toBe("150.00");
   });
 
   it("formats payee as firstName + lastName", async () => {
-    const [row] = await formatLedgerForXero([baseRow]);
+    const [row] = await formatLedgerForXero([baseRow], true);
     expect(row.payee).toBe("Jane Smith");
   });
 
   it("passes through description", async () => {
-    const [row] = await formatLedgerForXero([baseRow]);
+    const [row] = await formatLedgerForXero([baseRow], true);
     expect(row.description).toBe("Booking payment");
   });
 
   it("passes through stripeRef as reference", async () => {
-    const [row] = await formatLedgerForXero([baseRow]);
+    const [row] = await formatLedgerForXero([baseRow], true);
     expect(row.reference).toBe("pi_abc123");
   });
 
   it("uses empty string for reference when stripeRef is null", async () => {
     const row: LedgerRow = { ...baseRow, stripeRef: null };
-    const [xeroRow] = await formatLedgerForXero([row]);
+    const [xeroRow] = await formatLedgerForXero([row], true);
     expect(xeroRow.reference).toBe("");
   });
 
@@ -143,11 +144,11 @@ describe("formatLedgerForXero", () => {
       type: "REFUND",
       amountCents: -5000,
     };
-    const [xeroRow] = await formatLedgerForXero([refundRow]);
+    const [xeroRow] = await formatLedgerForXero([refundRow], true);
     expect(xeroRow.amount).toBe("-50.00");
   });
 
   it("returns empty array for empty input", async () => {
-    expect(await formatLedgerForXero([])).toEqual([]);
+    expect(await formatLedgerForXero([], true)).toEqual([]);
   });
 });
