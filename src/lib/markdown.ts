@@ -3,7 +3,8 @@ import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 
 const window = new JSDOM("").window;
-const purify = DOMPurify(window as unknown as Window);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const purify = DOMPurify(window as any);
 
 export function renderMarkdown(input: string): string {
   if (!input) return "";

@@ -18,8 +18,8 @@ const testMembers = [
       membershipClassId: "mc-1",
       isFinancial: true,
     },
-    organisationMembers: { role: "MEMBER", isActive: true },
-    membershipClasses: { name: "Full" },
+    organisation_members: { role: "MEMBER", isActive: true },
+    membership_classes: { name: "Full" },
   },
   {
     members: {
@@ -31,8 +31,8 @@ const testMembers = [
       membershipClassId: "mc-1",
       isFinancial: true,
     },
-    organisationMembers: { role: "ADMIN", isActive: true },
-    membershipClasses: { name: "Full" },
+    organisation_members: { role: "ADMIN", isActive: true },
+    membership_classes: { name: "Full" },
   },
   {
     members: {
@@ -44,8 +44,8 @@ const testMembers = [
       membershipClassId: "mc-2",
       isFinancial: false,
     },
-    organisationMembers: { role: "MEMBER", isActive: true },
-    membershipClasses: { name: "Associate" },
+    organisation_members: { role: "MEMBER", isActive: true },
+    membership_classes: { name: "Associate" },
   },
 ];
 

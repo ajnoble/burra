@@ -9,7 +9,7 @@ const mockInnerJoin = vi.fn();
 
 const mockFailedRecipients = [
   {
-    communicationRecipients: {
+    communication_recipients: {
       id: "cr-1",
       communicationId: "comm-1",
       memberId: "m1",
@@ -24,7 +24,7 @@ const mockFailedRecipients = [
     },
   },
   {
-    communicationRecipients: {
+    communication_recipients: {
       id: "cr-2",
       communicationId: "comm-1",
       memberId: "m2",
