@@ -19,7 +19,7 @@ test.describe("Admin Document Library", () => {
     await adminPage.getByRole("button", { name: /add/i }).click();
 
     await expect(adminPage.getByText("Category created")).toBeVisible();
-    await expect(adminPage.getByText("Meeting Minutes")).toBeVisible();
+    await expect(adminPage.getByText("Meeting Minutes").first()).toBeVisible();
   });
 
   test("admin can upload a document", async ({ adminPage }) => {

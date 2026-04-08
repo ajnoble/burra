@@ -3,6 +3,18 @@ import { createAdminClient } from "./admin";
 const BUCKET = "documents";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
+let bucketEnsured = false;
+
+async function ensureBucket() {
+  if (bucketEnsured) return;
+  const supabase = createAdminClient();
+  const { data } = await supabase.storage.getBucket(BUCKET);
+  if (!data) {
+    await supabase.storage.createBucket(BUCKET, { public: false });
+  }
+  bucketEnsured = true;
+}
+
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
   "application/msword",
@@ -33,6 +45,7 @@ export async function uploadFile(
   fileName: string,
   file: File
 ): Promise<{ path: string; error?: string }> {
+  await ensureBucket();
   const supabase = createAdminClient();
   const path = `${organisationId}/${fileId}-${fileName}`;
 

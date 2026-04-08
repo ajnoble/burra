@@ -21,7 +21,7 @@ test.describe("Admin communications", () => {
     await adminPage.goto("/polski/admin/communications/compose");
     await expect(adminPage.getByPlaceholder("Write your message in markdown")).toBeVisible();
     await expect(adminPage.getByPlaceholder("Email subject line")).toBeVisible();
-    await expect(adminPage.getByText("Recipients")).toBeVisible();
+    await expect(adminPage.getByText("Recipient Filters")).toBeVisible();
   });
 
   test("SMS channel shows character counter", async ({ adminPage }) => {
@@ -31,10 +31,11 @@ test.describe("Admin communications", () => {
     await expect(adminPage.getByText(/0\/160/)).toBeVisible();
   });
 
-  test("templates tab shows empty state", async ({ adminPage }) => {
+  test("templates tab loads", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/communications?tab=templates");
     await adminPage.getByRole("tab", { name: "Templates" }).click();
-    await expect(adminPage.getByText("No templates yet")).toBeVisible();
+    await expect(adminPage.getByRole("heading", { name: "Templates" })).toBeVisible();
+    await expect(adminPage.getByRole("button", { name: "New Template" })).toBeVisible();
   });
 
   test("settings tab shows SMS configuration", async ({ adminPage }) => {
