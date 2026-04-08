@@ -83,7 +83,7 @@ export async function retryFailed(input: RetryFailedInput) {
   let retried = 0;
 
   for (const row of failedRows) {
-    const recipient = row.communicationRecipients;
+    const recipient = row.communication_recipients;
     const member = row.members;
 
     try {
