@@ -27,6 +27,7 @@ export async function createCheckoutSession(
       stripeConnectAccountId: organisations.stripeConnectAccountId,
       stripeConnectOnboardingComplete: organisations.stripeConnectOnboardingComplete,
       platformFeeBps: organisations.platformFeeBps,
+      gstEnabled: organisations.gstEnabled,
     })
     .from(organisations)
     .where(eq(organisations.id, organisationId));
@@ -87,6 +88,7 @@ export async function createCheckoutSession(
     bookingReference: txn.bookingReference,
     amountCents: txn.amountCents,
     platformFeeBps: org.platformFeeBps,
+    gstEnabled: org.gstEnabled,
     successUrl: `${appUrl}/${slug}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${appUrl}/${slug}/payment/cancelled`,
   });

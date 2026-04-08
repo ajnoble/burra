@@ -21,10 +21,12 @@ export type CheckoutSessionInput = {
   platformFeeBps: number;
   successUrl: string;
   cancelUrl: string;
+  gstEnabled?: boolean;
 };
 
 export function buildCheckoutSessionParams(input: CheckoutSessionInput) {
   const platformFeeCents = applyBasisPoints(input.amountCents, input.platformFeeBps);
+  const gstSuffix = input.gstEnabled ? " (incl. GST)" : "";
 
   return {
     mode: "payment" as const,
@@ -32,7 +34,7 @@ export function buildCheckoutSessionParams(input: CheckoutSessionInput) {
       {
         price_data: {
           currency: "aud",
-          product_data: { name: `Booking ${input.bookingReference}` },
+          product_data: { name: `Booking ${input.bookingReference}${gstSuffix}` },
           unit_amount: input.amountCents,
         },
         quantity: 1,
@@ -62,17 +64,19 @@ export type ConsolidatedCheckoutInput = {
   platformFeeBps: number;
   successUrl: string;
   cancelUrl: string;
+  gstEnabled?: boolean;
 };
 
 export function buildConsolidatedCheckoutParams(input: ConsolidatedCheckoutInput) {
   const platformFeeCents = applyBasisPoints(input.totalAmountCents, input.platformFeeBps);
+  const gstSuffix = input.gstEnabled ? " (incl. GST)" : "";
 
   return {
     mode: "payment" as const,
     line_items: input.lineItems.map((item) => ({
       price_data: {
         currency: "aud",
-        product_data: { name: item.name },
+        product_data: { name: `${item.name}${gstSuffix}` },
         unit_amount: item.amountCents,
       },
       quantity: 1,
@@ -99,10 +103,12 @@ export type SubscriptionCheckoutInput = {
   platformFeeBps: number;
   successUrl: string;
   cancelUrl: string;
+  gstEnabled?: boolean;
 };
 
 export function buildSubscriptionCheckoutParams(input: SubscriptionCheckoutInput) {
   const platformFeeCents = applyBasisPoints(input.amountCents, input.platformFeeBps);
+  const gstSuffix = input.gstEnabled ? " (incl. GST)" : "";
 
   return {
     mode: "payment" as const,
@@ -110,7 +116,7 @@ export function buildSubscriptionCheckoutParams(input: SubscriptionCheckoutInput
       {
         price_data: {
           currency: "aud",
-          product_data: { name: `Membership Fee — ${input.seasonName}` },
+          product_data: { name: `Membership Fee — ${input.seasonName}${gstSuffix}` },
           unit_amount: input.amountCents,
         },
         quantity: 1,
