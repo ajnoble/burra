@@ -4,7 +4,7 @@ import { members, organisations } from "@/db/schema";
 import { oneOffCharges, checkoutLineItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type Stripe from "stripe";
-import { applyBasisPoints } from "@/lib/currency";
+import { applyBasisPoints, calculateGst } from "@/lib/currency";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { PaymentReceivedEmail } from "@/lib/email/templates/payment-received";
@@ -41,9 +41,14 @@ export async function handleCheckoutSessionCompleted(
     const { organisationId } = session.metadata ?? {};
     if (!organisationId) return;
 
-    // Look up the org's platform fee
+    // Look up the org's platform fee and GST settings
     const [orgData] = await db
-      .select({ platformFeeBps: organisations.platformFeeBps })
+      .select({
+        platformFeeBps: organisations.platformFeeBps,
+        gstEnabled: organisations.gstEnabled,
+        gstRateBps: organisations.gstRateBps,
+        abnNumber: organisations.abnNumber,
+      })
       .from(organisations)
       .where(eq(organisations.id, organisationId));
 
@@ -65,6 +70,9 @@ export async function handleCheckoutSessionCompleted(
 
     for (const item of lineItems) {
       // Create PAYMENT transaction for each line item
+      const gstAmountCents = orgData?.gstEnabled
+        ? calculateGst(item.amountCents, orgData.gstRateBps)
+        : 0;
       const [txn] = await db
         .insert(transactions)
         .values({
@@ -75,6 +83,7 @@ export async function handleCheckoutSessionCompleted(
           stripePaymentIntentId: paymentIntentId,
           stripeCheckoutSessionId: session.id,
           platformFeeCents: applyBasisPoints(item.amountCents, feeBps),
+          gstAmountCents,
           description: `Consolidated payment — ${item.chargeType.replace(/_/g, " ").toLowerCase()}`,
         })
         .returning();
@@ -152,6 +161,11 @@ export async function handleCheckoutSessionCompleted(
           totalAmountCents: totalAmount,
           paidDate: new Date().toISOString().split("T")[0],
           logoUrl: emailData.logoUrl || undefined,
+          gstEnabled: orgData?.gstEnabled ?? false,
+          totalGstAmountCents: orgData?.gstEnabled
+            ? emailLineItems.reduce((sum, item) => sum + calculateGst(item.amountCents, orgData.gstRateBps), 0)
+            : 0,
+          abnNumber: orgData?.abnNumber ?? undefined,
         }),
         replyTo: emailData.contactEmail || undefined,
         orgName: emailData.orgName,
@@ -198,6 +212,20 @@ export async function handleCheckoutSessionCompleted(
 
     const amountCents = session.amount_total ?? sub.amountCents;
 
+    // Look up org GST settings
+    const [orgGst] = await db
+      .select({
+        gstEnabled: organisations.gstEnabled,
+        gstRateBps: organisations.gstRateBps,
+        abnNumber: organisations.abnNumber,
+      })
+      .from(organisations)
+      .where(eq(organisations.id, sub.organisationId));
+
+    const gstAmountCents = orgGst?.gstEnabled
+      ? calculateGst(amountCents, orgGst.gstRateBps)
+      : 0;
+
     // Create SUBSCRIPTION transaction
     await db.insert(transactions).values({
       organisationId: sub.organisationId,
@@ -206,6 +234,7 @@ export async function handleCheckoutSessionCompleted(
       amountCents: amountCents,
       stripePaymentIntentId: paymentIntentId,
       stripeCheckoutSessionId: session.id,
+      gstAmountCents,
       description: `Membership subscription payment`,
     });
 
@@ -242,6 +271,9 @@ export async function handleCheckoutSessionCompleted(
           amountCents: amountCents,
           paidDate: new Date().toISOString().split("T")[0],
           logoUrl: emailData.logoUrl || undefined,
+          gstEnabled: orgGst?.gstEnabled ?? false,
+          gstAmountCents,
+          abnNumber: orgGst?.abnNumber ?? undefined,
         }),
         replyTo: emailData.contactEmail || undefined,
         orgName: emailData.orgName,
@@ -283,6 +315,20 @@ export async function handleCheckoutSessionCompleted(
   const amountCents = session.amount_total ?? invoice.amountCents;
   const platformFeeCents = applyBasisPoints(amountCents, 100);
 
+  // Look up org GST settings
+  const [orgGst] = await db
+    .select({
+      gstEnabled: organisations.gstEnabled,
+      gstRateBps: organisations.gstRateBps,
+      abnNumber: organisations.abnNumber,
+    })
+    .from(organisations)
+    .where(eq(organisations.id, invoice.organisationId));
+
+  const gstAmountCents = orgGst?.gstEnabled
+    ? calculateGst(amountCents, orgGst.gstRateBps)
+    : 0;
+
   // Create PAYMENT transaction
   await db.insert(transactions).values({
     organisationId: invoice.organisationId,
@@ -293,6 +339,7 @@ export async function handleCheckoutSessionCompleted(
     stripePaymentIntentId: paymentIntentId,
     stripeCheckoutSessionId: session.id,
     platformFeeCents,
+    gstAmountCents,
     description: `Payment received for invoice ${invoice.id}`,
   });
 
@@ -329,6 +376,9 @@ export async function handleCheckoutSessionCompleted(
         amountCents: amountCents,
         paidDate: new Date().toISOString().split("T")[0],
         logoUrl: emailData.logoUrl || undefined,
+        gstEnabled: orgGst?.gstEnabled ?? false,
+        gstAmountCents,
+        abnNumber: orgGst?.abnNumber ?? undefined,
       }),
       replyTo: emailData.contactEmail || undefined,
       orgName: emailData.orgName,
