@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatCurrency, applyBasisPoints } from "../currency";
+import { formatCurrency, applyBasisPoints, calculateGst } from "../currency";
 
 describe("formatCurrency", () => {
   it("formats zero cents", () => {
@@ -51,5 +51,45 @@ describe("applyBasisPoints", () => {
 
   it("returns 0 for zero cents", () => {
     expect(applyBasisPoints(0, 500)).toBe(0);
+  });
+});
+
+describe("calculateGst", () => {
+  it("calculates GST for a standard 10% inclusive amount", () => {
+    // $110 inclusive → $10 GST
+    expect(calculateGst(11000, 1000)).toBe(1000);
+  });
+
+  it("calculates GST for $0", () => {
+    expect(calculateGst(0, 1000)).toBe(0);
+  });
+
+  it("calculates GST for 1 cent", () => {
+    // 1 cent * 1000 / 11000 = 0.0909 → rounds to 0
+    expect(calculateGst(1, 1000)).toBe(0);
+  });
+
+  it("calculates GST for 11 cents", () => {
+    // 11 * 1000 / 11000 = 1
+    expect(calculateGst(11, 1000)).toBe(1);
+  });
+
+  it("rounds correctly for odd amounts", () => {
+    // $84.00 → 8400 * 1000 / 11000 = 763.636... → 764
+    expect(calculateGst(8400, 1000)).toBe(764);
+  });
+
+  it("handles large amounts", () => {
+    // $1,000,000 → 100000000 * 1000 / 11000 = 9090909.09... → 9090909
+    expect(calculateGst(100000000, 1000)).toBe(9090909);
+  });
+
+  it("returns 0 for 0 basis points rate", () => {
+    expect(calculateGst(11000, 0)).toBe(0);
+  });
+
+  it("works with non-standard rate (5% = 500bps)", () => {
+    // 10500 * 500 / 10500 = 500
+    expect(calculateGst(10500, 500)).toBe(500);
   });
 });
