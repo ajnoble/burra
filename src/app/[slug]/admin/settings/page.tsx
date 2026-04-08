@@ -5,6 +5,7 @@ import { MembershipClassManager } from "./membership-class-manager";
 import { CancellationPolicyManager } from "./cancellation-policy-manager";
 import { ChargeCategoryManager } from "./charge-category-manager";
 import { StripeConnectCard } from "./stripe-connect-card";
+import { GstSettingsForm } from "./gst-settings-form";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db/index";
 import { membershipClasses, cancellationPolicies, chargeCategories } from "@/db/schema";
@@ -54,6 +55,16 @@ export default async function SettingsPage({
         status={onboarding.status}
         accountId={onboarding.accountId}
         platformFeeBps={org.platformFeeBps}
+      />
+
+      <Separator className="my-8" />
+
+      <GstSettingsForm
+        organisationId={org.id}
+        slug={slug}
+        gstEnabled={org.gstEnabled}
+        gstRateBps={org.gstRateBps}
+        abnNumber={org.abnNumber}
       />
 
       <Separator className="my-8" />
