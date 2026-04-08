@@ -6,15 +6,15 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createOverrideSchema, updateOverrideSchema } from "./schemas";
 import { rebuildAvailabilityCache } from "./rebuild";
+import { getSessionMember } from "@/lib/auth";
 
 type CreateOverrideInput = {
   lodgeId: string;
   startDate: string;
   endDate: string;
-  type: "CLOSURE" | "REDUCTION";
+  type: "CLOSURE" | "REDUCTION" | "EVENT";
   bedReduction?: number;
   reason?: string;
-  createdByMemberId: string;
   slug: string;
 };
 
@@ -22,7 +22,7 @@ type UpdateOverrideInput = {
   id: string;
   startDate?: string;
   endDate?: string;
-  type?: "CLOSURE" | "REDUCTION";
+  type?: "CLOSURE" | "REDUCTION" | "EVENT";
   bedReduction?: number | null;
   reason?: string | null;
   slug: string;
@@ -43,7 +43,23 @@ export async function createAvailabilityOverride(
 
   const data = parsed.data;
 
-  const [override] = await db
+  // Look up lodge to get org ID and total beds
+  const [lodge] = await db
+    .select({ id: lodges.id, totalBeds: lodges.totalBeds, organisationId: lodges.organisationId })
+    .from(lodges)
+    .where(eq(lodges.id, data.lodgeId));
+
+  if (!lodge) {
+    return { success: false, error: "Lodge not found" };
+  }
+
+  // Resolve the current user's member ID
+  const session = await getSessionMember(lodge.organisationId);
+  if (!session) {
+    return { success: false, error: "Not authenticated" };
+  }
+
+  await db
     .insert(availabilityOverrides)
     .values({
       lodgeId: data.lodgeId,
@@ -52,24 +68,17 @@ export async function createAvailabilityOverride(
       type: data.type,
       bedReduction: data.bedReduction ?? null,
       reason: data.reason ?? null,
-      createdByMemberId: input.createdByMemberId,
+      createdByMemberId: session.memberId,
     })
     .returning();
 
   // Rebuild cache for affected dates
-  const [lodge] = await db
-    .select({ id: lodges.id, totalBeds: lodges.totalBeds })
-    .from(lodges)
-    .where(eq(lodges.id, data.lodgeId));
-
-  if (lodge) {
-    await rebuildAvailabilityCache({
-      lodgeId: lodge.id,
-      totalBeds: lodge.totalBeds,
-      startDate: data.startDate,
-      endDate: data.endDate,
-    });
-  }
+  await rebuildAvailabilityCache({
+    lodgeId: lodge.id,
+    totalBeds: lodge.totalBeds,
+    startDate: data.startDate,
+    endDate: data.endDate,
+  });
 
   revalidatePath(`/${input.slug}/admin/availability`);
   return { success: true };

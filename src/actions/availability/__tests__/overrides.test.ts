@@ -82,11 +82,15 @@ vi.mock("../rebuild", () => ({
   rebuildAvailabilityCache: vi.fn(),
 }));
 
+vi.mock("@/lib/auth", () => ({
+  getSessionMember: vi.fn().mockResolvedValue({ memberId: "session-member-id" }),
+}));
+
 import { createAvailabilityOverride, deleteAvailabilityOverride } from "../overrides";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  selectReturnValue = [{ id: "lodge-id", totalBeds: 20 }];
+  selectReturnValue = [{ id: "lodge-id", totalBeds: 20, organisationId: "org-id" }];
 });
 
 describe("createAvailabilityOverride", () => {
@@ -96,7 +100,6 @@ describe("createAvailabilityOverride", () => {
     endDate: "2027-07-03",
     type: "CLOSURE" as const,
     reason: "Maintenance",
-    createdByMemberId: "770e8400-e29b-41d4-a716-446655440000",
     slug: "demo",
   };
 
