@@ -28,6 +28,7 @@ export async function processSubscriptionCron(): Promise<{
       orgSlug: organisations.slug,
       contactEmail: organisations.contactEmail,
       logoUrl: organisations.logoUrl,
+      gstEnabled: organisations.gstEnabled,
       seasonName: seasons.name,
     })
     .from(subscriptions)
@@ -55,6 +56,7 @@ export async function processSubscriptionCron(): Promise<{
         dueDate: sub.dueDate,
         payUrl: `${appUrl}/${sub.orgSlug}/dashboard`,
         logoUrl: sub.logoUrl || undefined,
+        gstEnabled: sub.gstEnabled,
       }),
       replyTo: sub.contactEmail || undefined,
       orgName: sub.orgName,

@@ -14,6 +14,7 @@ import {
 import { eq, and, inArray } from "drizzle-orm";
 import { getStripeClient, buildConsolidatedCheckoutParams } from "@/lib/stripe";
 import { getSessionMember } from "@/lib/auth";
+import { calculateGst } from "@/lib/currency";
 
 type ConsolidatedCheckoutInput = {
   organisationId: string;
@@ -43,6 +44,7 @@ export async function createConsolidatedCheckoutSession(
       stripeConnectOnboardingComplete: organisations.stripeConnectOnboardingComplete,
       platformFeeBps: organisations.platformFeeBps,
       gstEnabled: organisations.gstEnabled,
+      gstRateBps: organisations.gstRateBps,
     })
     .from(organisations)
     .where(eq(organisations.id, input.organisationId));
@@ -209,6 +211,7 @@ export async function createConsolidatedCheckoutSession(
       chargeId: item.chargeId,
       amountCents: item.amountCents,
       memberId: item.memberId,
+      gstAmountCents: org.gstEnabled ? calculateGst(item.amountCents, org.gstRateBps) : 0,
     });
   }
 
