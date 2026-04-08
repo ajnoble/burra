@@ -71,6 +71,13 @@
       "when": 1775585224532,
       "tag": "0009_ancient_corsair",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775611361194,
+      "tag": "0010_neat_calypso",
+      "breakpoints": true
     }
   ]
 }

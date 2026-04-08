@@ -2,6 +2,7 @@ import { db } from "@/db/index";
 import { bookings, bookingRounds, organisations, members, lodges, bedHolds } from "@/db/schema";
 import { and, eq, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { sendEmail } from "@/lib/email/send";
+import { sendSMS } from "@/lib/sms/send";
 import React from "react";
 import { BookingPaymentReminderEmail } from "@/lib/email/templates/booking-payment-reminder";
 import { BookingAutoCancelledEmail } from "@/lib/email/templates/booking-auto-cancelled";
@@ -10,6 +11,7 @@ import { cancelBooking } from "./cancel";
 export type BookingPaymentCronResult = {
   remindersSent: number;
   bookingsCancelled: number;
+  preArrivalSmsSent: number;
   holdsCleared: boolean;
 };
 
@@ -223,11 +225,55 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
     }
   }
 
+  // ─── Pass 2.5: SMS Pre-Arrival ──────────────────────────────────────────
+
+  let preArrivalSmsSent = 0;
+
+  const upcomingBookings = await db
+    .select({
+      bookingId: bookings.id,
+      checkInDate: bookings.checkInDate,
+      memberFirstName: members.firstName,
+      memberPhone: members.phone,
+      lodgeName: lodges.name,
+      orgName: organisations.name,
+      smsFromNumber: organisations.smsFromNumber,
+      smsPreArrivalEnabled: organisations.smsPreArrivalEnabled,
+      smsPreArrivalHours: organisations.smsPreArrivalHours,
+    })
+    .from(bookings)
+    .innerJoin(organisations, eq(organisations.id, bookings.organisationId))
+    .innerJoin(members, eq(members.id, bookings.primaryMemberId))
+    .innerJoin(lodges, eq(lodges.id, bookings.lodgeId))
+    .where(
+      and(
+        eq(bookings.status, "CONFIRMED"),
+        eq(organisations.smsPreArrivalEnabled, true),
+      )
+    );
+
+  for (const booking of upcomingBookings) {
+    if (!booking.memberPhone || !booking.smsFromNumber) continue;
+
+    const checkInTime = new Date(booking.checkInDate + "T00:00:00.000Z").getTime();
+    const now = Date.now();
+    const hoursUntilCheckIn = (checkInTime - now) / (1000 * 60 * 60);
+
+    if (hoursUntilCheckIn > 0 && hoursUntilCheckIn <= booking.smsPreArrivalHours) {
+      await sendSMS({
+        to: booking.memberPhone,
+        from: booking.smsFromNumber,
+        body: `Hi ${booking.memberFirstName}, reminder: your stay at ${booking.lodgeName} starts ${booking.checkInDate}. See you soon! — ${booking.orgName}`,
+      });
+      preArrivalSmsSent++;
+    }
+  }
+
   // ─── Pass 3: Hold Cleanup ────────────────────────────────────────────────
 
   await db
     .delete(bedHolds)
     .where(lt(bedHolds.expiresAt, sql`now()`));
 
-  return { remindersSent, bookingsCancelled, holdsCleared: true };
+  return { remindersSent, bookingsCancelled, preArrivalSmsSent, holdsCleared: true };
 }

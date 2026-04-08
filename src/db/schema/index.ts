@@ -41,3 +41,13 @@ export {
   checkoutChargeTypeEnum,
   checkoutLineItems,
 } from "./charges";
+export {
+  communicationChannelEnum,
+  communicationStatusEnum,
+  recipientStatusEnum,
+  recipientChannelEnum,
+  communicationTemplates,
+  communications,
+  communicationRecipients,
+} from "./communications";
+export type { CommunicationFilters } from "./communications";

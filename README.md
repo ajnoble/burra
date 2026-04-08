@@ -14,6 +14,7 @@ A SaaS booking and membership management platform for member-owned accommodation
 | **Payments** | Stripe Connect (Express accounts) |
 | **UI** | Tailwind CSS v4 + shadcn/ui (Base UI) |
 | **Email** | Resend + React Email |
+| **SMS** | Telnyx |
 | **Rate Limiting** | Upstash Redis |
 | **Testing** | Vitest (unit/integration), Playwright (E2E) |
 | **Deployment** | Docker on VPS |
@@ -24,7 +25,7 @@ A SaaS booking and membership management platform for member-owned accommodation
 
 Every club is an `Organisation` with a unique slug. All routes are scoped under `/[slug]/` and every database query is filtered by `organisationId`. Supabase Row Level Security provides a second enforcement layer.
 
-### Data Model (21 tables)
+### Data Model (24 tables)
 
 ```
 Organisation
@@ -40,7 +41,9 @@ Organisation
  ├── WaitlistEntry
  ├── MemberImport
  ├── Document
- └── AuditLog
+ ├── AuditLog
+ └── Communication ── CommunicationRecipient
+      └── CommunicationTemplate
 ```
 
 ### Key Design Decisions
@@ -65,6 +68,7 @@ src/
       login/                    # Auth
   actions/                      # Server actions (mutations)
     availability/               # Cache rebuild, overrides, validation
+    communications/             # Compose, send, recipients, templates, retry
     lodges/
     membership-classes/
     members/
@@ -77,6 +81,7 @@ src/
     index.ts                    # Drizzle client
   lib/
     email/                      # Resend client, sendEmail helper, 12 templates
+    sms/                        # Telnyx client, sendSMS helper
     import/                     # CSV parsing and validation
     supabase/                   # Supabase client helpers
     auth.ts                     # Session and role helpers
@@ -108,12 +113,12 @@ drizzle/                        # Generated SQL migrations
 | 12 | Treasurer Reporting | Role dashboards (treasurer/officer/committee), 7 reports, CSV export (Xero-compatible) |
 | 13 | One-Off Charges | Locker fees, events, family billing consolidation, bulk charges |
 | 14 | Booking Engine Rules | Auto-cancel unpaid bookings, configurable payment deadlines, grace periods, email reminders |
+| 15 | Bulk Communications | Compose email + SMS with markdown editor and live preview, reusable templates, recipient filtering with manual add/remove, delivery tracking via Resend and Telnyx webhooks, automated SMS triggers (pre-arrival, payment reminders) |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 15 | Bulk Communications — filtered email + SMS to members |
 | 16 | Waitlist — entry, notification, conversion to booking |
 | 17 | Document Library — upload, access control |
 | 18 | Audit Log — viewer, filtering, export |
@@ -145,7 +150,7 @@ drizzle/                        # Generated SQL migrations
    ```bash
    cp .env.example .env.local
    ```
-   Fill in your Supabase and Stripe credentials.
+   Fill in your Supabase and Stripe credentials. For bulk communications, also set `TELNYX_API_KEY` and `RESEND_WEBHOOK_SECRET`.
 
 4. Run database migrations:
    ```bash
@@ -208,7 +213,7 @@ npm run test:e2e          # Run all E2E tests (headless)
 npm run test:e2e:ui       # Interactive Playwright UI
 ```
 
-E2E tests cover 6 critical flows: login, booking, admin members, dashboard, admin bookings, and org picker. They use seeded test accounts (password: `testpass123`):
+E2E tests cover 7 critical flows: login, booking, admin members, dashboard, admin bookings, org picker, and admin communications. They use seeded test accounts (password: `testpass123`):
 
 - **Admin:** marek.kowalski@example.com
 - **Booking Officer:** anna.nowak@example.com
@@ -239,6 +244,9 @@ E2E tests cover 6 critical flows: login, booking, admin members, dashboard, admi
 - **Cancellation policy** — save with validation, tier sorting, duplicate detection
 - **Stripe refund** — connected account refund, missing payment handling
 - **Payment gating** — block checkout for PENDING bookings
+- **Bulk communications** — compose, send, recipient resolution, retry failed, template CRUD, settings, delivery tracking
+- **SMS client** — Telnyx send, webhook status updates
+- **Markdown rendering** — markdown to sanitized HTML conversion
 
 ### Development Workflow
 

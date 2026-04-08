@@ -22,6 +22,10 @@ export const organisations = pgTable("organisations", {
   contactPhone: text("contact_phone"),
   websiteUrl: text("website_url"),
   address: text("address"),
+  smsFromNumber: text("sms_from_number"),
+  smsPreArrivalEnabled: boolean("sms_pre_arrival_enabled").notNull().default(false),
+  smsPreArrivalHours: integer("sms_pre_arrival_hours").notNull().default(24),
+  smsPaymentReminderEnabled: boolean("sms_payment_reminder_enabled").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
