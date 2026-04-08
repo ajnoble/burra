@@ -5,6 +5,8 @@ import { organisations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { getSessionMember } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 const updateOrgSchema = z.object({
   id: z.string().uuid(),
@@ -46,6 +48,16 @@ export async function updateOrganisation(input: UpdateOrgInput) {
     })
     .where(eq(organisations.id, data.id))
     .returning();
+
+  const session = await getSessionMember(data.id);
+  if (session) {
+    createAuditLog({
+      organisationId: data.id, actorMemberId: session.memberId,
+      action: "ORGANISATION_UPDATED", entityType: "organisation", entityId: data.id,
+      previousValue: null,
+      newValue: { name: data.name, contactEmail: data.contactEmail ?? null, timezone: data.timezone },
+    }).catch(console.error);
+  }
 
   revalidatePath(`/${updated.slug}/admin/settings`);
 

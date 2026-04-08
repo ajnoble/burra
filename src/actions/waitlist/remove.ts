@@ -5,6 +5,7 @@ import { waitlistEntries, lodges } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 type RemoveWaitlistEntryInput = {
   waitlistEntryId: string;
@@ -45,6 +46,12 @@ export async function removeWaitlistEntry(
   await db
     .delete(waitlistEntries)
     .where(eq(waitlistEntries.id, input.waitlistEntryId));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "WAITLIST_REMOVED", entityType: "waitlistEntry", entityId: input.waitlistEntryId,
+    previousValue: { status: entry.waitlist_entries.status }, newValue: null,
+  }).catch(console.error);
 
   // 4. Revalidate path
   revalidatePath(`/${input.slug}/admin/waitlist`);

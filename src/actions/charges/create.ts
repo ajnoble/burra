@@ -8,6 +8,7 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { ChargeCreatedEmail } from "@/lib/email/templates/charge-created";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 type CreateChargeInput = {
   organisationId: string;
@@ -50,6 +51,13 @@ export async function createCharge(
       createdByMemberId: input.createdByMemberId,
     })
     .returning();
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: input.createdByMemberId,
+    action: "CHARGE_CREATED", entityType: "charge", entityId: charge.id,
+    previousValue: null,
+    newValue: { memberId: input.memberId, amountCents: input.amountCents, description: input.description ?? null, categoryId: input.categoryId },
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/members/${input.memberId}`);
   revalidatePath(`/${input.slug}/admin/charges`);

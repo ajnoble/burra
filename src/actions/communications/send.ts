@@ -18,6 +18,7 @@ import { renderMarkdown } from "@/lib/markdown";
 import { BulkCommunicationEmail } from "@/lib/email/templates/bulk-communication";
 import React from "react";
 import type { CommunicationFilters } from "@/db/schema/communications";
+import { createAuditLog } from "@/lib/audit-log";
 
 type SendCommunicationInput = {
   communicationId: string;
@@ -291,6 +292,12 @@ export async function sendCommunication(input: SendCommunicationInput) {
       updatedAt: new Date(),
     })
     .where(eq(communications.id, input.communicationId));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "COMMUNICATION_SENT", entityType: "communication", entityId: input.communicationId,
+    previousValue: { status: "DRAFT" }, newValue: { status: finalStatus, sentCount, failedCount },
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/communications`);
 

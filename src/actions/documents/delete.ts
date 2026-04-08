@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
 import { deleteFile } from "@/lib/supabase/storage";
+import { createAuditLog } from "@/lib/audit-log";
 
 type DeleteInput = {
   documentId: string;
@@ -44,6 +45,12 @@ export async function deleteDocument(input: DeleteInput): Promise<DeleteResult> 
 
   // Delete from DB
   await db.delete(documents).where(eq(documents.id, input.documentId));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_DELETED", entityType: "document", entityId: input.documentId,
+    previousValue: { fileUrl: existing.fileUrl }, newValue: null,
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/documents`);
   revalidatePath(`/${input.slug}/documents`);

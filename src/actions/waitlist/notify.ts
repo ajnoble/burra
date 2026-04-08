@@ -13,6 +13,7 @@ import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { WaitlistSpotAvailableEmail } from "@/lib/email/templates/waitlist-spot-available";
+import { createAuditLog } from "@/lib/audit-log";
 
 type NotifyWaitlistInput = {
   waitlistEntryId: string;
@@ -73,6 +74,12 @@ export async function notifyWaitlistEntry(
       expiresAt,
     })
     .where(eq(waitlistEntries.id, input.waitlistEntryId));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "WAITLIST_NOTIFIED", entityType: "waitlistEntry", entityId: input.waitlistEntryId,
+    previousValue: { status: "WAITING" }, newValue: { status: "NOTIFIED", expiresAt: expiresAt.toISOString() },
+  }).catch(console.error);
 
   // 6. Fetch member details
   const [member] = await db

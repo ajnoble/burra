@@ -33,7 +33,7 @@ vi.mock("@/db/index", () => ({
                   // Default: return entry with matching org
                   return [
                     {
-                      waitlistEntries: { id: "entry-1", lodgeId: "lodge-1" },
+                      waitlist_entries: { id: "entry-1", lodgeId: "lodge-1", status: "WAITING" },
                       lodges: { id: "lodge-1", organisationId: "org-1" },
                     },
                   ];
@@ -73,6 +73,10 @@ vi.mock("drizzle-orm", () => ({
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/audit-log", () => ({
+  createAuditLog: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { removeWaitlistEntry } from "../remove";

@@ -5,6 +5,7 @@ import { oneOffCharges, transactions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 type StatusResult = { success: boolean; error?: string };
 
@@ -43,6 +44,12 @@ export async function waiveCharge(input: {
     })
     .where(eq(oneOffCharges.id, input.chargeId));
 
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "CHARGE_WAIVED", entityType: "charge", entityId: input.chargeId,
+    previousValue: { status: "UNPAID" }, newValue: { status: "WAIVED", waivedReason: input.reason },
+  }).catch(console.error);
+
   revalidatePath(`/${input.slug}/admin/charges`);
   return { success: true };
 }
@@ -76,6 +83,12 @@ export async function cancelCharge(input: {
     .update(oneOffCharges)
     .set({ status: "CANCELLED", updatedAt: new Date() })
     .where(eq(oneOffCharges.id, input.chargeId));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "CHARGE_CANCELLED", entityType: "charge", entityId: input.chargeId,
+    previousValue: { status: "UNPAID" }, newValue: { status: "CANCELLED" },
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/charges`);
   return { success: true };
@@ -132,6 +145,12 @@ export async function markChargeAsPaid(input: {
       updatedAt: new Date(),
     })
     .where(eq(oneOffCharges.id, input.chargeId));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "CHARGE_PAID", entityType: "charge", entityId: input.chargeId,
+    previousValue: { status: "UNPAID" }, newValue: { status: "PAID" },
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/charges`);
   return { success: true };

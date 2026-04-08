@@ -6,6 +6,7 @@ import { eq, asc } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 const categorySchema = z.object({
   organisationId: z.string().min(1),
@@ -44,6 +45,12 @@ export async function createDocumentCategory(
     })
     .returning();
 
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_CATEGORY_CREATED", entityType: "documentCategory", entityId: category.id,
+    previousValue: null, newValue: { name: parsed.data.name },
+  }).catch(console.error);
+
   revalidatePath(`/${input.slug}/admin/documents`);
   return { success: true as const, category };
 }
@@ -70,6 +77,12 @@ export async function updateDocumentCategory(
     .where(eq(documentCategories.id, input.id))
     .returning();
 
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_CATEGORY_UPDATED", entityType: "documentCategory", entityId: input.id,
+    previousValue: null, newValue: { name: parsed.data.name },
+  }).catch(console.error);
+
   revalidatePath(`/${input.slug}/admin/documents`);
   return { success: true as const, category: updated };
 }
@@ -89,6 +102,12 @@ export async function deleteDocumentCategory(
 
   // Delete the category
   await db.delete(documentCategories).where(eq(documentCategories.id, input.id));
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_CATEGORY_DELETED", entityType: "documentCategory", entityId: input.id,
+    previousValue: null, newValue: null,
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/documents`);
   return { success: true as const };

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
 import { validateFile, uploadFile } from "@/lib/supabase/storage";
 import { randomUUID } from "crypto";
+import { createAuditLog } from "@/lib/audit-log";
 
 type UploadResult =
   | { success: true; document: { id: string; title: string } }
@@ -59,6 +60,12 @@ export async function uploadDocument(formData: FormData): Promise<UploadResult> 
       uploadedByMemberId: session.memberId,
     })
     .returning();
+
+  createAuditLog({
+    organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_UPLOADED", entityType: "document", entityId: doc.id,
+    previousValue: null, newValue: { title, accessLevel, categoryId },
+  }).catch(console.error);
 
   revalidatePath(`/${slug}/admin/documents`);
   revalidatePath(`/${slug}/documents`);

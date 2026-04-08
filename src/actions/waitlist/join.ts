@@ -15,6 +15,7 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { WaitlistConfirmationEmail } from "@/lib/email/templates/waitlist-confirmation";
 import { getSessionMember } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 type JoinWaitlistInput = {
   organisationId: string;
@@ -164,6 +165,13 @@ export async function joinWaitlist(
       numberOfGuests: input.numberOfGuests,
     })
     .returning();
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "WAITLIST_JOINED", entityType: "waitlistEntry", entityId: entry.id,
+    previousValue: null,
+    newValue: { lodgeId: input.lodgeId, checkInDate: input.checkInDate, checkOutDate: input.checkOutDate, numberOfGuests: input.numberOfGuests },
+  }).catch(console.error);
 
   // 8. Send confirmation email (fire-and-forget)
   const [org] = await db

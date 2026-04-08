@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
 import { validateFile, uploadFile, deleteFile } from "@/lib/supabase/storage";
 import { randomUUID } from "crypto";
+import { createAuditLog } from "@/lib/audit-log";
 
 type UpdateInput = {
   documentId: string;
@@ -43,6 +44,12 @@ export async function updateDocument(input: UpdateInput): Promise<ActionResult> 
       )
     )
     .returning();
+
+  createAuditLog({
+    organisationId: input.organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_UPDATED", entityType: "document", entityId: input.documentId,
+    previousValue: null, newValue: Object.fromEntries(Object.entries(setValues).filter(([_, v]) => v !== undefined)),
+  }).catch(console.error);
 
   revalidatePath(`/${input.slug}/admin/documents`);
   revalidatePath(`/${input.slug}/documents`);
@@ -88,6 +95,12 @@ export async function replaceFile(formData: FormData): Promise<ActionResult> {
     .set({ fileUrl: path, fileSizeBytes: file.size, mimeType: file.type })
     .where(eq(documents.id, documentId))
     .returning();
+
+  createAuditLog({
+    organisationId, actorMemberId: session.memberId,
+    action: "DOCUMENT_FILE_REPLACED", entityType: "document", entityId: documentId,
+    previousValue: null, newValue: { fileName: file.name, fileSizeBytes: file.size },
+  }).catch(console.error);
 
   revalidatePath(`/${slug}/admin/documents`);
   revalidatePath(`/${slug}/documents`);
