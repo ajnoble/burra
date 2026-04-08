@@ -4,11 +4,12 @@ import { OrgSettingsForm } from "./org-settings-form";
 import { MembershipClassManager } from "./membership-class-manager";
 import { CancellationPolicyManager } from "./cancellation-policy-manager";
 import { ChargeCategoryManager } from "./charge-category-manager";
+import { CustomFieldManager } from "./custom-field-manager";
 import { StripeConnectCard } from "./stripe-connect-card";
 import { GstSettingsForm } from "./gst-settings-form";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db/index";
-import { membershipClasses, cancellationPolicies, chargeCategories } from "@/db/schema";
+import { membershipClasses, cancellationPolicies, chargeCategories, customFields } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verifyOnboardingStatus } from "@/actions/stripe/onboarding";
 
@@ -37,6 +38,12 @@ export default async function SettingsPage({
     .from(chargeCategories)
     .where(eq(chargeCategories.organisationId, org.id))
     .orderBy(chargeCategories.sortOrder);
+
+  const fields = await db
+    .select()
+    .from(customFields)
+    .where(eq(customFields.organisationId, org.id))
+    .orderBy(customFields.sortOrder);
 
   const onboarding = await verifyOnboardingStatus(org.id);
 
@@ -89,6 +96,14 @@ export default async function SettingsPage({
       <ChargeCategoryManager
         organisationId={org.id}
         initialCategories={categories}
+      />
+
+      <Separator className="my-8" />
+
+      <h2 className="text-xl font-bold mb-4">Custom Member Fields</h2>
+      <CustomFieldManager
+        organisationId={org.id}
+        initialFields={fields}
       />
     </div>
   );
