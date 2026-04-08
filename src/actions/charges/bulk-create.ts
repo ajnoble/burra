@@ -107,6 +107,7 @@ export async function bulkCreateCharges(
             dueDate: input.dueDate,
             payUrl: `${appUrl}/${orgData.slug}/dashboard`,
             logoUrl: orgData.logoUrl || undefined,
+            gstEnabled: orgGst?.gstEnabled ?? false,
           }),
           replyTo: orgData.contactEmail || undefined,
           orgName: orgData.name,

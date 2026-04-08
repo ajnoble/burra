@@ -103,6 +103,7 @@ export async function createCharge(
         dueDate: input.dueDate,
         payUrl: `${appUrl}/${emailData.orgSlug}/dashboard`,
         logoUrl: emailData.logoUrl || undefined,
+        gstEnabled: org?.gstEnabled ?? false,
       }),
       replyTo: emailData.contactEmail || undefined,
       orgName: emailData.orgName,

@@ -31,6 +31,7 @@ export async function sendSubscriptionReminder({
         orgSlug: organisations.slug,
         contactEmail: organisations.contactEmail,
         logoUrl: organisations.logoUrl,
+        gstEnabled: organisations.gstEnabled,
         seasonName: seasons.name,
       })
       .from(subscriptions)
@@ -60,6 +61,7 @@ export async function sendSubscriptionReminder({
         dueDate: data.dueDate,
         payUrl: `${appUrl}/${data.orgSlug}/dashboard`,
         logoUrl: data.logoUrl || undefined,
+        gstEnabled: data.gstEnabled,
       }),
       replyTo: data.contactEmail || undefined,
       orgName: data.orgName,

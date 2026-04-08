@@ -11,6 +11,7 @@ type ChargeDueReminderEmailProps = {
   dueDate: string;
   payUrl: string;
   logoUrl?: string;
+  gstEnabled?: boolean;
 };
 
 export function ChargeDueReminderEmail({
@@ -21,6 +22,7 @@ export function ChargeDueReminderEmail({
   dueDate,
   payUrl,
   logoUrl,
+  gstEnabled,
 }: ChargeDueReminderEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
@@ -39,7 +41,7 @@ export function ChargeDueReminderEmail({
           </Text>
         )}
         <Text style={paragraph}>
-          <strong>Amount due:</strong> {formatCurrency(amountCents)}
+          <strong>Amount due:</strong> {formatCurrency(amountCents)}{gstEnabled ? " (incl. GST)" : ""}
         </Text>
         <Text style={paragraph}>
           <strong>Due date:</strong> {formatDate(dueDate)}

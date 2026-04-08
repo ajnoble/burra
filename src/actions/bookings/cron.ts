@@ -52,6 +52,7 @@ type UnpaidBookingRow = {
   autoCancelRefundPolicy: string | null;
   orgPaymentGraceDays: number;
   orgPaymentReminderDays: number[];
+  gstEnabled: boolean;
 };
 
 async function queryUnpaidBookings(): Promise<UnpaidBookingRow[]> {
@@ -83,6 +84,7 @@ async function queryUnpaidBookings(): Promise<UnpaidBookingRow[]> {
       autoCancelRefundPolicy: bookingRounds.autoCancelRefundPolicy,
       orgPaymentGraceDays: organisations.bookingPaymentGraceDays,
       orgPaymentReminderDays: organisations.bookingPaymentReminderDays,
+      gstEnabled: organisations.gstEnabled,
     })
     .from(bookings)
     .innerJoin(bookingRounds, eq(bookingRounds.id, bookings.bookingRoundId))
@@ -144,6 +146,7 @@ export async function processBookingPaymentCron(): Promise<BookingPaymentCronRes
             daysRemaining,
             payUrl: `${appUrl}/${booking.orgSlug}/dashboard`,
             logoUrl: booking.logoUrl || undefined,
+            gstEnabled: booking.gstEnabled,
           }),
           replyTo: booking.contactEmail || undefined,
           orgName: booking.orgName,

@@ -28,6 +28,7 @@ export async function processChargeDueReminders(): Promise<{
       orgSlug: organisations.slug,
       contactEmail: organisations.contactEmail,
       logoUrl: organisations.logoUrl,
+      gstEnabled: organisations.gstEnabled,
     })
     .from(oneOffCharges)
     .innerJoin(members, eq(members.id, oneOffCharges.memberId))
@@ -56,6 +57,7 @@ export async function processChargeDueReminders(): Promise<{
         dueDate: charge.dueDate!,
         payUrl: `${appUrl}/${charge.orgSlug}/dashboard`,
         logoUrl: charge.logoUrl || undefined,
+        gstEnabled: charge.gstEnabled,
       }),
       replyTo: charge.contactEmail || undefined,
       orgName: charge.orgName,

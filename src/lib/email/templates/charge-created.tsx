@@ -11,6 +11,7 @@ type ChargeCreatedEmailProps = {
   dueDate?: string;
   payUrl: string;
   logoUrl?: string;
+  gstEnabled?: boolean;
 };
 
 export function ChargeCreatedEmail({
@@ -21,6 +22,7 @@ export function ChargeCreatedEmail({
   dueDate,
   payUrl,
   logoUrl,
+  gstEnabled,
 }: ChargeCreatedEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
@@ -39,7 +41,7 @@ export function ChargeCreatedEmail({
           </Text>
         )}
         <Text style={paragraph}>
-          <strong>Amount due:</strong> {formatCurrency(amountCents)}
+          <strong>Amount due:</strong> {formatCurrency(amountCents)}{gstEnabled ? " (incl. GST)" : ""}
         </Text>
         {dueDate && (
           <Text style={paragraph}>

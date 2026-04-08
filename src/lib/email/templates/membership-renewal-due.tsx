@@ -10,6 +10,7 @@ type MembershipRenewalDueEmailProps = {
   dueDate: string;
   payUrl: string;
   logoUrl?: string;
+  gstEnabled?: boolean;
 };
 
 export function MembershipRenewalDueEmail({
@@ -19,6 +20,7 @@ export function MembershipRenewalDueEmail({
   dueDate,
   payUrl,
   logoUrl,
+  gstEnabled,
 }: MembershipRenewalDueEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
@@ -32,7 +34,7 @@ export function MembershipRenewalDueEmail({
           <strong>Season:</strong> {seasonName}
         </Text>
         <Text style={paragraph}>
-          <strong>Amount due:</strong> {formatCurrency(amountCents)}
+          <strong>Amount due:</strong> {formatCurrency(amountCents)}{gstEnabled ? " (incl. GST)" : ""}
         </Text>
         <Text style={paragraph}>
           <strong>Due date:</strong> {formatDate(dueDate)}

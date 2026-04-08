@@ -14,6 +14,7 @@ type BookingPaymentReminderEmailProps = {
   daysRemaining: number;
   payUrl: string;
   logoUrl?: string;
+  gstEnabled?: boolean;
 };
 
 export function BookingPaymentReminderEmail({
@@ -27,13 +28,14 @@ export function BookingPaymentReminderEmail({
   daysRemaining,
   payUrl,
   logoUrl,
+  gstEnabled,
 }: BookingPaymentReminderEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
       <Text style={heading}>Payment Reminder</Text>
       <Text style={paragraph}>
         Your booking at {lodgeName} has a payment of{" "}
-        {formatCurrency(totalAmountCents)} due on {formatDate(balanceDueDate)} ({`${daysRemaining} days`} remaining).
+        {formatCurrency(totalAmountCents)}{gstEnabled ? " (incl. GST)" : ""} due on {formatDate(balanceDueDate)} ({`${daysRemaining} days`} remaining).
       </Text>
       <Section style={detailsBox}>
         <Text style={paragraph}>
@@ -49,7 +51,7 @@ export function BookingPaymentReminderEmail({
           <strong>Check-out:</strong> {formatDate(checkOutDate)}
         </Text>
         <Text style={paragraph}>
-          <strong>Amount due:</strong> {formatCurrency(totalAmountCents)}
+          <strong>Amount due:</strong> {formatCurrency(totalAmountCents)}{gstEnabled ? " (incl. GST)" : ""}
         </Text>
         <Text style={paragraph}>
           <strong>Due date:</strong> {formatDate(balanceDueDate)}
