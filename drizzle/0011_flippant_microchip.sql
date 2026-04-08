@@ -1,0 +1,1 @@
+ALTER TABLE "waitlist_entries" ADD COLUMN "expires_at" timestamp with time zone;

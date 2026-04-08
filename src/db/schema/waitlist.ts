@@ -33,6 +33,7 @@ export const waitlistEntries = pgTable("waitlist_entries", {
   numberOfGuests: integer("number_of_guests").notNull(),
   status: waitlistStatusEnum("status").notNull().default("WAITING"),
   notifiedAt: timestamp("notified_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

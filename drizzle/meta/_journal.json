@@ -78,6 +78,13 @@
       "when": 1775611361194,
       "tag": "0010_neat_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1775619491734,
+      "tag": "0011_flippant_microchip",
+      "breakpoints": true
     }
   ]
 }
