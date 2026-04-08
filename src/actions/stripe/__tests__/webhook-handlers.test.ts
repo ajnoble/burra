@@ -33,7 +33,7 @@ vi.mock("@/db/schema", () => ({
     bookingReference: "booking_reference",
   },
   members: { id: "id", email: "email" },
-  organisations: { id: "id", name: "name", contactEmail: "contact_email", logoUrl: "logo_url", slug: "slug" },
+  organisations: { id: "id", name: "name", contactEmail: "contact_email", logoUrl: "logo_url", slug: "slug", gstEnabled: "gst_enabled", gstRateBps: "gst_rate_bps", abnNumber: "abn_number", platformFeeBps: "platform_fee_bps" },
   subscriptions: { id: "id", memberId: "member_id", amountCents: "amount_cents", organisationId: "organisation_id", status: "status", paidAt: "paid_at", stripePaymentIntentId: "stripe_payment_intent_id", updatedAt: "updated_at" },
 }));
 
@@ -74,6 +74,12 @@ describe("handleCheckoutSessionCompleted", () => {
           bookingId: "bkg-1",
           amountCents: 84000,
         }],
+      }),
+    });
+    // Org GST lookup
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [{ gstEnabled: false, gstRateBps: 1000, abnNumber: null }],
       }),
     });
     // Insert payment transaction
@@ -219,6 +225,13 @@ describe("handleCheckoutSessionCompleted — subscription payment", () => {
           amountCents: 15000,
           organisationId: "org-1",
         }],
+      }),
+    });
+
+    // 2b. Org GST lookup
+    mockDbSelect.mockReturnValueOnce({
+      from: () => ({
+        where: () => [{ gstEnabled: false, gstRateBps: 1000, abnNumber: null }],
       }),
     });
 

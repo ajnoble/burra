@@ -29,6 +29,11 @@ let seasonResult: unknown[] = [
   { id: "season-1", startDate: "2027-06-01" },
 ];
 
+// Default org GST result.
+let orgGstResult: unknown[] = [
+  { gstEnabled: false, gstRateBps: 1000 },
+];
+
 vi.mock("@/db/index", () => ({
   db: {
     select: (...args: unknown[]) => {
@@ -40,7 +45,7 @@ vi.mock("@/db/index", () => ({
             innerJoin: () => ({
               leftJoin: () => ({
                 where: () => {
-                  // Second select is the eligible members query
+                  // Third select is the eligible members query
                   return eligibleMembersResult;
                 },
               }),
@@ -49,6 +54,8 @@ vi.mock("@/db/index", () => ({
           where: () => {
             // First select is the season lookup
             if (callIndex === 0) return seasonResult;
+            // Second select is the org GST lookup
+            if (callIndex === 1) return orgGstResult;
             return [];
           },
         }),
@@ -72,6 +79,7 @@ vi.mock("@/db/schema", () => ({
   membershipClasses: { id: "id", annualFeeCents: "annual_fee_cents" },
   organisationMembers: { memberId: "member_id", organisationId: "organisation_id", isActive: "is_active" },
   subscriptions: { id: "id", memberId: "member_id", seasonId: "season_id", organisationId: "organisation_id" },
+  organisations: { id: "id", gstEnabled: "gst_enabled", gstRateBps: "gst_rate_bps" },
 }));
 
 vi.mock("next/cache", () => ({
@@ -104,6 +112,7 @@ beforeEach(() => {
   selectCallCount = 0;
   // Reset to defaults
   seasonResult = [{ id: "season-1", startDate: "2027-06-01" }];
+  orgGstResult = [{ gstEnabled: false, gstRateBps: 1000 }];
   eligibleMembersResult = [
     { memberId: "member-1", amountCents: 15000 },
     { memberId: "member-2", amountCents: 15000 },
