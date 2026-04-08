@@ -5,10 +5,12 @@ import {
   members,
   membershipClasses,
   organisationMembers,
+  organisations,
   subscriptions,
   seasons,
 } from "@/db/schema";
 import { eq, and, isNull, isNotNull } from "drizzle-orm";
+import { calculateGst } from "@/lib/currency";
 import { revalidatePath } from "next/cache";
 import { getSessionMember, canAccessAdmin } from "@/lib/auth";
 
@@ -41,6 +43,14 @@ export async function generateSubscriptions(
   if (!season) {
     return { success: false, error: "Season not found" };
   }
+
+  const [orgGst] = await db
+    .select({
+      gstEnabled: organisations.gstEnabled,
+      gstRateBps: organisations.gstRateBps,
+    })
+    .from(organisations)
+    .where(eq(organisations.id, organisationId));
 
   // 2. Find eligible members:
   //    - Active org member
@@ -89,6 +99,9 @@ export async function generateSubscriptions(
       amountCents: row.amountCents as number,
       dueDate: season.startDate,
       status: "UNPAID" as const,
+      gstAmountCents: orgGst?.gstEnabled
+        ? calculateGst(row.amountCents as number, orgGst.gstRateBps)
+        : 0,
     }))
   );
 
