@@ -18,12 +18,14 @@ export type RevenueSummaryRow = {
   subscriptionRevenueCents: number;
   refundsCents: number;
   netRevenueCents: number;
+  gstCollectedCents: number;
   platformFeesCents: number;
 };
 
 export type RevenueSummaryResult = {
   rows: RevenueSummaryRow[];
   totalNetRevenueCents: number;
+  totalGstCollectedCents: number;
   totalPlatformFeesCents: number;
 };
 
@@ -60,6 +62,7 @@ export async function getRevenueSummary(
         bookingRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'PAYMENT' THEN ${transactions.amountCents} ELSE 0 END), 0)`,
         subscriptionRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'SUBSCRIPTION' THEN ${transactions.amountCents} ELSE 0 END), 0)`,
         refundsCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'REFUND' THEN ABS(${transactions.amountCents}) ELSE 0 END), 0)`,
+        gstCollectedCents: sql<number>`COALESCE(SUM(${transactions.gstAmountCents}), 0)`,
         platformFeesCents: sql<number>`COALESCE(SUM(${transactions.platformFeeCents}), 0)`,
       })
       .from(transactions)
@@ -74,6 +77,7 @@ export async function getRevenueSummary(
         bookingRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'PAYMENT' THEN ${transactions.amountCents} ELSE 0 END), 0)`,
         subscriptionRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'SUBSCRIPTION' THEN ${transactions.amountCents} ELSE 0 END), 0)`,
         refundsCents: sql<number>`COALESCE(SUM(CASE WHEN ${transactions.type} = 'REFUND' THEN ABS(${transactions.amountCents}) ELSE 0 END), 0)`,
+        gstCollectedCents: sql<number>`COALESCE(SUM(${transactions.gstAmountCents}), 0)`,
         platformFeesCents: sql<number>`COALESCE(SUM(${transactions.platformFeeCents}), 0)`,
       })
       .from(transactions)
@@ -90,12 +94,14 @@ export async function getRevenueSummary(
       bookingRevenueCents: number;
       subscriptionRevenueCents: number;
       refundsCents: number;
+      gstCollectedCents: number;
       platformFeesCents: number;
     }>
   ).map((row) => {
     const bookingRevenueCents = Number(row.bookingRevenueCents);
     const subscriptionRevenueCents = Number(row.subscriptionRevenueCents);
     const refundsCents = Number(row.refundsCents);
+    const gstCollectedCents = Number(row.gstCollectedCents);
     const platformFeesCents = Number(row.platformFeesCents);
     const netRevenueCents =
       bookingRevenueCents + subscriptionRevenueCents - refundsCents;
@@ -105,6 +111,7 @@ export async function getRevenueSummary(
       subscriptionRevenueCents,
       refundsCents,
       netRevenueCents,
+      gstCollectedCents,
       platformFeesCents,
     };
   });
@@ -113,10 +120,14 @@ export async function getRevenueSummary(
     (sum, row) => sum + row.netRevenueCents,
     0
   );
+  const totalGstCollectedCents = rows.reduce(
+    (sum, row) => sum + row.gstCollectedCents,
+    0
+  );
   const totalPlatformFeesCents = rows.reduce(
     (sum, row) => sum + row.platformFeesCents,
     0
   );
 
-  return { rows, totalNetRevenueCents, totalPlatformFeesCents };
+  return { rows, totalNetRevenueCents, totalGstCollectedCents, totalPlatformFeesCents };
 }

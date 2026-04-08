@@ -114,6 +114,7 @@ export default async function ReportDetailPage({
       { key: "type", header: "Type" },
       { key: "description", header: "Description" },
       { key: "amount", header: "Amount", align: "right" },
+      { key: "gst", header: "GST", align: "right" },
       { key: "stripeRef", header: "Stripe Ref" },
     ];
 
@@ -130,14 +131,17 @@ export default async function ReportDetailPage({
       type: row.type,
       description: row.description,
       amount: formatCurrency(row.amountCents),
+      gst: formatCurrency(row.gstAmountCents),
       stripeRef: row.stripeRef ?? "",
     }));
 
-    const xeroRows = await formatLedgerForXero(result.rows);
+    const xeroRows = await formatLedgerForXero(result.rows, org.gstEnabled);
     exportColumns = XERO_COLUMN_MAP;
     exportData = xeroRows.map((r) => ({
       date: r.date,
       amount: r.amount,
+      taxAmount: r.taxAmount,
+      taxType: r.taxType,
       payee: r.payee,
       description: r.description,
       reference: r.reference,
@@ -164,6 +168,7 @@ export default async function ReportDetailPage({
       { key: "subscriptionRevenue", header: "Subscription Revenue", align: "right" },
       { key: "refunds", header: "Refunds", align: "right" },
       { key: "netRevenue", header: "Net Revenue", align: "right" },
+      { key: "gstCollected", header: "GST Collected", align: "right" },
       { key: "platformFees", header: "Platform Fees", align: "right" },
     ];
 
@@ -185,6 +190,7 @@ export default async function ReportDetailPage({
       subscriptionRevenue: formatCurrency(row.subscriptionRevenueCents),
       refunds: formatCurrency(row.refundsCents),
       netRevenue: formatCurrency(row.netRevenueCents),
+      gstCollected: formatCurrency(row.gstCollectedCents),
       platformFees: formatCurrency(row.platformFeesCents),
     }));
 
@@ -194,14 +200,16 @@ export default async function ReportDetailPage({
       { key: "subscriptionRevenue", header: "Subscription Revenue" },
       { key: "refunds", header: "Refunds" },
       { key: "netRevenue", header: "Net Revenue" },
+      { key: "gstCollected", header: "GST Collected" },
       { key: "platformFees", header: "Platform Fees" },
-    ];
+    ]);
     exportData = result.rows.map((row) => ({
       period: row.period,
       bookingRevenue: (row.bookingRevenueCents / 100).toFixed(2),
       subscriptionRevenue: (row.subscriptionRevenueCents / 100).toFixed(2),
       refunds: (row.refundsCents / 100).toFixed(2),
       netRevenue: (row.netRevenueCents / 100).toFixed(2),
+      gstCollected: (row.gstCollectedCents / 100).toFixed(2),
       platformFees: (row.platformFeesCents / 100).toFixed(2),
     }));
     exportFilename = `revenue-summary-${today}.csv`;
