@@ -9,6 +9,9 @@ type PaymentReceivedEmailProps = {
   amountCents: number;
   paidDate: string;
   logoUrl?: string;
+  gstEnabled?: boolean;
+  gstAmountCents?: number;
+  abnNumber?: string;
 };
 
 export function PaymentReceivedEmail({
@@ -17,6 +20,9 @@ export function PaymentReceivedEmail({
   amountCents,
   paidDate,
   logoUrl,
+  gstEnabled,
+  gstAmountCents,
+  abnNumber,
 }: PaymentReceivedEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
@@ -28,12 +34,32 @@ export function PaymentReceivedEmail({
         <Text style={paragraph}>
           <strong>Booking reference:</strong> {bookingReference}
         </Text>
-        <Text style={paragraph}>
-          <strong>Amount paid:</strong> {formatCurrency(amountCents)}
-        </Text>
+        {gstEnabled && gstAmountCents ? (
+          <>
+            <Text style={paragraph}>
+              <strong>Subtotal (excl. GST):</strong>{" "}
+              {formatCurrency(amountCents - gstAmountCents)}
+            </Text>
+            <Text style={paragraph}>
+              <strong>GST (10%):</strong> {formatCurrency(gstAmountCents)}
+            </Text>
+            <Text style={paragraph}>
+              <strong>Total:</strong> {formatCurrency(amountCents)}
+            </Text>
+          </>
+        ) : (
+          <Text style={paragraph}>
+            <strong>Amount paid:</strong> {formatCurrency(amountCents)}
+          </Text>
+        )}
         <Text style={paragraph}>
           <strong>Payment date:</strong> {formatDate(paidDate)}
         </Text>
+        {gstEnabled && abnNumber && (
+          <Text style={paragraph}>
+            <strong>ABN:</strong> {abnNumber}
+          </Text>
+        )}
       </Section>
       <Text style={paragraph}>
         Please keep this email as your receipt. If you have any questions, contact your club administrator.

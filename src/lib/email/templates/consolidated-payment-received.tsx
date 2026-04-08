@@ -15,6 +15,9 @@ type ConsolidatedPaymentReceivedEmailProps = {
   totalAmountCents: number;
   paidDate: string;
   logoUrl?: string;
+  gstEnabled?: boolean;
+  totalGstAmountCents?: number;
+  abnNumber?: string;
 };
 
 export function ConsolidatedPaymentReceivedEmail({
@@ -23,6 +26,9 @@ export function ConsolidatedPaymentReceivedEmail({
   totalAmountCents,
   paidDate,
   logoUrl,
+  gstEnabled,
+  totalGstAmountCents,
+  abnNumber,
 }: ConsolidatedPaymentReceivedEmailProps) {
   return (
     <EmailLayout orgName={orgName} logoUrl={logoUrl}>
@@ -37,12 +43,32 @@ export function ConsolidatedPaymentReceivedEmail({
           </Text>
         ))}
         <Hr />
-        <Text style={paragraph}>
-          <strong>Total paid:</strong> {formatCurrency(totalAmountCents)}
-        </Text>
+        {gstEnabled && totalGstAmountCents ? (
+          <>
+            <Text style={paragraph}>
+              <strong>Subtotal (excl. GST):</strong>{" "}
+              {formatCurrency(totalAmountCents - totalGstAmountCents)}
+            </Text>
+            <Text style={paragraph}>
+              <strong>GST (10%):</strong> {formatCurrency(totalGstAmountCents)}
+            </Text>
+            <Text style={paragraph}>
+              <strong>Total:</strong> {formatCurrency(totalAmountCents)}
+            </Text>
+          </>
+        ) : (
+          <Text style={paragraph}>
+            <strong>Total paid:</strong> {formatCurrency(totalAmountCents)}
+          </Text>
+        )}
         <Text style={paragraph}>
           <strong>Payment date:</strong> {formatDate(paidDate)}
         </Text>
+        {gstEnabled && abnNumber && (
+          <Text style={paragraph}>
+            <strong>ABN:</strong> {abnNumber}
+          </Text>
+        )}
       </Section>
     </EmailLayout>
   );
