@@ -6,6 +6,8 @@ import {
   membershipClasses,
   organisationMembers,
   memberImports,
+  customFields,
+  customFieldValues,
 } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { parseCsv } from "@/lib/import/parse-csv";
@@ -14,6 +16,7 @@ import {
   parseBoolean,
   type ValidationResult,
 } from "@/lib/import/validate-import";
+import { validateCustomFieldValue } from "@/lib/validation-custom-fields";
 
 export type ValidateImportResult = {
   success: boolean;
@@ -25,7 +28,12 @@ export async function validateCsvImport(
   organisationId: string,
   csvText: string
 ): Promise<ValidateImportResult> {
-  const parsed = parseCsv(csvText);
+  const orgCustomFields = await db
+    .select({ key: customFields.key })
+    .from(customFields)
+    .where(and(eq(customFields.organisationId, organisationId), eq(customFields.isActive, true)));
+
+  const parsed = parseCsv(csvText, orgCustomFields.map((f) => f.key));
 
   if (parsed.errors.length > 0) {
     return { success: false, parseErrors: parsed.errors };
@@ -63,7 +71,14 @@ export async function executeImport(
   csvText: string,
   uploadedByMemberId: string
 ): Promise<ExecuteImportResult> {
-  const parsed = parseCsv(csvText);
+  const orgCustomFields = await db
+    .select({ id: customFields.id, key: customFields.key, type: customFields.type, options: customFields.options })
+    .from(customFields)
+    .where(and(eq(customFields.organisationId, organisationId), eq(customFields.isActive, true)));
+
+  const customFieldMap = new Map(orgCustomFields.map((f) => [f.key, f]));
+
+  const parsed = parseCsv(csvText, orgCustomFields.map((f) => f.key));
 
   // Get membership class lookup
   const classes = await db
@@ -137,6 +152,21 @@ export async function executeImport(
         memberId: member.id,
         role: "MEMBER",
       });
+
+      // Save custom field values
+      for (const [cfKey, cfDef] of customFieldMap) {
+        const cfValue = (row.data as Record<string, string | undefined>)[cfKey];
+        if (cfValue && cfValue.trim()) {
+          const validation = validateCustomFieldValue(cfDef.type, cfValue.trim(), cfDef.options);
+          if (validation.valid) {
+            await db.insert(customFieldValues).values({
+              customFieldId: cfDef.id,
+              memberId: member.id,
+              value: cfValue.trim(),
+            });
+          }
+        }
+      }
 
       imported++;
     } catch (err) {

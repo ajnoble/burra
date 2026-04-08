@@ -10,6 +10,7 @@ export type CsvRow = {
   member_number?: string;
   is_financial?: string;
   primary_member_email?: string;
+  [key: string]: string | undefined;
 };
 
 export type ParseResult = {
@@ -28,7 +29,7 @@ const VALID_HEADERS = [
   "primary_member_email",
 ];
 
-export function parseCsv(csvText: string): ParseResult {
+export function parseCsv(csvText: string, customFieldKeys?: string[]): ParseResult {
   const result = Papa.parse<CsvRow>(csvText, {
     header: true,
     skipEmptyLines: true,
@@ -46,8 +47,10 @@ export function parseCsv(csvText: string): ParseResult {
   }
 
   // Warn about unknown headers
+  const allValidHeaders = [...VALID_HEADERS, ...(customFieldKeys ?? [])];
+
   for (const h of headers) {
-    if (!VALID_HEADERS.includes(h)) {
+    if (!allValidHeaders.includes(h)) {
       errors.push(`Unknown column "${h}" will be ignored`);
     }
   }
