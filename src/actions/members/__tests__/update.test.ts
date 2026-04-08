@@ -7,6 +7,11 @@ const mockReturning = vi.fn();
 
 vi.mock("@/db/index", () => ({
   db: {
+    select: () => ({
+      from: () => ({
+        where: () => [{ firstName: "Old", lastName: "Name", email: "old@test.com", phone: null, dateOfBirth: null, memberNumber: null, membershipClassId: null, notes: null }],
+      }),
+    }),
     update: (...args: unknown[]) => {
       mockUpdate(...args);
       return {
@@ -31,6 +36,15 @@ vi.mock("@/db/index", () => ({
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  getSessionMember: vi.fn().mockResolvedValue({ memberId: "actor-1", role: "ADMIN" }),
+}));
+
+vi.mock("@/lib/audit-log", () => ({
+  createAuditLog: vi.fn().mockResolvedValue(undefined),
+  diffChanges: vi.fn().mockReturnValue({ previousValue: {}, newValue: {} }),
 }));
 
 import { updateMember } from "../update";

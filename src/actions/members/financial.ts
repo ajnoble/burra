@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { FinancialStatusChangedEmail } from "@/lib/email/templates/financial-status-changed";
+import { createAuditLog } from "@/lib/audit-log";
 
 type UpdateFinancialInput = {
   memberId: string;
@@ -48,6 +49,16 @@ export async function updateFinancialStatus(
     reason: parsed.data.reason,
     changedByMemberId: input.changedByMemberId,
   });
+
+  createAuditLog({
+    organisationId: input.organisationId,
+    actorMemberId: input.changedByMemberId,
+    action: "MEMBER_FINANCIAL_STATUS_CHANGED",
+    entityType: "member",
+    entityId: input.memberId,
+    previousValue: { isFinancial: !parsed.data.isFinancial },
+    newValue: { isFinancial: parsed.data.isFinancial, reason: parsed.data.reason },
+  }).catch(console.error);
 
   // Fetch org details for email
   const [org] = await db

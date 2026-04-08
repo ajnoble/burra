@@ -33,6 +33,7 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { BookingConfirmationEmail } from "@/lib/email/templates/booking-confirmation";
 import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booking-notification";
+import { createAuditLog } from "@/lib/audit-log";
 
 
 type CreateBookingResult = {
@@ -315,6 +316,16 @@ export async function createBooking(
         status,
       };
     });
+
+    createAuditLog({
+      organisationId: data.organisationId,
+      actorMemberId: session.memberId,
+      action: "BOOKING_CREATED",
+      entityType: "booking",
+      entityId: result.bookingId,
+      previousValue: null,
+      newValue: { bookingReference: result.bookingReference, status: result.status, totalAmountCents: result.totalAmountCents },
+    }).catch(console.error);
 
     // Fetch org and lodge details for email
     const [org] = await db

@@ -5,6 +5,8 @@ import { organisationMembers } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { getSessionMember } from "@/lib/auth";
+import { createAuditLog } from "@/lib/audit-log";
 
 const roleSchema = z.object({
   role: z.enum(["MEMBER", "BOOKING_OFFICER", "COMMITTEE", "ADMIN"]),
@@ -25,6 +27,11 @@ export async function updateMemberRole(
     return { success: false, error: "Invalid role" };
   }
 
+  const [current] = await db
+    .select({ role: organisationMembers.role })
+    .from(organisationMembers)
+    .where(and(eq(organisationMembers.memberId, input.memberId), eq(organisationMembers.organisationId, input.organisationId)));
+
   const [updated] = await db
     .update(organisationMembers)
     .set({ role: parsed.data.role })
@@ -38,6 +45,19 @@ export async function updateMemberRole(
 
   if (!updated) {
     return { success: false, error: "Member not found in organisation" };
+  }
+
+  const session = await getSessionMember(input.organisationId);
+  if (session) {
+    createAuditLog({
+      organisationId: input.organisationId,
+      actorMemberId: session.memberId,
+      action: "MEMBER_ROLE_CHANGED",
+      entityType: "member",
+      entityId: input.memberId,
+      previousValue: { role: current?.role ?? null },
+      newValue: { role: parsed.data.role },
+    }).catch(console.error);
   }
 
   revalidatePath(`/${input.slug}/admin/members`);

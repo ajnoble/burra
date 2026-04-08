@@ -10,6 +10,7 @@ import { sendEmail } from "@/lib/email/send";
 import React from "react";
 import { BookingApprovedEmail } from "@/lib/email/templates/booking-approved";
 import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booking-notification";
+import { createAuditLog } from "@/lib/audit-log";
 
 type ApproveInput = {
   bookingId: string;
@@ -74,6 +75,16 @@ export async function approveBooking(
       ...(balanceDueDate && { balanceDueDate }),
     })
     .where(eq(bookings.id, input.bookingId));
+
+  createAuditLog({
+    organisationId: input.organisationId,
+    actorMemberId: input.approverMemberId,
+    action: "BOOKING_APPROVED",
+    entityType: "booking",
+    entityId: input.bookingId,
+    previousValue: { status: "PENDING" },
+    newValue: { status: "CONFIRMED" },
+  }).catch(console.error);
 
   // Fetch org, lodge, member details for emails
   const [org] = await db

@@ -18,6 +18,7 @@ import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booki
 import { calculateRefundAmount, daysUntilDate } from "@/lib/refund";
 import { processStripeRefund } from "@/actions/stripe/refund";
 import { getNightDates } from "./pricing";
+import { createAuditLog } from "@/lib/audit-log";
 
 type CancelInput = {
   bookingId: string;
@@ -139,6 +140,16 @@ export async function cancelBooking(input: CancelInput): Promise<CancelResult> {
       });
     }
   });
+
+  createAuditLog({
+    organisationId: input.organisationId,
+    actorMemberId: input.cancelledByMemberId,
+    action: "BOOKING_CANCELLED",
+    entityType: "booking",
+    entityId: input.bookingId,
+    previousValue: { status: booking.status },
+    newValue: { status: "CANCELLED", cancellationReason: input.reason, refundAmountCents: refundAmountCents > 0 ? refundAmountCents : null },
+  }).catch(console.error);
 
   // Process Stripe refund (outside transaction — Stripe is external)
   if (refundAmountCents > 0 && booking.balancePaidAt) {
