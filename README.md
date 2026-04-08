@@ -120,11 +120,19 @@ drizzle/                        # Generated SQL migrations
 
 ### Planned (Build Order)
 
-| Phase | Feature |
-|-------|---------|
-| 18 | Audit Log — viewer, filtering, export |
-| 19 | Xero Integration — OAuth2, invoice sync, bank feed |
-| 20 | Hardening — E2E expansion, security review, mobile polish |
+| Phase | Feature | Description |
+|-------|---------|-------------|
+| 18 | Audit Log | Viewer with filtering by user/action/entity, date range, CSV export, retention policy |
+| 19 | Member Self-Service Booking Edits | Members modify own bookings (date changes, guest updates), T&C acceptance checkbox on booking flow |
+| 20 | Reporting & Data Export | Booking data exports at various aggregation levels, member data filtered export, financial summary reports, batch transaction upload from spreadsheet |
+| 21 | Custom Fields | Custom member profile fields (unlimited, org-defined), custom per-guest booking fields, field type support (text, number, date, dropdown) |
+| 22 | Calendar Sync | iCal feed generation per lodge/room, subscribe from Google Calendar/Outlook, channel manager sync for external accommodation platforms |
+| 23 | Promotions & Extras | Post-booking promotional offers, optional extras during booking (ski hire, linen packs), auxiliary unit assignment (lockers, ski racks) |
+| 24 | Privacy & Compliance | Auto-purge guest data after configurable days, 2FA for admin accounts (TOTP/SMS), GDPR-style data export for members |
+| 25 | Kiosk Mode | Read-only room allocation display for lodge tablets/screens, auto-refresh, current and upcoming bookings view |
+| 26 | Booking Queue | Queue system for high-demand booking round openings, position display, fair-ordering, automatic progression |
+| 27 | Xero Integration | OAuth2 connection, invoice sync, bank feed reconciliation |
+| 28 | Hardening | E2E test expansion, security review, mobile polish, Google Analytics integration |
 
 ## Getting Started
 
