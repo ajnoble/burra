@@ -88,12 +88,16 @@ vi.mock("@/db/schema", () => ({
     logoUrl: "logoUrl",
     bookingPaymentGraceDays: "bookingPaymentGraceDays",
     bookingPaymentReminderDays: "bookingPaymentReminderDays",
+    smsFromNumber: "smsFromNumber",
+    smsPreArrivalEnabled: "smsPreArrivalEnabled",
+    smsPreArrivalHours: "smsPreArrivalHours",
   },
   members: {
     id: "id",
     email: "email",
     firstName: "firstName",
     lastName: "lastName",
+    phone: "phone",
   },
   lodges: {
     id: "id",
@@ -127,6 +131,10 @@ vi.mock("@/lib/email/templates/booking-auto-cancelled", () => ({
 }));
 
 // AdminBookingNotificationEmail no longer imported by cron — cancelBooking sends admin emails
+
+vi.mock("@/lib/sms/send", () => ({
+  sendSMS: vi.fn().mockResolvedValue({ messageId: "sms-1" }),
+}));
 
 vi.mock("./cancel", () => ({
   cancelBooking: (...args: unknown[]) => mockCancelBooking(...args),
@@ -195,6 +203,7 @@ describe("processBookingPaymentCron", () => {
     expect(result).toEqual({
       remindersSent: 0,
       bookingsCancelled: 0,
+      preArrivalSmsSent: 0,
       holdsCleared: true,
     });
     expect(mockSendEmail).not.toHaveBeenCalled();
@@ -219,6 +228,7 @@ describe("processBookingPaymentCron", () => {
     mockWhere
       .mockReturnValueOnce([booking]) // pass 1
       .mockReturnValueOnce([]) // pass 2
+      .mockReturnValueOnce([]) // pass 2.5 (pre-arrival SMS)
       .mockReturnValue(Promise.resolve()); // pass 3 delete
 
     const result = await processBookingPaymentCron();
@@ -258,6 +268,7 @@ describe("processBookingPaymentCron", () => {
     mockWhere
       .mockReturnValueOnce([booking]) // pass 1
       .mockReturnValueOnce([]) // pass 2
+      .mockReturnValueOnce([]) // pass 2.5
       .mockReturnValue(Promise.resolve()); // pass 3
 
     const result = await processBookingPaymentCron();
@@ -283,6 +294,7 @@ describe("processBookingPaymentCron", () => {
     mockWhere
       .mockReturnValueOnce([booking]) // pass 1
       .mockReturnValueOnce([]) // pass 2
+      .mockReturnValueOnce([]) // pass 2.5
       .mockReturnValue(Promise.resolve()); // pass 3
 
     const result = await processBookingPaymentCron();
@@ -310,6 +322,7 @@ describe("processBookingPaymentCron", () => {
     mockWhere
       .mockReturnValueOnce([]) // pass 1 (no reminders needed)
       .mockReturnValueOnce([booking]) // pass 2 (overdue)
+      .mockReturnValueOnce([]) // pass 2.5
       .mockReturnValue(Promise.resolve()); // pass 3
 
     const result = await processBookingPaymentCron();
@@ -342,6 +355,7 @@ describe("processBookingPaymentCron", () => {
     mockWhere
       .mockReturnValueOnce([]) // pass 1
       .mockReturnValueOnce([booking]) // pass 2
+      .mockReturnValueOnce([]) // pass 2.5
       .mockReturnValue(Promise.resolve()); // pass 3
 
     const result = await processBookingPaymentCron();
@@ -390,6 +404,7 @@ describe("processBookingPaymentCron", () => {
     mockWhere
       .mockReturnValueOnce([]) // pass 1
       .mockReturnValueOnce([bookingNone, bookingFull, bookingPolicy]) // pass 2
+      .mockReturnValueOnce([]) // pass 2.5
       .mockReturnValue(Promise.resolve()); // pass 3
 
     await processBookingPaymentCron();
