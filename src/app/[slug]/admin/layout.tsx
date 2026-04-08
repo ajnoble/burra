@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { label: "Members", href: "/members", committeeOnly: false },
   { label: "Lodges", href: "/lodges", committeeOnly: false },
   { label: "Availability", href: "/availability", committeeOnly: false },
-  { label: "Seasons", href: "/seasons", committeeOnly: true },
   { label: "Tariffs", href: "/tariffs", committeeOnly: true },
   { label: "Subscriptions", href: "/subscriptions", committeeOnly: true },
   { label: "Charges", href: "/charges", committeeOnly: true },
@@ -58,12 +57,12 @@ export default async function AdminLayout({
     <div className="flex min-h-full">
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-56 flex-col border-r bg-muted/30 p-4">
-        <div className="mb-4">
+        <div className="mb-4 shrink-0">
           <h2 className="font-semibold text-sm truncate">{org.name}</h2>
           <p className="text-xs text-muted-foreground">Admin</p>
         </div>
-        <Separator className="mb-4" />
-        <nav className="flex flex-col gap-1">
+        <Separator className="mb-4 shrink-0" />
+        <nav className="flex flex-col gap-1 overflow-y-auto min-h-0">
           {visibleNavItems.map((item) => (
             <Link
               key={item.href}
