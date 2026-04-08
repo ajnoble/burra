@@ -25,7 +25,7 @@ A SaaS booking and membership management platform for member-owned accommodation
 
 Every club is an `Organisation` with a unique slug. All routes are scoped under `/[slug]/` and every database query is filtered by `organisationId`. Supabase Row Level Security provides a second enforcement layer.
 
-### Data Model (24 tables)
+### Data Model (25 tables)
 
 ```
 Organisation
@@ -40,7 +40,8 @@ Organisation
  ├── Transaction / Subscription
  ├── WaitlistEntry
  ├── MemberImport
- ├── Document
+ ├── DocumentCategory
+ ├── Document (categorised, access-level controlled, Supabase Storage)
  ├── AuditLog
  └── Communication ── CommunicationRecipient
       └── CommunicationTemplate
@@ -115,12 +116,12 @@ drizzle/                        # Generated SQL migrations
 | 14 | Booking Engine Rules | Auto-cancel unpaid bookings, configurable payment deadlines, grace periods, email reminders |
 | 15 | Bulk Communications | Compose email + SMS with markdown editor and live preview, reusable templates, recipient filtering with manual add/remove, delivery tracking via Resend and Telnyx webhooks, automated SMS triggers (pre-arrival, payment reminders) |
 | 16 | Waitlist | Join waitlist for fully-booked dates, admin notification with 48h expiry, auto-conversion on booking, daily expiry cron |
+| 17 | Document Library | Admin upload/manage documents with categories, role-based access control (PUBLIC/MEMBER/COMMITTEE/ADMIN), file storage via Supabase Storage with signed URLs, member browse/download page |
 
 ### Planned (Build Order)
 
 | Phase | Feature |
 |-------|---------|
-| 17 | Document Library — upload, access control |
 | 18 | Audit Log — viewer, filtering, export |
 | 19 | Xero Integration — OAuth2, invoice sync, bank feed |
 | 20 | Hardening — E2E expansion, security review, mobile polish |

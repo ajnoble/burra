@@ -32,6 +32,7 @@ export {
 export { waitlistStatusEnum, waitlistEntries } from "./waitlist";
 export { importStatusEnum, memberImports } from "./imports";
 export type { ImportError } from "./imports";
+export { documentCategories } from "./document-categories";
 export { documentAccessLevelEnum, documents } from "./documents";
 export { auditLog } from "./audit-log";
 export {
