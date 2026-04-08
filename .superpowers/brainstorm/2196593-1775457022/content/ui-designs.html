@@ -1,0 +1,175 @@
+<h2>Phase 7: UI Design</h2>
+<p class="subtitle">Admin settings & member dashboard payment surfaces</p>
+
+<div class="section">
+  <h3>1. Stripe Connect Card — Admin Settings</h3>
+  <div class="split">
+    <div class="mockup" style="flex: 1;">
+      <div class="mockup-header">Before onboarding</div>
+      <div class="mockup-body" style="padding: 24px; background: #0f172a;">
+        <div style="border: 1px solid #334155; border-radius: 8px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0; font-size: 16px; color: #f1f5f9;">Payment Processing</h3>
+              <p style="margin: 0; font-size: 13px; color: #94a3b8;">Connect your Stripe account to accept booking payments</p>
+            </div>
+            <span style="background: #1e293b; color: #f59e0b; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;">Not connected</span>
+          </div>
+          <div style="background: #1e293b; border-radius: 6px; padding: 16px; margin-bottom: 16px;">
+            <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+              Stripe Connect lets your club accept credit card payments for bookings. Members will be able to pay invoices directly from their dashboard. A 1% platform fee applies to each transaction.
+            </p>
+          </div>
+          <button style="background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 500;">
+            Connect with Stripe →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup" style="flex: 1;">
+      <div class="mockup-header">After onboarding complete</div>
+      <div class="mockup-body" style="padding: 24px; background: #0f172a;">
+        <div style="border: 1px solid #334155; border-radius: 8px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h3 style="margin: 0 0 4px 0; font-size: 16px; color: #f1f5f9;">Payment Processing</h3>
+              <p style="margin: 0; font-size: 13px; color: #94a3b8;">Stripe Connect is active for your organisation</p>
+            </div>
+            <span style="background: #052e16; color: #22c55e; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;">Connected</span>
+          </div>
+          <div style="background: #1e293b; border-radius: 6px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; color: #94a3b8;">Account ID</span>
+              <span style="font-size: 13px; color: #f1f5f9; font-family: monospace;">acct_1Nv0...x4Qz</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; color: #94a3b8;">Status</span>
+              <span style="font-size: 13px; color: #22c55e;">Charges enabled</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="font-size: 13px; color: #94a3b8;">Platform fee</span>
+              <span style="font-size: 13px; color: #f1f5f9;">1%</span>
+            </div>
+          </div>
+          <div style="margin-top: 12px;">
+            <a href="#" style="font-size: 13px; color: #6366f1; text-decoration: none;">Open Stripe Dashboard →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 32px;">
+  <h3>2. Member Dashboard — Booking with Payment</h3>
+  <div class="mockup">
+    <div class="mockup-header">Upcoming Bookings — unpaid invoice</div>
+    <div class="mockup-body" style="padding: 24px; background: #0f172a;">
+      <div style="border: 1px solid #334155; border-radius: 8px; overflow: hidden;">
+        <div style="padding: 16px 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 15px; color: #f1f5f9; font-weight: 500;">Mt Buller Lodge</div>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">POLS-2027-7K3M</div>
+          </div>
+          <span style="background: #1e293b; color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;">Confirmed</span>
+        </div>
+        <div style="padding: 16px 20px; display: flex; gap: 32px; border-bottom: 1px solid #1e293b;">
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">Sat 12 Jul 2027</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Check-out</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">Sat 19 Jul 2027</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Guests</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">2</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">$840.00</div>
+          </div>
+        </div>
+        <div style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background: #1e293b;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b;"></span>
+            <span style="font-size: 13px; color: #f59e0b;">Payment outstanding — $840.00</span>
+          </div>
+          <button style="background: #22c55e; color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 500;">
+            Pay Now
+          </button>
+        </div>
+      </div>
+
+      <div style="border: 1px solid #334155; border-radius: 8px; overflow: hidden; margin-top: 16px; opacity: 0.6;">
+        <div style="padding: 16px 20px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 15px; color: #f1f5f9; font-weight: 500;">Mt Buller Lodge</div>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 2px;">POLS-2027-3R8W</div>
+          </div>
+          <span style="background: #1e293b; color: #3b82f6; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;">Confirmed</span>
+        </div>
+        <div style="padding: 16px 20px; display: flex; gap: 32px; border-bottom: 1px solid #1e293b;">
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">Fri 14 Aug 2027</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Check-out</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">Sun 16 Aug 2027</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Guests</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">1</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
+            <div style="font-size: 14px; color: #f1f5f9; margin-top: 2px;">$240.00</div>
+          </div>
+        </div>
+        <div style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(5, 46, 22, 0.3);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e;"></span>
+            <span style="font-size: 13px; color: #22c55e;">Paid — 2 Apr 2027</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 32px;">
+  <h3>3. Payment Return Pages</h3>
+  <div class="split">
+    <div class="mockup" style="flex: 1;">
+      <div class="mockup-header">Success — /payment/success</div>
+      <div class="mockup-body" style="padding: 40px 24px; background: #0f172a; text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #052e16; border: 2px solid #22c55e; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+          <span style="color: #22c55e; font-size: 24px;">✓</span>
+        </div>
+        <h3 style="color: #f1f5f9; margin: 0 0 8px;">Payment Received</h3>
+        <p style="color: #94a3b8; font-size: 14px; margin: 0 0 4px;">Booking <span style="font-family: monospace; color: #f1f5f9;">POLS-2027-7K3M</span></p>
+        <p style="color: #94a3b8; font-size: 14px; margin: 0 0 24px;">$840.00 paid successfully</p>
+        <button style="background: #334155; color: #f1f5f9; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer;">
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+
+    <div class="mockup" style="flex: 1;">
+      <div class="mockup-header">Cancelled — /payment/cancelled</div>
+      <div class="mockup-body" style="padding: 40px 24px; background: #0f172a; text-align: center;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #1e293b; border: 2px solid #64748b; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
+          <span style="color: #64748b; font-size: 24px;">←</span>
+        </div>
+        <h3 style="color: #f1f5f9; margin: 0 0 8px;">Payment Cancelled</h3>
+        <p style="color: #94a3b8; font-size: 14px; margin: 0 0 24px;">No charge was made. You can pay anytime from your dashboard.</p>
+        <button style="background: #334155; color: #f1f5f9; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; cursor: pointer;">
+          Back to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

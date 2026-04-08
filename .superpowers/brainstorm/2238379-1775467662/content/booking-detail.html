@@ -1,0 +1,179 @@
+<h2>Booking Detail View</h2>
+<p class="subtitle">Slide-out panel or dedicated page when clicking a booking row</p>
+
+<div class="mockup">
+  <div class="mockup-header">/ admin / bookings / BSKI-2027-0042</div>
+  <div class="mockup-body" style="padding: 0; background: #1a1a2e;">
+
+    <!-- Header with status + actions -->
+    <div style="padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 4px;">
+          <span style="font-family: monospace; font-size: 20px; color: #e2e8f0; font-weight: 600;">BSKI-2027-0042</span>
+          <span style="font-size: 11px; padding: 3px 10px; background: rgba(251,191,36,0.15); color: #fbbf24; border-radius: 4px;">PENDING APPROVAL</span>
+        </div>
+        <span style="font-size: 13px; color: #64748b;">Created 2 Apr 2027 · Booking Round: Member Priority</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="mock-button" style="background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 8px 16px; font-size: 13px;">✓ Approve</button>
+        <button class="mock-button" style="background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); padding: 8px 16px; font-size: 13px;">✗ Cancel</button>
+      </div>
+    </div>
+
+    <!-- Two-column layout -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0;">
+
+      <!-- Left column: Booking info -->
+      <div style="padding: 20px 24px; border-right: 1px solid rgba(255,255,255,0.05);">
+
+        <!-- Member info -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px;">Primary Member</div>
+          <div style="font-size: 15px; color: #e2e8f0;">Sarah Mitchell</div>
+          <div style="font-size: 13px; color: #94a3b8;">sarah@email.com · Member #1042</div>
+          <div style="font-size: 13px; color: #94a3b8;">Membership: Full Member</div>
+        </div>
+
+        <!-- Stay details -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px;">Stay Details</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <div style="font-size: 12px; color: #64748b;">Check-in</div>
+              <div style="font-size: 14px; color: #e2e8f0;">Sat 12 Jul 2027</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #64748b;">Check-out</div>
+              <div style="font-size: 14px; color: #e2e8f0;">Wed 16 Jul 2027</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #64748b;">Nights</div>
+              <div style="font-size: 14px; color: #e2e8f0;">4</div>
+            </div>
+            <div>
+              <div style="font-size: 12px; color: #64748b;">Lodge</div>
+              <div style="font-size: 14px; color: #e2e8f0;">Main Lodge</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Financials -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px;">Financials</div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 13px; color: #94a3b8;">Subtotal</span>
+              <span style="font-size: 13px; color: #e2e8f0;">$880.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 13px; color: #94a3b8;">Discount (5+ nights)</span>
+              <span style="font-size: 13px; color: #4ade80;">−$40.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+              <span style="font-size: 14px; color: #e2e8f0; font-weight: 600;">Total</span>
+              <span style="font-size: 14px; color: #e2e8f0; font-weight: 600;">$840.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+              <span style="font-size: 12px; color: #64748b;">Payment</span>
+              <span style="font-size: 12px; color: #fbbf24;">Awaiting approval</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin notes -->
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px;">Admin Notes</div>
+          <textarea class="mock-input" placeholder="Add internal notes about this booking..." style="width: 100%; height: 60px; resize: vertical; font-size: 13px; box-sizing: border-box;"></textarea>
+        </div>
+      </div>
+
+      <!-- Right column: Guests + Beds -->
+      <div style="padding: 20px 24px;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Guests & Bed Allocation</div>
+          <button class="mock-button" style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3);">Reassign Beds</button>
+        </div>
+
+        <!-- Guest 1 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; color: #e2e8f0;">Sarah Mitchell <span style="font-size: 11px; color: #64748b; margin-left: 4px;">PRIMARY</span></div>
+              <div style="font-size: 12px; color: #94a3b8;">Full Member · $280.00</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: #e2e8f0;">Room 3 · Bed A</div>
+              <div style="font-size: 11px; color: #64748b;">Lower bunk</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guest 2 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; color: #e2e8f0;">Tom Mitchell</div>
+              <div style="font-size: 12px; color: #94a3b8;">Full Member · $280.00</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: #e2e8f0;">Room 3 · Bed B</div>
+              <div style="font-size: 11px; color: #64748b;">Upper bunk</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guest 3 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 14px; color: #e2e8f0;">Lily Mitchell</div>
+              <div style="font-size: 12px; color: #94a3b8;">Junior Member · $280.00</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; color: #e2e8f0;">Room 3 · Bed C</div>
+              <div style="font-size: 11px; color: #64748b;">Single</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modify dates section -->
+        <div style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Modify Dates</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 14px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <div>
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">New Check-in</div>
+                <input class="mock-input" type="text" value="2027-07-12" style="width: 100%; font-size: 13px; box-sizing: border-box;">
+              </div>
+              <div>
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">New Check-out</div>
+                <input class="mock-input" type="text" value="2027-07-16" style="width: 100%; font-size: 13px; box-sizing: border-box;">
+              </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: #64748b;">Validates availability & recalculates pricing</span>
+              <button class="mock-button" style="font-size: 12px; padding: 6px 14px; background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3);">Update Dates</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>Detail View Features</h3>
+  <ul style="color: #94a3b8; font-size: 14px; line-height: 1.8;">
+    <li><strong style="color: #e2e8f0;">Header actions</strong> — context-sensitive: Approve + Cancel for PENDING, just Cancel for CONFIRMED</li>
+    <li><strong style="color: #e2e8f0;">Left column</strong> — member info, stay details, financials, admin notes</li>
+    <li><strong style="color: #e2e8f0;">Right column</strong> — guest list with bed assignments, reassign button, modify dates</li>
+    <li><strong style="color: #e2e8f0;">Payment status</strong> — shows "Awaiting approval" / "Unpaid" / "Paid on [date]"</li>
+    <li><strong style="color: #e2e8f0;">Modify dates</strong> — validates availability, recalculates pricing, sends modification email</li>
+    <li><strong style="color: #e2e8f0;">Reassign beds</strong> — opens inline bed picker per guest (dropdowns with available beds)</li>
+  </ul>
+</div>

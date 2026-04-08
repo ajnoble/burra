@@ -1,0 +1,91 @@
+<h2>Booking Creation: Concurrency &amp; Data Flow</h2>
+<p class="subtitle">How the createBooking server action handles concurrent requests on opening day</p>
+
+<div class="section">
+  <h3>Sequence: What happens when a member clicks "Confirm Booking"</h3>
+  <div class="mockup">
+    <div class="mockup-header">createBooking server action — step by step</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 2.2; padding: 24px;">
+      <div style="color: #f0883e; font-weight: bold;">1. Rate limit check (Upstash Redis)</div>
+      <div style="color: #888; margin-left: 24px;">→ 5 submissions/min per member</div>
+      <div style="color: #888; margin-left: 24px;">→ If exceeded: return "Too many requests, try again shortly"</div>
+      <br>
+      <div style="color: #f0883e; font-weight: bold;">2. Auth + eligibility check</div>
+      <div style="color: #888; margin-left: 24px;">→ Verify session, membership, financial status</div>
+      <div style="color: #888; margin-left: 24px;">→ Verify member's class is allowed in this booking round</div>
+      <br>
+      <div style="color: #f0883e; font-weight: bold;">3. BEGIN TRANSACTION</div>
+      <br>
+      <div style="color: #6cb6ff; font-weight: bold; margin-left: 16px;">4. SELECT FOR UPDATE on availability_cache rows</div>
+      <div style="color: #888; margin-left: 40px;">→ Lock the date range rows for this lodge</div>
+      <div style="color: #888; margin-left: 40px;">→ Other concurrent bookings WAIT here</div>
+      <br>
+      <div style="color: #6cb6ff; font-weight: bold; margin-left: 16px;">5. Verify beds still available</div>
+      <div style="color: #888; margin-left: 40px;">→ Check each selected bed isn't already booked</div>
+      <div style="color: #888; margin-left: 40px;">→ If taken: ROLLBACK, return "Bed X is no longer available"</div>
+      <br>
+      <div style="color: #6cb6ff; font-weight: bold; margin-left: 16px;">6. Re-validate booking rules</div>
+      <div style="color: #888; margin-left: 40px;">→ Season, round open, min/max nights, member limits</div>
+      <div style="color: #888; margin-left: 40px;">→ Server-side re-check (never trust client state)</div>
+      <br>
+      <div style="color: #7ee787; font-weight: bold; margin-left: 16px;">7. Calculate final pricing</div>
+      <div style="color: #888; margin-left: 40px;">→ Per-guest: tariff lookup by membership class</div>
+      <div style="color: #888; margin-left: 40px;">→ Per-night: weekday vs weekend rate</div>
+      <div style="color: #888; margin-left: 40px;">→ Discounts: 5-night / 7-night per guest</div>
+      <div style="color: #888; margin-left: 40px;">→ Sum guest totals → booking total</div>
+      <br>
+      <div style="color: #7ee787; font-weight: bold; margin-left: 16px;">8. Insert records</div>
+      <div style="color: #888; margin-left: 40px;">→ <strong>bookings</strong> row (status: PENDING or CONFIRMED)</div>
+      <div style="color: #888; margin-left: 40px;">→ <strong>booking_guests</strong> rows (per guest with bed, tariff snapshot)</div>
+      <div style="color: #888; margin-left: 40px;">→ <strong>transactions</strong> row (INVOICE, debit for total amount)</div>
+      <br>
+      <div style="color: #7ee787; font-weight: bold; margin-left: 16px;">9. Update availability_cache</div>
+      <div style="color: #888; margin-left: 40px;">→ Increment bookedBeds for each date in range</div>
+      <div style="color: #888; margin-left: 40px;">→ Bump version (optimistic concurrency guard)</div>
+      <br>
+      <div style="color: #f0883e; font-weight: bold;">10. COMMIT</div>
+      <br>
+      <div style="color: #d2a8ff; font-weight: bold;">11. Return success</div>
+      <div style="color: #888; margin-left: 24px;">→ Booking reference (e.g. POLS-2027-7K3M)</div>
+      <div style="color: #888; margin-left: 24px;">→ Redirect to confirmation page</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Concurrent Booking Scenario</h3>
+  <div class="mockup">
+    <div class="mockup-header">Two members booking the same bed at the same time</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 12px; line-height: 1.8; padding: 24px;">
+      <div style="display: flex; gap: 40px;">
+        <div style="flex: 1;">
+          <div style="color: #7ee787; font-weight: bold; text-align: center; margin-bottom: 8px;">Member A</div>
+          <div>1. Rate limit ✓</div>
+          <div>2. Auth check ✓</div>
+          <div>3. BEGIN TXN</div>
+          <div style="color: #7ee787;">4. SELECT FOR UPDATE → <strong>acquires lock</strong></div>
+          <div>5. Bed available? ✓</div>
+          <div>6. Rules valid? ✓</div>
+          <div>7. Calculate price</div>
+          <div>8. Insert booking</div>
+          <div>9. Update cache</div>
+          <div style="color: #7ee787;">10. COMMIT → <strong>lock released</strong></div>
+          <div style="color: #7ee787;">11. ✓ Success!</div>
+        </div>
+        <div style="flex: 1;">
+          <div style="color: #f0883e; font-weight: bold; text-align: center; margin-bottom: 8px;">Member B</div>
+          <div>1. Rate limit ✓</div>
+          <div>2. Auth check ✓</div>
+          <div>3. BEGIN TXN</div>
+          <div style="color: #f0883e;">4. SELECT FOR UPDATE → <strong>WAITS...</strong></div>
+          <div style="color: #888;">   (blocked until A commits)</div>
+          <div style="color: #f0883e;">4. Lock acquired (after A commits)</div>
+          <div style="color: #f0883e;">5. Bed available? ✗ — taken by A</div>
+          <div style="color: #f0883e;">6. ROLLBACK</div>
+          <div style="color: #f0883e;">11. "Bed X is no longer available"</div>
+          <div style="color: #888;">   → Redirected to step 3 (bed selection)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

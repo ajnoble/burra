@@ -1,0 +1,108 @@
+<h2>Phase 7: Payment Data Flow</h2>
+<p class="subtitle">End-to-end flow for the three Stripe Connect features</p>
+
+<div class="section">
+  <h3>1. Stripe Connect Onboarding</h3>
+  <div class="mockup">
+    <div class="mockup-header">Admin connects their club to Stripe</div>
+    <div class="mockup-body" style="padding: 20px; font-family: monospace; font-size: 13px; line-height: 2;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px;">Admin Settings</span>
+        <span style="color: #64748b;">→ clicks "Connect with Stripe" →</span>
+        <span style="background: #6366f1; color: white; padding: 4px 10px; border-radius: 4px;">Server Action</span>
+        <span style="color: #64748b;">→ creates Express account →</span>
+        <span style="background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 4px;">Stripe API</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <span style="background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 4px;">Stripe API</span>
+        <span style="color: #64748b;">→ returns onboarding URL →</span>
+        <span style="background: #6366f1; color: white; padding: 4px 10px; border-radius: 4px;">Server Action</span>
+        <span style="color: #64748b;">→ saves account ID to org →</span>
+        <span style="background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px;">DB: organisations</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <span style="background: #6366f1; color: white; padding: 4px 10px; border-radius: 4px;">Server Action</span>
+        <span style="color: #64748b;">→ redirects admin →</span>
+        <span style="background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 4px;">Stripe Onboarding</span>
+        <span style="color: #64748b;">→ admin fills KYC →</span>
+        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px;">Return URL</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px;">Return URL</span>
+        <span style="color: #64748b;">→ server action checks account status →</span>
+        <span style="background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px;">DB: set onboarding_complete</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. Member Payment (Pay Invoice)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Member pays an outstanding booking invoice</div>
+    <div class="mockup-body" style="padding: 20px; font-family: monospace; font-size: 13px; line-height: 2;">
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px;">Dashboard</span>
+        <span style="color: #64748b;">→ clicks "Pay Now" →</span>
+        <span style="background: #6366f1; color: white; padding: 4px 10px; border-radius: 4px;">Server Action</span>
+        <span style="color: #64748b;">→ creates Checkout Session →</span>
+        <span style="background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 4px;">Stripe API</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <span style="color: #64748b;">Checkout Session params:</span>
+        <span style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 4px; font-size: 12px;">
+          stripe_account: org.stripeConnectAccountId<br>
+          application_fee_amount: applyBasisPoints(totalCents, 100)<br>
+          line_items: [{booking ref, amount}]<br>
+          metadata: {transactionId, bookingId, organisationId}
+        </span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <span style="background: #6366f1; color: white; padding: 4px 10px; border-radius: 4px;">Server Action</span>
+        <span style="color: #64748b;">→ returns checkout URL →</span>
+        <span style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 4px;">Client</span>
+        <span style="color: #64748b;">→ redirect to Stripe Checkout →</span>
+        <span style="background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 4px;">Stripe</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
+        <span style="background: #8b5cf6; color: white; padding: 4px 10px; border-radius: 4px;">Stripe</span>
+        <span style="color: #64748b;">→ payment succeeds →</span>
+        <span style="background: #f59e0b; color: white; padding: 4px 10px; border-radius: 4px;">Webhook</span>
+        <span style="color: #64748b;">→ checkout.session.completed →</span>
+        <span style="background: #22c55e; color: white; padding: 4px 10px; border-radius: 4px;">DB Update</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; padding-left: 20px;">
+        <span style="color: #64748b;">DB updates:</span>
+        <span style="background: rgba(34,197,94,0.2); padding: 4px 10px; border-radius: 4px; font-size: 12px;">
+          transaction.stripePaymentIntentId = pi_xxx<br>
+          new transaction: type=PAYMENT, amount=totalCents<br>
+          booking.balancePaidAt = now()
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. Webhook Handler</h3>
+  <div class="mockup">
+    <div class="mockup-header">POST /api/webhooks/stripe</div>
+    <div class="mockup-body" style="padding: 20px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+      <div style="color: #64748b;">// Verify signature with STRIPE_WEBHOOK_SECRET</div>
+      <div style="color: #64748b;">// Extract event type</div>
+      <div style="margin-top: 12px;">
+        <span style="color: #22c55e;">checkout.session.completed</span> →<br>
+        <span style="padding-left: 20px;">1. Look up transaction by metadata.transactionId</span><br>
+        <span style="padding-left: 20px;">2. Create PAYMENT transaction (stripePaymentIntentId = session.payment_intent)</span><br>
+        <span style="padding-left: 20px;">3. Update booking payment timestamps</span><br>
+      </div>
+      <div style="margin-top: 12px;">
+        <span style="color: #f59e0b;">checkout.session.expired</span> →<br>
+        <span style="padding-left: 20px;">1. Log expiry (no DB changes needed)</span><br>
+      </div>
+      <div style="margin-top: 16px; padding: 8px 12px; background: rgba(59,130,246,0.1); border-radius: 4px; font-size: 12px;">
+        <strong>Idempotency:</strong> Check if PAYMENT transaction with this payment_intent already exists before creating. Stripe can send webhooks multiple times.
+      </div>
+    </div>
+  </div>
+</div>

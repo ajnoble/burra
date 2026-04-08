@@ -1,0 +1,124 @@
+<h2>Phase 7: Files & Schema Changes</h2>
+<p class="subtitle">What's new, what's modified</p>
+
+<div class="split">
+  <div class="mockup" style="flex: 1;">
+    <div class="mockup-header">New Files</div>
+    <div class="mockup-body" style="padding: 20px; font-family: monospace; font-size: 13px; line-height: 2.2;">
+      <div style="color: #64748b; margin-bottom: 8px;">── src/</div>
+
+      <div style="padding-left: 20px;">
+        <span style="color: #3b82f6;">lib/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">stripe.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — Stripe client singleton, helpers</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 4px;">
+        <span style="color: #3b82f6;">actions/stripe/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">onboarding.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — create account, generate link, verify</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">checkout.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — create Checkout Session for invoice</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 4px;">
+        <span style="color: #3b82f6;">app/api/webhooks/stripe/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">route.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — POST handler, signature verify, dispatch</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 4px;">
+        <span style="color: #3b82f6;">app/[slug]/admin/settings/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">stripe-connect-card.tsx</span>
+        <span style="color: #64748b; font-size: 11px;"> — onboarding UI card</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 4px;">
+        <span style="color: #3b82f6;">app/[slug]/dashboard/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">payment-button.tsx</span>
+        <span style="color: #64748b; font-size: 11px;"> — "Pay Now" client component</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 4px;">
+        <span style="color: #3b82f6;">app/[slug]/payment/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">success/page.tsx</span>
+        <span style="color: #64748b; font-size: 11px;"> — post-checkout return page</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">cancelled/page.tsx</span>
+        <span style="color: #64748b; font-size: 11px;"> — checkout abandoned return page</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 4px;">
+        <span style="color: #3b82f6;">app/[slug]/admin/settings/stripe/</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">return/page.tsx</span>
+        <span style="color: #64748b; font-size: 11px;"> — onboarding return, verify status</span><br>
+        <span style="padding-left: 20px; color: #22c55e;">refresh/page.tsx</span>
+        <span style="color: #64748b; font-size: 11px;"> — re-generate onboarding link if expired</span>
+      </div>
+
+      <div style="padding-left: 20px; margin-top: 12px;">
+        <span style="color: #f59e0b;">__tests__/</span><br>
+        <span style="padding-left: 20px; color: #f59e0b;">stripe.test.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — lib helpers</span><br>
+        <span style="padding-left: 20px; color: #f59e0b;">stripe-onboarding.test.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — onboarding actions</span><br>
+        <span style="padding-left: 20px; color: #f59e0b;">stripe-checkout.test.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — checkout actions</span><br>
+        <span style="padding-left: 20px; color: #f59e0b;">stripe-webhook.test.ts</span>
+        <span style="color: #64748b; font-size: 11px;"> — webhook handler</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" style="flex: 1;">
+    <div class="mockup-header">Modified Files</div>
+    <div class="mockup-body" style="padding: 20px; font-family: monospace; font-size: 13px; line-height: 2.2;">
+
+      <div style="margin-bottom: 16px;">
+        <span style="color: #f59e0b;">src/db/schema/organisations.ts</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">Add: <code>platformFeeBps</code> (integer, default 100)</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">Allows per-club fee override later</span>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <span style="color: #f59e0b;">src/db/schema/transactions.ts</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">Add: <code>stripeCheckoutSessionId</code> (text, nullable)</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">Add: <code>platformFeeCents</code> (integer, nullable)</span>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <span style="color: #f59e0b;">src/app/[slug]/admin/settings/page.tsx</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">Add StripeConnectCard below org settings</span>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <span style="color: #f59e0b;">src/app/[slug]/dashboard/page.tsx</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">Add "Pay Now" button to unpaid bookings</span>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <span style="color: #f59e0b;">next.config.ts</span><br>
+        <span style="color: #64748b; font-size: 12px; padding-left: 20px;">No changes needed — env vars already work</span>
+      </div>
+
+      <div style="margin-top: 24px; padding: 12px; background: rgba(59,130,246,0.1); border-radius: 6px;">
+        <strong style="font-size: 12px;">Schema Migration</strong><br>
+        <span style="font-size: 12px; color: #94a3b8;">
+          One new migration adding:<br>
+          • <code>platform_fee_bps</code> to organisations<br>
+          • <code>stripe_checkout_session_id</code> to transactions<br>
+          • <code>platform_fee_cents</code> to transactions
+        </span>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px; background: rgba(245,158,11,0.1); border-radius: 6px;">
+        <strong style="font-size: 12px;">No Changes Needed</strong><br>
+        <span style="font-size: 12px; color: #94a3b8;">
+          • Booking schema — already has deposit/balance fields<br>
+          • Organisation schema — already has Stripe Connect fields<br>
+          • Transaction schema — already has stripePaymentIntentId<br>
+          • Currency lib — already has applyBasisPoints()
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

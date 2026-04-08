@@ -1,0 +1,191 @@
+<h2>Action Confirmation Dialogs</h2>
+<p class="subtitle">What admins see when they click Approve, Cancel, or Reassign Beds</p>
+
+<div class="split">
+
+  <!-- Approve dialog -->
+  <div class="mockup">
+    <div class="mockup-header">Approve Booking Dialog</div>
+    <div class="mockup-body" style="background: #1a1a2e; padding: 24px;">
+      <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 400px; margin: 0 auto;">
+        <div style="font-size: 18px; color: #e2e8f0; font-weight: 600; margin-bottom: 4px;">Approve Booking</div>
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 16px;">BSKI-2027-0042 · Sarah Mitchell</div>
+
+        <div style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 13px; color: #4ade80; margin-bottom: 4px;">This will:</div>
+          <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+            <li>Change status from PENDING → CONFIRMED</li>
+            <li>Send approval email with payment link</li>
+            <li>Record your name as approver</li>
+          </ul>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Note to member (optional)</div>
+          <textarea class="mock-input" placeholder="e.g. Welcome! Room 3 has great views..." style="width: 100%; height: 50px; resize: vertical; font-size: 13px; box-sizing: border-box;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="mock-button" style="padding: 8px 16px; font-size: 13px; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Cancel</button>
+          <button class="mock-button" style="padding: 8px 16px; font-size: 13px; background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3);">Approve Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel dialog -->
+  <div class="mockup">
+    <div class="mockup-header">Cancel Booking Dialog</div>
+    <div class="mockup-body" style="background: #1a1a2e; padding: 24px;">
+      <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; max-width: 400px; margin: 0 auto;">
+        <div style="font-size: 18px; color: #e2e8f0; font-weight: 600; margin-bottom: 4px;">Cancel Booking</div>
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 16px;">BSKI-2027-0042 · Sarah Mitchell · 12–16 Jul</div>
+
+        <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+          <div style="font-size: 13px; color: #f87171; margin-bottom: 4px;">This will:</div>
+          <ul style="margin: 0; padding-left: 18px; font-size: 13px; color: #94a3b8; line-height: 1.6;">
+            <li>Change status to CANCELLED</li>
+            <li>Release beds back to availability</li>
+            <li>Send cancellation email to member</li>
+          </ul>
+        </div>
+
+        <!-- Refund section (only if paid) -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Refund Calculation</div>
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 13px; color: #94a3b8;">Amount paid</span>
+              <span style="font-size: 13px; color: #e2e8f0;">$840.00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+              <span style="font-size: 13px; color: #94a3b8;">Policy: 14+ days before</span>
+              <span style="font-size: 13px; color: #4ade80;">0% forfeit</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 13px; color: #e2e8f0; font-weight: 600;">Refund amount</span>
+              <span style="font-size: 13px; color: #4ade80; font-weight: 600;">$840.00</span>
+            </div>
+          </div>
+          <div style="margin-top: 8px;">
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Override refund amount (optional)</div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="font-size: 14px; color: #94a3b8;">$</span>
+              <input class="mock-input" type="text" placeholder="840.00" style="width: 120px; font-size: 13px;">
+              <span style="font-size: 12px; color: #64748b;">Leave blank to use policy amount</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Cancellation reason</div>
+          <textarea class="mock-input" placeholder="Reason shown to member..." style="width: 100%; height: 50px; resize: vertical; font-size: 13px; box-sizing: border-box;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button class="mock-button" style="padding: 8px 16px; font-size: 13px; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Go Back</button>
+          <button class="mock-button" style="padding: 8px 16px; font-size: 13px; background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3);">Cancel Booking</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bed reassignment -->
+<div style="margin-top: 24px;">
+  <div class="mockup">
+    <div class="mockup-header">Reassign Beds (inline mode)</div>
+    <div class="mockup-body" style="background: #1a1a2e; padding: 20px 24px;">
+
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 12px;">Reassign Beds — Main Lodge · 12–16 Jul 2027</div>
+
+      <!-- Guest 1 -->
+      <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 14px; color: #e2e8f0;">Sarah Mitchell</div>
+            <div style="font-size: 12px; color: #94a3b8;">Current: Room 3 · Bed A</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select class="mock-input" style="width: 120px; font-size: 13px;">
+              <option>Room 3</option>
+              <option>Room 1</option>
+              <option>Room 2</option>
+              <option>Room 4</option>
+            </select>
+            <select class="mock-input" style="width: 120px; font-size: 13px;">
+              <option>Bed A (lower)</option>
+              <option>Bed B (upper)</option>
+              <option>Bed C (single)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guest 2 -->
+      <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 14px; color: #e2e8f0;">Tom Mitchell</div>
+            <div style="font-size: 12px; color: #94a3b8;">Current: Room 3 · Bed B</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select class="mock-input" style="width: 120px; font-size: 13px;">
+              <option>Room 3</option>
+              <option>Room 1</option>
+              <option>Room 2</option>
+            </select>
+            <select class="mock-input" style="width: 120px; font-size: 13px;">
+              <option>Bed B (upper)</option>
+              <option>Bed A (lower)</option>
+              <option>Bed C (single)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Guest 3 -->
+      <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 14px; color: #e2e8f0;">Lily Mitchell</div>
+            <div style="font-size: 12px; color: #94a3b8;">Current: Room 3 · Bed C</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select class="mock-input" style="width: 120px; font-size: 13px;">
+              <option>Room 3</option>
+              <option>Room 1</option>
+              <option>Room 2</option>
+            </select>
+            <select class="mock-input" style="width: 120px; font-size: 13px;">
+              <option>Bed C (single)</option>
+              <option>Bed A (lower)</option>
+              <option>Bed B (upper)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <span style="font-size: 12px; color: #64748b;">Only beds available for 12–16 Jul are shown</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="mock-button" style="font-size: 13px; padding: 8px 16px; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Cancel</button>
+          <button class="mock-button" style="font-size: 13px; padding: 8px 16px; background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3);">Save Assignments</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>Dialog Behaviors</h3>
+  <ul style="color: #94a3b8; font-size: 14px; line-height: 1.8;">
+    <li><strong style="color: #e2e8f0;">Approve</strong> — optional note to member, changes PENDING → CONFIRMED, sends approval email with pay link</li>
+    <li><strong style="color: #e2e8f0;">Cancel</strong> — shows policy-calculated refund, admin can override amount, requires reason, releases beds</li>
+    <li><strong style="color: #e2e8f0;">Cancel (unpaid booking)</strong> — refund section hidden, just reason + confirm</li>
+    <li><strong style="color: #e2e8f0;">Reassign Beds</strong> — inline dropdowns filtered to available beds for the booking's date range</li>
+    <li><strong style="color: #e2e8f0;">Bed dropdowns</strong> — only show beds not booked by other guests for those dates</li>
+  </ul>
+</div>

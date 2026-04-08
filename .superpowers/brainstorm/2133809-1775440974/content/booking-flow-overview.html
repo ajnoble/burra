@@ -1,0 +1,78 @@
+<h2>Phase 6: Booking Flow Architecture</h2>
+<p class="subtitle">5-step wizard on a single route with URL state sync</p>
+
+<div class="section">
+  <h3>Route & Component Structure</h3>
+  <div class="mockup">
+    <div class="mockup-header">Route: /[slug]/book</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 1.8; padding: 24px;">
+      <div style="color: #888;">// Single route, client-side wizard</div>
+      <div style="margin-top: 8px;">
+        <span style="color: #6cb6ff;">BookingPage</span> <span style="color: #888;">(server component)</span><br>
+        <span style="color: #888; margin-left: 16px;">├──</span> Fetches: lodges, seasons, booking rounds, member session<br>
+        <span style="color: #888; margin-left: 16px;">├──</span> Validates: auth, financial status, round eligibility<br>
+        <span style="color: #888; margin-left: 16px;">└──</span> Renders:<br>
+        <br>
+        <span style="margin-left: 32px; color: #f0883e;">BookingWizard</span> <span style="color: #888;">(client component — "use client")</span><br>
+        <span style="color: #888; margin-left: 48px;">├──</span> <span style="color: #7ee787;">BookingContext</span> — wizard state + URL sync<br>
+        <span style="color: #888; margin-left: 48px;">├──</span> <span style="color: #7ee787;">StepIndicator</span> — progress bar (1-5)<br>
+        <span style="color: #888; margin-left: 48px;">├──</span> Step components (rendered by step number):<br>
+        <span style="color: #888; margin-left: 64px;">│</span><br>
+        <span style="margin-left: 64px; color: #d2a8ff;">Step 1: SelectLodgeDates</span><br>
+        <span style="color: #888; margin-left: 80px;">Lodge picker + availability calendar + date range</span><br>
+        <span style="color: #888; margin-left: 80px;">→ calls validateBookingDates server action</span><br>
+        <span style="color: #888; margin-left: 64px;">│</span><br>
+        <span style="margin-left: 64px; color: #d2a8ff;">Step 2: AddGuests</span><br>
+        <span style="color: #888; margin-left: 80px;">Add self + search/add other members</span><br>
+        <span style="color: #888; margin-left: 80px;">→ fetches member list (family first)</span><br>
+        <span style="color: #888; margin-left: 64px;">│</span><br>
+        <span style="margin-left: 64px; color: #d2a8ff;">Step 3: SelectBeds</span><br>
+        <span style="color: #888; margin-left: 80px;">Room/bed map with availability status</span><br>
+        <span style="color: #888; margin-left: 80px;">→ fetches real-time bed availability</span><br>
+        <span style="color: #888; margin-left: 64px;">│</span><br>
+        <span style="margin-left: 64px; color: #d2a8ff;">Step 4: ReviewPricing</span><br>
+        <span style="color: #888; margin-left: 80px;">Per-guest tariff breakdown, discounts, total</span><br>
+        <span style="color: #888; margin-left: 80px;">→ calls calculateBookingPrice server action</span><br>
+        <span style="color: #888; margin-left: 64px;">│</span><br>
+        <span style="margin-left: 64px; color: #d2a8ff;">Step 5: Confirm</span><br>
+        <span style="color: #888; margin-left: 80px;">Summary + confirm button</span><br>
+        <span style="color: #888; margin-left: 80px;">→ calls createBooking server action</span><br>
+        <span style="color: #888; margin-left: 80px;">→ rate limited via Upstash Redis</span><br>
+        <span style="color: #888; margin-left: 48px;">└──</span> <span style="color: #7ee787;">BookingSuccess</span> — confirmation with reference number
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>URL State Sync</h3>
+  <div class="mockup">
+    <div class="mockup-header">URL params at each step</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 2; padding: 24px;">
+      <div><span style="color: #f0883e;">Step 1:</span> /book?step=1</div>
+      <div><span style="color: #f0883e;">Step 2:</span> /book?step=2&lodge=uuid&checkIn=2027-07-01&checkOut=2027-07-05&round=uuid</div>
+      <div><span style="color: #f0883e;">Step 3:</span> /book?step=3&lodge=uuid&checkIn=2027-07-01&checkOut=2027-07-05&round=uuid</div>
+      <div><span style="color: #f0883e;">Step 4:</span> /book?step=4&lodge=uuid&checkIn=2027-07-01&checkOut=2027-07-05&round=uuid</div>
+      <div><span style="color: #f0883e;">Step 5:</span> /book?step=5&lodge=uuid&checkIn=2027-07-01&checkOut=2027-07-05&round=uuid</div>
+      <br>
+      <div style="color: #888;">Guest & bed selections stay in React state only (not in URL)</div>
+      <div style="color: #888;">On refresh at step 3+, wizard restores lodge/dates from URL, member re-selects guests/beds</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Server Actions (new in Phase 6)</h3>
+  <div class="mockup">
+    <div class="mockup-header">src/actions/bookings/</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 13px; line-height: 2; padding: 24px;">
+      <div><span style="color: #7ee787;">calculatePrice</span> — tariff lookup per guest, weekday/weekend split, multi-night discounts</div>
+      <div><span style="color: #7ee787;">createBooking</span> — SELECT FOR UPDATE, concurrency check, insert booking + guests + transaction</div>
+      <div><span style="color: #7ee787;">generateReference</span> — org prefix + year + 4-char random alphanumeric</div>
+      <div><span style="color: #7ee787;">getAvailableBeds</span> — rooms/beds for a lodge+date range, excluding already-booked</div>
+      <div><span style="color: #7ee787;">getBookableMembers</span> — org members the current user can add as guests (family first)</div>
+      <div><span style="color: #6cb6ff;">schemas.ts</span> — Zod schemas for booking input validation</div>
+      <div><span style="color: #6cb6ff;">queries.ts</span> — booking list, detail, member's bookings</div>
+    </div>
+  </div>
+</div>

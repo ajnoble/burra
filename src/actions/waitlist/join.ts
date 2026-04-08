@@ -19,6 +19,7 @@ import { getSessionMember } from "@/lib/auth";
 type JoinWaitlistInput = {
   organisationId: string;
   lodgeId: string;
+  bookingRoundId: string;
   checkInDate: string;
   checkOutDate: string;
   numberOfGuests: number;
@@ -157,14 +158,12 @@ export async function joinWaitlist(
     .values({
       memberId: session.memberId,
       lodgeId: input.lodgeId,
-      bookingRoundId: season.id, // use season id as booking round placeholder
+      bookingRoundId: input.bookingRoundId,
       checkInDate: input.checkInDate,
       checkOutDate: input.checkOutDate,
       numberOfGuests: input.numberOfGuests,
-      status: "WAITING",
-    });
-
-  const waitlistEntryId = (entry as { id?: string })?.id ?? "unknown";
+    })
+    .returning();
 
   // 8. Send confirmation email (fire-and-forget)
   const [org] = await db
@@ -195,5 +194,5 @@ export async function joinWaitlist(
   revalidatePath(`/${input.slug}/waitlist`);
 
   // 10. Return result
-  return { success: true, waitlistEntryId };
+  return { success: true, waitlistEntryId: entry.id };
 }

@@ -67,7 +67,9 @@ vi.mock("@/db/index", () => ({
       return {
         values: (...vArgs: unknown[]) => {
           mockValues(...vArgs);
-          return [{ id: "waitlist-entry-1" }];
+          return {
+            returning: () => [{ id: "waitlist-entry-1" }],
+          };
         },
       };
     },
@@ -153,6 +155,7 @@ import { getSessionMember } from "@/lib/auth";
 const baseInput = {
   organisationId: "org-1",
   lodgeId: "lodge-1",
+  bookingRoundId: "round-1",
   checkInDate: "2027-07-10",
   checkOutDate: "2027-07-13",
   numberOfGuests: 2,

@@ -1,0 +1,125 @@
+<h2>Cancellation Policy Settings</h2>
+<p class="subtitle">Added to /admin/settings — configurable refund tiers per org</p>
+
+<div class="mockup">
+  <div class="mockup-header">/ admin / settings / cancellation policy</div>
+  <div class="mockup-body" style="background: #1a1a2e; padding: 24px;">
+
+    <!-- Policy name -->
+    <div style="margin-bottom: 20px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px;">Policy Name</div>
+      <input class="mock-input" type="text" value="Standard Cancellation Policy" style="width: 100%; max-width: 400px; font-size: 14px;">
+    </div>
+
+    <!-- Tiers -->
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">Refund Tiers</div>
+        <button class="mock-button" style="font-size: 12px; padding: 4px 12px; background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3);">+ Add Tier</button>
+      </div>
+
+      <div style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Rules are evaluated top-down. The first matching tier applies. If no tier matches, no refund is given.</div>
+
+      <!-- Tier 1 -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span style="font-size: 13px; color: #94a3b8;">If cancelled</span>
+          <input class="mock-input" type="text" value="14" style="width: 60px; font-size: 13px; text-align: center;">
+          <span style="font-size: 13px; color: #94a3b8;">or more days before check-in →</span>
+          <input class="mock-input" type="text" value="0" style="width: 60px; font-size: 13px; text-align: center;">
+          <span style="font-size: 13px; color: #94a3b8;">% forfeit</span>
+          <span style="font-size: 13px; color: #4ade80; margin-left: 8px;">(full refund)</span>
+          <button class="mock-button" style="font-size: 11px; padding: 2px 8px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); margin-left: auto;">✕</button>
+        </div>
+      </div>
+
+      <!-- Tier 2 -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span style="font-size: 13px; color: #94a3b8;">If cancelled</span>
+          <input class="mock-input" type="text" value="7" style="width: 60px; font-size: 13px; text-align: center;">
+          <span style="font-size: 13px; color: #94a3b8;">or more days before check-in →</span>
+          <input class="mock-input" type="text" value="25" style="width: 60px; font-size: 13px; text-align: center;">
+          <span style="font-size: 13px; color: #94a3b8;">% forfeit</span>
+          <span style="font-size: 13px; color: #fbbf24; margin-left: 8px;">(75% refund)</span>
+          <button class="mock-button" style="font-size: 11px; padding: 2px 8px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); margin-left: auto;">✕</button>
+        </div>
+      </div>
+
+      <!-- Tier 3 -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span style="font-size: 13px; color: #94a3b8;">If cancelled</span>
+          <input class="mock-input" type="text" value="3" style="width: 60px; font-size: 13px; text-align: center;">
+          <span style="font-size: 13px; color: #94a3b8;">or more days before check-in →</span>
+          <input class="mock-input" type="text" value="50" style="width: 60px; font-size: 13px; text-align: center;">
+          <span style="font-size: 13px; color: #94a3b8;">% forfeit</span>
+          <span style="font-size: 13px; color: #fb923c; margin-left: 8px;">(50% refund)</span>
+          <button class="mock-button" style="font-size: 11px; padding: 2px 8px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); margin-left: auto;">✕</button>
+        </div>
+      </div>
+
+      <!-- Fallback -->
+      <div style="background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.15); border-radius: 8px; padding: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 13px; color: #94a3b8;">Otherwise (less than 3 days) →</span>
+          <span style="font-size: 13px; color: #f87171; font-weight: 500;">100% forfeit (no refund)</span>
+        </div>
+        <div style="font-size: 11px; color: #64748b; margin-top: 6px;">This is always the fallback. Admins can override when cancelling.</div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div style="margin-bottom: 24px;">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px;">Preview</div>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px;">
+        <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 6px 0; color: #94a3b8;">14+ days before check-in</td>
+            <td style="padding: 6px 0; color: #4ade80; text-align: right;">Full refund</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 6px 0; color: #94a3b8;">7–13 days before check-in</td>
+            <td style="padding: 6px 0; color: #fbbf24; text-align: right;">75% refund</td>
+          </tr>
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding: 6px 0; color: #94a3b8;">3–6 days before check-in</td>
+            <td style="padding: 6px 0; color: #fb923c; text-align: right;">50% refund</td>
+          </tr>
+          <tr>
+            <td style="padding: 6px 0; color: #94a3b8;">Less than 3 days</td>
+            <td style="padding: 6px 0; color: #f87171; text-align: right;">No refund</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Default as org default -->
+    <div style="margin-bottom: 24px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <div style="width: 18px; height: 18px; border: 2px solid rgba(99,102,241,0.5); border-radius: 4px; background: rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center;">
+          <span style="color: #a5b4fc; font-size: 12px;">✓</span>
+        </div>
+        <span style="font-size: 13px; color: #e2e8f0;">Set as default policy for new bookings</span>
+      </label>
+    </div>
+
+    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+      <button class="mock-button" style="padding: 8px 20px; font-size: 13px; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Cancel</button>
+      <button class="mock-button" style="padding: 8px 20px; font-size: 13px; background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3);">Save Policy</button>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>How It Works</h3>
+  <ul style="color: #94a3b8; font-size: 14px; line-height: 1.8;">
+    <li><strong style="color: #e2e8f0;">Tiers evaluated top-down</strong> — days counted from check-in date, first match wins</li>
+    <li><strong style="color: #e2e8f0;">Fallback is always "no refund"</strong> — covers anything below the lowest tier</li>
+    <li><strong style="color: #e2e8f0;">Preview table</strong> — shows human-readable summary so admins can verify</li>
+    <li><strong style="color: #e2e8f0;">Admin override</strong> — when actually cancelling, admin can always change the calculated amount</li>
+    <li><strong style="color: #e2e8f0;">Default policy</strong> — automatically applied to new bookings at creation time</li>
+    <li><strong style="color: #e2e8f0;">Add/remove tiers</strong> — flexible number of tiers per policy</li>
+  </ul>
+</div>

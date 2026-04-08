@@ -1,0 +1,75 @@
+<h2>Phase 7: Stripe Connect Architecture</h2>
+<p class="subtitle">How should the payment flow be structured?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)" style="border-left: 3px solid #22c55e;">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Server Actions + API Routes (Recommended)</h3>
+      <p>Keep the existing pattern. Server actions for mutations (create checkout session, handle onboarding), API route for the webhook endpoint. Stripe logic in a shared <code>lib/stripe.ts</code> helper.</p>
+      <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 14px;">
+        <strong style="color: #94a3b8;">Flow:</strong><br>
+        Member Dashboard → "Pay Now" → <em>Server Action</em> creates Checkout Session → Redirect to Stripe → Stripe sends webhook → <em>API Route</em> updates transaction
+      </div>
+      <div class="pros-cons" style="margin-top: 12px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Matches existing codebase patterns (server actions everywhere)</li>
+          <li>Type-safe end-to-end with Drizzle</li>
+          <li>Webhook is naturally an API route (not a server action)</li>
+          <li>Minimal new abstractions</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Stripe logic split between actions/ and api/ directories</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Dedicated Stripe Service Layer</h3>
+      <p>Create a <code>services/stripe/</code> module that encapsulates all Stripe interactions. Server actions and API routes call into the service layer.</p>
+      <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 14px;">
+        <strong style="color: #94a3b8;">Flow:</strong><br>
+        Server Action → <em>StripeService.createCheckoutSession()</em> → Stripe API<br>
+        Webhook API Route → <em>StripeService.handleEvent()</em> → DB update
+      </div>
+      <div class="pros-cons" style="margin-top: 12px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>All Stripe logic in one place</li>
+          <li>Easier to test Stripe interactions in isolation</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>New pattern not used elsewhere in codebase</li>
+          <li>Extra abstraction layer for ~3-4 Stripe calls</li>
+          <li>YAGNI — premature for this phase's scope</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>All API Routes</h3>
+      <p>Move payment-related logic to API routes instead of server actions. Webhook, checkout creation, and onboarding all live under <code>app/api/stripe/</code>.</p>
+      <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; font-size: 14px;">
+        <strong style="color: #94a3b8;">Flow:</strong><br>
+        Client fetch → <em>POST /api/stripe/checkout</em> → Stripe API<br>
+        Stripe → <em>POST /api/stripe/webhook</em> → DB update
+      </div>
+      <div class="pros-cons" style="margin-top: 12px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>All Stripe code co-located under api/stripe/</li>
+          <li>Standard REST approach</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Breaks from server action pattern used everywhere else</li>
+          <li>Loses server action benefits (type safety, progressive enhancement)</li>
+          <li>Client needs manual fetch calls instead of direct action imports</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

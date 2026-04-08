@@ -1,0 +1,111 @@
+<h2>Admin Booking List</h2>
+<p class="subtitle">The main /admin/bookings page — filterable, paginated booking table</p>
+
+<div class="mockup">
+  <div class="mockup-header">/ admin / bookings</div>
+  <div class="mockup-body" style="padding: 0; background: #1a1a2e;">
+
+    <!-- Top bar with filters -->
+    <div style="padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <input class="mock-input" placeholder="Search by reference, member name..." style="flex: 1; min-width: 200px; font-size: 13px;">
+      <select class="mock-input" style="width: 140px; font-size: 13px;">
+        <option>All Statuses</option>
+        <option>⏳ Pending</option>
+        <option>✓ Confirmed</option>
+        <option>✗ Cancelled</option>
+        <option>✓✓ Completed</option>
+      </select>
+      <select class="mock-input" style="width: 140px; font-size: 13px;">
+        <option>All Lodges</option>
+        <option>Main Lodge</option>
+        <option>Alpine Hut</option>
+      </select>
+      <input class="mock-input" type="text" placeholder="Date range..." style="width: 180px; font-size: 13px;">
+    </div>
+
+    <!-- Quick filter tabs -->
+    <div style="padding: 8px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 8px;">
+      <span style="padding: 4px 12px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); border-radius: 16px; font-size: 12px; color: #a5b4fc; cursor: pointer;">All (47)</span>
+      <span style="padding: 4px 12px; background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.3); border-radius: 16px; font-size: 12px; color: #fbbf24; cursor: pointer;">⏳ Pending Approval (3)</span>
+      <span style="padding: 4px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; font-size: 12px; color: #94a3b8; cursor: pointer;">Upcoming (12)</span>
+      <span style="padding: 4px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; font-size: 12px; color: #94a3b8; cursor: pointer;">Unpaid (5)</span>
+    </div>
+
+    <!-- Table header -->
+    <div style="display: grid; grid-template-columns: 130px 1fr 140px 100px 80px 90px 100px; padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">
+      <span>Reference</span>
+      <span>Member</span>
+      <span>Dates</span>
+      <span>Lodge</span>
+      <span>Guests</span>
+      <span>Amount</span>
+      <span>Status</span>
+    </div>
+
+    <!-- Row 1 - Pending -->
+    <div style="display: grid; grid-template-columns: 130px 1fr 140px 100px 80px 90px 100px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; align-items: center;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+      <span style="font-family: monospace; font-size: 13px; color: #e2e8f0;">BSKI-2027-0042</span>
+      <span style="font-size: 13px; color: #e2e8f0;">Sarah Mitchell</span>
+      <span style="font-size: 13px; color: #94a3b8;">12 Jul – 16 Jul</span>
+      <span style="font-size: 13px; color: #94a3b8;">Main Lodge</span>
+      <span style="font-size: 13px; color: #94a3b8;">3</span>
+      <span style="font-size: 13px; color: #e2e8f0;">$840.00</span>
+      <span style="font-size: 11px; padding: 3px 8px; background: rgba(251,191,36,0.15); color: #fbbf24; border-radius: 4px; text-align: center;">PENDING</span>
+    </div>
+
+    <!-- Row 2 - Confirmed, unpaid -->
+    <div style="display: grid; grid-template-columns: 130px 1fr 140px 100px 80px 90px 100px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; align-items: center;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+      <span style="font-family: monospace; font-size: 13px; color: #e2e8f0;">BSKI-2027-0041</span>
+      <span style="font-size: 13px; color: #e2e8f0;">James Cooper</span>
+      <span style="font-size: 13px; color: #94a3b8;">8 Jul – 12 Jul</span>
+      <span style="font-size: 13px; color: #94a3b8;">Alpine Hut</span>
+      <span style="font-size: 13px; color: #94a3b8;">2</span>
+      <span style="font-size: 13px; color: #e2e8f0;">$560.00</span>
+      <span style="font-size: 11px; padding: 3px 8px; background: rgba(34,197,94,0.15); color: #4ade80; border-radius: 4px; text-align: center;">CONFIRMED</span>
+    </div>
+
+    <!-- Row 3 - Confirmed, paid -->
+    <div style="display: grid; grid-template-columns: 130px 1fr 140px 100px 80px 90px 100px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; align-items: center;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+      <span style="font-family: monospace; font-size: 13px; color: #e2e8f0;">BSKI-2027-0040</span>
+      <span style="font-size: 13px; color: #e2e8f0;">Maria Johnson</span>
+      <span style="font-size: 13px; color: #94a3b8;">5 Jul – 9 Jul</span>
+      <span style="font-size: 13px; color: #94a3b8;">Main Lodge</span>
+      <span style="font-size: 13px; color: #94a3b8;">4</span>
+      <span style="font-size: 13px; color: #e2e8f0;">$1,120.00</span>
+      <span style="font-size: 11px; padding: 3px 8px; background: rgba(34,197,94,0.15); color: #4ade80; border-radius: 4px; text-align: center;">CONFIRMED</span>
+    </div>
+
+    <!-- Row 4 - Cancelled -->
+    <div style="display: grid; grid-template-columns: 130px 1fr 140px 100px 80px 90px 100px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; align-items: center; opacity: 0.6;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+      <span style="font-family: monospace; font-size: 13px; color: #e2e8f0;">BSKI-2027-0038</span>
+      <span style="font-size: 13px; color: #e2e8f0;">Tom Bradley</span>
+      <span style="font-size: 13px; color: #94a3b8;">1 Jul – 3 Jul</span>
+      <span style="font-size: 13px; color: #94a3b8;">Main Lodge</span>
+      <span style="font-size: 13px; color: #94a3b8;">1</span>
+      <span style="font-size: 13px; color: #e2e8f0;">$280.00</span>
+      <span style="font-size: 11px; padding: 3px 8px; background: rgba(239,68,68,0.15); color: #f87171; border-radius: 4px; text-align: center;">CANCELLED</span>
+    </div>
+
+    <!-- Pagination -->
+    <div style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1);">
+      <span style="font-size: 12px; color: #64748b;">Showing 1–20 of 47 bookings</span>
+      <div style="display: flex; gap: 4px;">
+        <span style="padding: 4px 10px; background: rgba(99,102,241,0.2); border: 1px solid rgba(99,102,241,0.5); border-radius: 4px; font-size: 12px; color: #a5b4fc;">1</span>
+        <span style="padding: 4px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 12px; color: #94a3b8; cursor: pointer;">2</span>
+        <span style="padding: 4px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; font-size: 12px; color: #94a3b8; cursor: pointer;">3</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top: 24px;">
+  <h3>Key Features</h3>
+  <ul style="color: #94a3b8; font-size: 14px; line-height: 1.8;">
+    <li><strong style="color: #e2e8f0;">Search</strong> — by booking reference or member name</li>
+    <li><strong style="color: #e2e8f0;">Filters</strong> — status, lodge, date range</li>
+    <li><strong style="color: #e2e8f0;">Quick filter tabs</strong> — Pending Approval (with count badge), Upcoming, Unpaid</li>
+    <li><strong style="color: #e2e8f0;">Click row</strong> → opens booking detail view</li>
+    <li><strong style="color: #e2e8f0;">Pagination</strong> — 20 per page</li>
+  </ul>
+</div>
