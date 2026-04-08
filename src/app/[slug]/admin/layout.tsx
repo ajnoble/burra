@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { label: "Members", href: "/members", committeeOnly: false },
   { label: "Lodges", href: "/lodges", committeeOnly: false },
   { label: "Availability", href: "/availability", committeeOnly: false },
-  { label: "Tariffs", href: "/tariffs", committeeOnly: true },
   { label: "Subscriptions", href: "/subscriptions", committeeOnly: true },
   { label: "Charges", href: "/charges", committeeOnly: true },
   { label: "Waitlist", href: "/waitlist", committeeOnly: false },
