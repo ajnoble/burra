@@ -16,6 +16,7 @@ import { MemberChargesSection } from "./member-charges-section";
 import { getChargesForMember, getChargesForFamily } from "@/actions/charges/queries";
 import { getCustomFields } from "@/actions/custom-fields/manage";
 import { getCustomFieldValues } from "@/actions/custom-fields/values";
+import { CustomFieldsSection } from "./custom-fields-section";
 
 export default async function MemberDetailPage({
   params,
@@ -123,6 +124,25 @@ export default async function MemberDetailPage({
           />
         </CardContent>
       </Card>
+
+      {orgCustomFields.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Custom Fields</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CustomFieldsSection
+              fields={orgCustomFields.map((f) => ({
+                name: f.name,
+                type: f.type,
+                value:
+                  memberCustomFieldValues.find((v) => v.field.id === f.id)?.value
+                    .value ?? "",
+              }))}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="mb-6">
         <CardHeader>
