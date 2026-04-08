@@ -11,11 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      - name: Run tests (changed only on PRs, full on main)
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            npx vitest run --changed HEAD~1
+          else
+            npx vitest run
+          fi
       - run: npm run build
