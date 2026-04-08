@@ -1,5 +1,3 @@
-"use server";
-
 import { db } from "@/db/index";
 import { auditLog, members } from "@/db/schema";
 import { eq, and, gte, lte, desc, type SQL } from "drizzle-orm";
@@ -80,4 +78,21 @@ export async function getDistinctActions(organisationId: string): Promise<string
     .orderBy(auditLog.action);
 
   return rows.map((r) => r.action);
+}
+
+export async function getDistinctActors(
+  organisationId: string
+): Promise<{ id: string; firstName: string | null; lastName: string | null }[]> {
+  const rows = await db
+    .selectDistinct({
+      id: auditLog.actorMemberId,
+      firstName: members.firstName,
+      lastName: members.lastName,
+    })
+    .from(auditLog)
+    .leftJoin(members, eq(members.id, auditLog.actorMemberId))
+    .where(eq(auditLog.organisationId, organisationId))
+    .orderBy(members.firstName, members.lastName);
+
+  return rows;
 }

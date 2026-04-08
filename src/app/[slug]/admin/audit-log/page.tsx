@@ -4,8 +4,8 @@ import { getSessionMember, isCommitteeOrAbove } from "@/lib/auth";
 import {
   getAuditLogEntries,
   getDistinctActions,
+  getDistinctActors,
 } from "@/actions/audit-log/queries";
-import { getMembers } from "@/lib/members";
 import { formatChangeSummary, getEntityUrl } from "@/lib/audit-log";
 import { Badge } from "@/components/ui/badge";
 import { AuditLogFilters } from "./audit-log-filters";
@@ -53,16 +53,16 @@ export default async function AdminAuditLogPage({
     page: typeof sp.page === "string" ? parseInt(sp.page, 10) : 1,
   };
 
-  const [auditData, actions, membersData] = await Promise.all([
+  const [auditData, actions, actors] = await Promise.all([
     getAuditLogEntries(filters),
     getDistinctActions(org.id),
-    getMembers(org.id, { page: 1 }),
+    getDistinctActors(org.id),
   ]);
 
   const actionOptions = actions.map((a) => ({ value: a, label: a }));
-  const memberOptions = membersData.rows.map((m) => ({
+  const memberOptions = actors.map((m) => ({
     value: m.id,
-    label: [m.firstName, m.lastName].filter(Boolean).join(" ") || m.email,
+    label: [m.firstName, m.lastName].filter(Boolean).join(" ") || m.id,
   }));
 
   return (
