@@ -33,63 +33,115 @@ Analysed two direct competitors:
 
 ---
 
-## Revised Platform Roadmap (Phases 12-20)
+## Platform Roadmap
 
-### Phase 12 — Treasurer Reporting, Role Dashboards & CSV Exports
-- 3 role-specific dashboards (treasurer, booking officer, committee)
-- 7 pre-built reports with filtering and pagination
-- CSV export with Xero-compatible transaction format
-- ~15-20 test files, ~15 E2E tests
+### Completed Phases
 
-### Phase 13 — One-Off Charges & Family Fee Consolidation
-- New `one_off_charges` table for locker fees, cleaning, events, etc.
-- Admin UI to create/manage charges per member
-- Family fee consolidation — single invoice for linked family members
-- Charges appear in transaction ledger and member balances
-- Payment via Stripe Checkout (earns platform fee)
+| Phase | Name | Status |
+|-------|------|--------|
+| 1-11 | Core Platform | Done |
+| 12 | Treasurer Reporting, Role Dashboards & CSV Exports | Done |
+| 13 | One-Off Charges & Family Fee Consolidation | Done |
+| 14 | Booking Engine Rules | Done |
+| 15 | Bulk Communications (Email + SMS) | Done |
+| 16 | Waitlist | Done |
+| 17 | Document Library | Done |
+| 18 | Audit Log Viewer | Done |
 
-### Phase 14 — Booking Engine Rules
-- Auto-cancel unpaid bookings after configurable deadline (new cron job)
-- Minimum night requirements per booking round (e.g. both weekend nights)
-- Overdue payment reminder emails before auto-cancel
-- Config UI in admin settings per season/booking round
+---
 
-### Phase 15 — Bulk Communications (Email + SMS)
-- Compose and send emails to filtered member lists
-- Filter by: membership class, financial status, season, booking status
-- Draft save and preview before send
-- SMS via Twilio or similar (pre-arrival reminders, payment alerts)
-- Email audit trail with sent/opened tracking
+### High Priority (Next Up)
 
-### Phase 16 — Waitlist
-- Schema already exists — build UI and actions
-- Join waitlist when beds unavailable
-- Auto-notify when cancellation frees beds
-- One-click convert waitlist entry to booking
+#### Phase 19 — GST/Tax Management
+- GST fields on charges, subscriptions, and invoices
+- Configurable tax rate per organisation (default 10% for Australia)
+- Tax-inclusive and tax-exclusive pricing modes
+- GST breakdown on receipts, invoices, and CSV exports
+- BAS-ready GST summary report for treasurers
+- Tax line items visible in transaction ledger
 
-### Phase 17 — Document Library
-- Schema already exists — build UI
-- Upload documents with role-based access (public/member/committee/admin)
-- Member-facing download page
+#### Phase 20 — Custom Member Fields
+- Admin UI to define custom fields per organisation (text, number, date, dropdown, checkbox)
+- Fields appear on member profile, edit form, and member detail page
+- Custom fields included in member CSV export/import
+- Use cases: emergency contact, dietary requirements, car registration, locker number, medical conditions
+- Field ordering and required/optional configuration
 
-### Phase 18 — Audit Log Viewer
-- Schema already exists — build UI
-- Filterable log: action, actor, entity, date range
-- Links to affected entities (member, booking, etc.)
+#### Phase 21 — Two-Factor Authentication
+- TOTP-based 2FA (Google Authenticator, Authy, etc.)
+- Required for ADMIN and COMMITTEE roles, optional for members
+- Setup flow with QR code and backup recovery codes
+- Remember trusted devices for configurable period
+- Admin can enforce 2FA policy per organisation
 
-### Phase 19 — Xero Integration
-- OAuth2 connect flow
-- Auto-sync invoices and payments to Xero
-- Bank feed integration for reconciliation
-- Mapping config UI (chart of accounts)
-
-### Phase 20 — Hardening & Mobile Polish
+#### Phase 22 — Hardening & Mobile Polish
 - Dedicated test environment with seeded DB
 - Expand E2E suite: edge cases, error states, mobile viewports
 - Performance audit and optimisation
 - Security review (OWASP top 10)
 - Responsive polish across all pages
 - PWA groundwork (manifest, service worker shell) if ready
+
+---
+
+### Medium Priority
+
+#### Phase 23 — Member Self-Service Booking Editing
+- Members can modify their own bookings (change dates, add/remove guests)
+- Edit window configurable per booking round (e.g. up to 7 days before check-in)
+- Changes subject to availability validation
+- Automatic price recalculation on date/guest changes
+- Audit trail of member-initiated changes
+- Email notification to admin on booking modifications
+
+#### Phase 24 — Custom Pages / CMS
+- Admin-editable content pages (rich text editor)
+- Default pages: booking rules, cancellation policy, lodge information, FAQs
+- Pages accessible to members and/or public based on access level
+- Navigation integration — pages appear in member-facing menu
+- Markdown or block-based editor with image support
+
+#### Phase 25 — Data Purging & Privacy
+- Configurable retention periods for personal booking data (e.g. 2 years after checkout)
+- Auto-purge cron job that anonymises expired member data
+- Admin UI to configure retention policies per data type
+- Manual purge option for individual members (right to erasure)
+- Purge audit log entries (record that purge occurred, not the purged data)
+- Australian Privacy Act compliance considerations
+
+---
+
+### Lower Priority
+
+#### Phase 26 — Xero Integration
+- OAuth2 connect flow
+- Auto-sync invoices and payments to Xero
+- Bank feed integration for reconciliation
+- Mapping config UI (chart of accounts)
+
+#### Phase 27 — Kiosk Display
+- Read-only room allocation display for lodge tablets/screens
+- Auto-refresh with current day's arrivals, departures, and room assignments
+- Large-format responsive layout optimised for TV/tablet mounting
+- No authentication required (accessed via unique org kiosk URL)
+
+#### Phase 28 — Booking Queue
+- Queue system for high-demand booking round openings
+- Fair ordering when many members book simultaneously
+- Progress indicator and estimated wait time
+- Automatic timeout and re-queue on session expiry
+
+#### Phase 29 — Post-Booking Promotions
+- Configurable promotional offers shown after booking confirmation
+- Optional add-on purchases (e.g. equipment hire, meals, lift passes)
+- Stripe payment for add-ons with platform fee
+- Admin UI to create/manage promotions per season or booking round
+
+#### Phase 30 — Additional Payment Gateways
+- PayPal integration as alternative to Stripe
+- eWay integration for Australian direct debit
+- Gateway selection configurable per organisation
+- Unified transaction recording regardless of gateway
 
 ---
 
