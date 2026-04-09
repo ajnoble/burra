@@ -3,6 +3,7 @@
 import { db } from "@/db/index";
 import { transactions, bookings } from "@/db/schema";
 import { and, eq, gte, lte, sql } from "drizzle-orm";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
 
 export type RevenueSummaryFilters = {
   organisationId: string;
@@ -37,7 +38,11 @@ const GRANULARITY_MAP = {
 
 export async function getRevenueSummary(
   filters: RevenueSummaryFilters
-): Promise<RevenueSummaryResult> {
+): Promise<RevenueSummaryResult | { success: false; error: string }> {
+  try {
+  const session = await requireSession(filters.organisationId);
+  requireRole(session, "COMMITTEE");
+
   const { organisationId, dateFrom, dateTo, granularity, lodgeId } = filters;
 
   const { truncUnit, toCharFormat } = GRANULARITY_MAP[granularity];
@@ -130,4 +135,9 @@ export async function getRevenueSummary(
   );
 
   return { rows, totalNetRevenueCents, totalGstCollectedCents, totalPlatformFeesCents };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }

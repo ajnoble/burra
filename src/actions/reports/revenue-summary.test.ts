@@ -1,5 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+// Mock auth-guards so unit tests don't need a request context (supabase cookies).
+// The guards' correctness is tested in the integration tests.
+vi.mock("@/lib/auth-guards", () => ({
+  requireSession: vi.fn(async () => ({
+    memberId: "member-1",
+    organisationId: "org-123",
+    role: "COMMITTEE",
+    email: "test@test.com",
+  })),
+  requireRole: vi.fn(),
+  authErrorToResult: vi.fn(() => null),
+}));
+
 const mockSelect = vi.fn();
 
 vi.mock("@/db/index", () => ({
@@ -56,7 +69,15 @@ function makeSelectChain(rows: unknown[]) {
 
 let selectQueue: unknown[][] = [];
 
-import { getRevenueSummary } from "./revenue-summary";
+import { getRevenueSummary, type RevenueSummaryResult } from "./revenue-summary";
+
+/** Narrow a widened result to RevenueSummaryResult; throws if it's an error. */
+function assertSummary(
+  result: RevenueSummaryResult | { success: false; error: string }
+): RevenueSummaryResult {
+  if ("success" in result) throw new Error(`Unexpected auth error: ${result.error}`);
+  return result;
+}
 
 describe("getRevenueSummary", () => {
   beforeEach(() => {
@@ -70,12 +91,12 @@ describe("getRevenueSummary", () => {
   it("returns empty rows and zero totals when no transactions exist", async () => {
     selectQueue = [[]];
 
-    const result = await getRevenueSummary({
+    const result = assertSummary(await getRevenueSummary({
       organisationId: "org-123",
       dateFrom: "2026-07-01",
       dateTo: "2027-06-30",
       granularity: "monthly",
-    });
+    }));
 
     expect(result.rows).toEqual([]);
     expect(result.totalNetRevenueCents).toBe(0);
@@ -115,12 +136,12 @@ describe("getRevenueSummary", () => {
       ],
     ];
 
-    const result = await getRevenueSummary({
+    const result = assertSummary(await getRevenueSummary({
       organisationId: "org-123",
       dateFrom: "2026-07-01",
       dateTo: "2027-06-30",
       granularity: "monthly",
-    });
+    }));
 
     expect(result.rows).toHaveLength(2);
 
@@ -141,13 +162,13 @@ describe("getRevenueSummary", () => {
   it("accepts optional lodgeId filter", async () => {
     selectQueue = [[]];
 
-    const result = await getRevenueSummary({
+    const result = assertSummary(await getRevenueSummary({
       organisationId: "org-123",
       dateFrom: "2026-07-01",
       dateTo: "2027-06-30",
       granularity: "quarterly",
       lodgeId: "lodge-456",
-    });
+    }));
 
     expect(mockSelect).toHaveBeenCalled();
     expect(result.rows).toEqual([]);
@@ -166,12 +187,12 @@ describe("getRevenueSummary", () => {
       ],
     ];
 
-    const result = await getRevenueSummary({
+    const result = assertSummary(await getRevenueSummary({
       organisationId: "org-123",
       dateFrom: "2026-07-01",
       dateTo: "2026-09-30",
       granularity: "quarterly",
-    });
+    }));
 
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0].period).toBe("2026-Q3");
@@ -191,12 +212,12 @@ describe("getRevenueSummary", () => {
       ],
     ];
 
-    const result = await getRevenueSummary({
+    const result = assertSummary(await getRevenueSummary({
       organisationId: "org-123",
       dateFrom: "2026-01-01",
       dateTo: "2026-12-31",
       granularity: "annual",
-    });
+    }));
 
     expect(result.rows).toHaveLength(1);
     expect(result.rows[0].period).toBe("2026");

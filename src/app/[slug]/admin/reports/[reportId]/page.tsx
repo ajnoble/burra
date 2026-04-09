@@ -187,6 +187,10 @@ export default async function ReportDetailPage({
       granularity,
     });
 
+    if ("success" in result) {
+      notFound();
+    }
+
     displayRows = result.rows.map((row) => ({
       period: row.period,
       bookingRevenue: formatCurrency(row.bookingRevenueCents),
