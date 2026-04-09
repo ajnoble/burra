@@ -555,6 +555,10 @@ export default async function ReportDetailPage({
       lodgeId: sp_str("lodgeId"),
     });
 
+    if ("success" in result) {
+      notFound();
+    }
+
     displayRows = result.rows.map((row) => ({
       reference: row.bookingReference,
       member: `${row.memberFirstName} ${row.memberLastName}`,
