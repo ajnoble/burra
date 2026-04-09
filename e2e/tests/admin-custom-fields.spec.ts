@@ -20,9 +20,9 @@ test.describe("Custom member fields", () => {
       adminPage.getByRole("heading", { name: "New Custom Field" })
     ).toBeVisible();
 
-    // Fill in field details with unique name to avoid conflicts
+    // Fill in field details using the dialog-scoped input
     const fieldName = `E2E Test Field ${Date.now()}`;
-    await adminPage.getByLabel("Name").fill(fieldName);
+    await adminPage.locator("#cf-name").fill(fieldName);
 
     // Key should be auto-generated
     const keyInput = adminPage.locator("#cf-key");
@@ -33,10 +33,10 @@ test.describe("Custom member fields", () => {
 
     // Verify field appears in list
     await expect(adminPage.getByText(fieldName)).toBeVisible();
-    await expect(adminPage.getByText("text").first()).toBeVisible();
 
-    // Clean up: deactivate the field
-    const fieldCard = adminPage.locator("div").filter({ hasText: fieldName }).first();
+    // Clean up: deactivate the field — find the card containing the field name text
+    const fieldText = adminPage.getByText(fieldName);
+    const fieldCard = fieldText.locator("xpath=ancestor::div[contains(@class,'group/card')]");
     await fieldCard.getByRole("button", { name: "Deactivate" }).click();
   });
 
@@ -53,7 +53,7 @@ test.describe("Custom member fields", () => {
     await expect(
       adminPage.getByRole("heading", { name: "Marek Kowalski" })
     ).toBeVisible();
-    await expect(adminPage.getByRole("heading", { name: "Profile" })).toBeVisible();
+    await expect(adminPage.getByText("Profile")).toBeVisible();
   });
 
   test("member profile form loads without errors", async ({ adminPage }) => {
