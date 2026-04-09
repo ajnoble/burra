@@ -546,7 +546,19 @@ export async function memberEditBooking(
     await processStripeRefund(input.bookingId, Math.abs(priceDeltaCents));
   }
 
-  // 15. Audit log
+  // 15. Get names for removed guests (for email description)
+  const removedGuestNames: string[] = [];
+  for (const removedId of removedMemberIds) {
+    const [removedMember] = await db
+      .select({ firstName: members.firstName, lastName: members.lastName })
+      .from(members)
+      .where(eq(members.id, removedId));
+    if (removedMember) {
+      removedGuestNames.push(`${removedMember.firstName} ${removedMember.lastName}`);
+    }
+  }
+
+  // 16. Audit log
   const { previousValue, newValue } = diffChanges(
     {
       checkInDate: booking.checkInDate,
@@ -605,7 +617,7 @@ export async function memberEditBooking(
       (g) => `${g.firstName} ${g.lastName}`
     ),
     removedGuestNames:
-      removedMemberIds.length > 0 ? removedMemberIds : undefined,
+      removedGuestNames.length > 0 ? removedGuestNames : undefined,
     oldTotalCents: oldTotalCents !== newTotalCents ? oldTotalCents : undefined,
     newTotalCents: oldTotalCents !== newTotalCents ? newTotalCents : undefined,
   });

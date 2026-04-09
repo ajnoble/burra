@@ -268,6 +268,30 @@ describe("memberEditBooking", () => {
     expect(result.error).toContain("not enabled");
   });
 
+  it("rejects when too close to check-in", async () => {
+    // Booking checks in tomorrow, but edit window requires 7 days
+    const tomorrow = new Date();
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split("T")[0];
+
+    selectCallCount = 0;
+    mockSelect.mockImplementationOnce(() => ({
+      from: () => ({
+        where: () => [{ ...defaultBooking, checkInDate: tomorrowStr }],
+      }),
+    }));
+
+    const result = await memberEditBooking({
+      bookingId: "booking-1",
+      organisationId: "org-1",
+      slug: "demo",
+      newCheckInDate: "2027-07-14",
+      newCheckOutDate: "2027-07-18",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("days before check-in");
+  });
+
   it("rejects cancelled booking", async () => {
     selectCallCount = 0;
     mockSelect.mockImplementationOnce(() => ({
