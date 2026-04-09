@@ -10,7 +10,6 @@ import {
   lodges,
   tariffs,
   seasons,
-  bookingRounds,
 } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { getSessionMember } from "@/lib/auth";
@@ -412,7 +411,6 @@ export async function memberEditBooking(
   // 12. Re-approval check
   const needsReApproval =
     org.memberEditRequiresApproval && booking.requiresApproval;
-  const newStatus = needsReApproval ? "PENDING" : booking.status;
 
   // 13. DB transaction
   await db.transaction(async (tx) => {

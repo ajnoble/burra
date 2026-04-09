@@ -12,7 +12,7 @@ import { CancelBookingDialog } from "../../cancel-booking-dialog";
 import { EditBookingForm } from "./edit-booking-form";
 import { isWithinEditWindow } from "@/actions/bookings/member-edit-helpers";
 import { db } from "@/db/index";
-import { cancellationPolicies, members as membersTable } from "@/db/schema";
+import { cancellationPolicies } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getBookableMembers } from "@/actions/bookings/members";
 

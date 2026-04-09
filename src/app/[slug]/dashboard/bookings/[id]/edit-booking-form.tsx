@@ -104,7 +104,8 @@ export function EditBookingForm({
   function handleRemoveGuest(memberId: string) {
     if (memberId === booking.primaryMemberId) return;
     setGuestMemberIds(guestMemberIds.filter((id) => id !== memberId));
-    const { [memberId]: _, ...rest } = bedAssignments;
+    const rest = { ...bedAssignments };
+    delete rest[memberId];
     setBedAssignments(rest);
   }
 
