@@ -272,7 +272,7 @@ export function EditBookingForm({
                   <div className="flex items-center gap-2">
                     <Select
                       value={bedAssignments[memberId] ?? ""}
-                      onValueChange={(v) => handleBedChange(memberId, v)}
+                      onValueChange={(v) => handleBedChange(memberId, v ?? "")}
                     >
                       <SelectTrigger className="w-48 h-8 text-xs">
                         <SelectValue placeholder="Select bed..." />
@@ -302,7 +302,7 @@ export function EditBookingForm({
           </div>
           {availableToAdd.length > 0 && (
             <div className="flex items-center gap-2">
-              <Select value={addGuestId} onValueChange={setAddGuestId}>
+              <Select value={addGuestId} onValueChange={(v) => setAddGuestId(v ?? "")}>
                 <SelectTrigger className="w-64 h-8 text-xs">
                   <SelectValue placeholder="Add a guest..." />
                 </SelectTrigger>
