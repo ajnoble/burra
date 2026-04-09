@@ -2,9 +2,11 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { getTestDb } from "../../db/test-setup";
 import { organisations } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { updateBranding } from "./updateBranding";
 
 // Fixed UUID for the test organisation so we can reference it consistently.
 const TEST_ORG_ID = "a0000000-0000-0000-0000-000000000001";
+const OTHER_ORG_ID = "a0000000-0000-0000-0000-000000000002";
 
 vi.mock("@/lib/auth-guards", () => ({
   requireSession: vi.fn().mockResolvedValue({
@@ -35,7 +37,6 @@ describe("updateBranding (integration)", () => {
   });
 
   it("writes accentColor to the row", async () => {
-    const { updateBranding } = await import("./updateBranding");
     const result = await updateBranding(TEST_ORG_ID, {
       accentColor: "#38694a",
       removeLogo: false,
@@ -51,7 +52,6 @@ describe("updateBranding (integration)", () => {
   });
 
   it("clears accentColor when null", async () => {
-    const { updateBranding } = await import("./updateBranding");
     await updateBranding(TEST_ORG_ID, { accentColor: "#38694a", removeLogo: false });
     await updateBranding(TEST_ORG_ID, { accentColor: null, removeLogo: false });
 
@@ -64,7 +64,6 @@ describe("updateBranding (integration)", () => {
   });
 
   it("does not touch logoUrl when no logoFile passed", async () => {
-    const { updateBranding } = await import("./updateBranding");
     const db = await getTestDb();
     await db
       .update(organisations)
@@ -81,7 +80,6 @@ describe("updateBranding (integration)", () => {
   });
 
   it("removes logoUrl when removeLogo is true", async () => {
-    const { updateBranding } = await import("./updateBranding");
     const db = await getTestDb();
     await db
       .update(organisations)
@@ -95,5 +93,48 @@ describe("updateBranding (integration)", () => {
       .from(organisations)
       .where(eq(organisations.id, TEST_ORG_ID));
     expect(row.logoUrl).toBeNull();
+  });
+
+  it("does not touch rows in other organisations (cross-tenant isolation)", async () => {
+    const db = await getTestDb();
+    await db.insert(organisations).values({
+      id: OTHER_ORG_ID,
+      name: "Other Club",
+      slug: "other-club",
+      accentColor: "#112233",
+      logoUrl: "https://example/other-logo.png",
+    });
+
+    await updateBranding(TEST_ORG_ID, { accentColor: "#38694a", removeLogo: true });
+
+    const [otherRow] = await db
+      .select()
+      .from(organisations)
+      .where(eq(organisations.id, OTHER_ORG_ID));
+    expect(otherRow.accentColor).toBe("#112233");
+    expect(otherRow.logoUrl).toBe("https://example/other-logo.png");
+  });
+
+  it("handles removeLogo: true when no prior logo exists", async () => {
+    const db = await getTestDb();
+    // Verify the beforeEach seed leaves logoUrl as null (no explicit logoUrl set).
+    const [seeded] = await db
+      .select()
+      .from(organisations)
+      .where(eq(organisations.id, TEST_ORG_ID));
+    expect(seeded.logoUrl).toBeNull();
+
+    const result = await updateBranding(TEST_ORG_ID, {
+      accentColor: "#38694a",
+      removeLogo: true,
+    });
+    expect(result).toEqual({ success: true });
+
+    const [row] = await db
+      .select()
+      .from(organisations)
+      .where(eq(organisations.id, TEST_ORG_ID));
+    expect(row.logoUrl).toBeNull();
+    expect(row.accentColor).toBe("#38694a");
   });
 });
