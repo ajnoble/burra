@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { sql } from "drizzle-orm";
 import { createTestDb, truncateAll } from "../test-db";
+import { organisations } from "../schema";
 
 describe("createTestDb", () => {
   it("returns a drizzle client that can run SELECT 1", async () => {
@@ -23,23 +24,13 @@ describe("createTestDb", () => {
 describe("truncateAll", () => {
   it("removes all rows from every table", async () => {
     const { db } = await createTestDb();
-    await db.execute(
-      sql`INSERT INTO organisations (name, slug) VALUES ('Test Org', 'test-org')`
-    );
-    const before = await db.execute(
-      sql`SELECT COUNT(*)::int AS c FROM organisations`
-    );
-    expect(
-      (before as unknown as { rows: { c: number }[] }).rows[0].c
-    ).toBe(1);
+    await db.insert(organisations).values({ name: "Test Org", slug: "test-org" });
+    const before = await db.select().from(organisations);
+    expect(before).toHaveLength(1);
 
     await truncateAll(db);
 
-    const after = await db.execute(
-      sql`SELECT COUNT(*)::int AS c FROM organisations`
-    );
-    expect(
-      (after as unknown as { rows: { c: number }[] }).rows[0].c
-    ).toBe(0);
+    const after = await db.select().from(organisations);
+    expect(after).toHaveLength(0);
   });
 });
