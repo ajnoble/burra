@@ -278,3 +278,106 @@ export async function getBookingDetail(
 
   return { ...booking, guests };
 }
+
+export type BookingDetailForEdit = {
+  id: string;
+  bookingReference: string;
+  lodgeId: string;
+  lodgeName: string;
+  bookingRoundId: string;
+  checkInDate: string;
+  checkOutDate: string;
+  totalNights: number;
+  subtotalCents: number;
+  discountAmountCents: number;
+  totalAmountCents: number;
+  gstAmountCents: number;
+  status: string;
+  balancePaidAt: Date | null;
+  primaryMemberId: string | null;
+  requiresApproval: boolean;
+  guests: {
+    id: string;
+    memberId: string;
+    firstName: string;
+    lastName: string;
+    membershipClassName: string | null;
+    bedId: string | null;
+    bedLabel: string | null;
+    roomId: string | null;
+    roomName: string | null;
+    pricePerNightCents: number;
+    totalAmountCents: number;
+    snapshotTariffId: string | null;
+    snapshotMembershipClassId: string | null;
+  }[];
+};
+
+/**
+ * Get full booking detail for the member edit form.
+ * Includes guest member IDs, bed/room assignments, and tariff snapshots.
+ */
+export async function getBookingDetailForEdit(
+  bookingId: string,
+  organisationId: string,
+  memberId: string
+): Promise<BookingDetailForEdit | null> {
+  const [booking] = await db
+    .select({
+      id: bookings.id,
+      bookingReference: bookings.bookingReference,
+      lodgeId: bookings.lodgeId,
+      lodgeName: lodges.name,
+      bookingRoundId: bookings.bookingRoundId,
+      checkInDate: bookings.checkInDate,
+      checkOutDate: bookings.checkOutDate,
+      totalNights: bookings.totalNights,
+      subtotalCents: bookings.subtotalCents,
+      discountAmountCents: bookings.discountAmountCents,
+      totalAmountCents: bookings.totalAmountCents,
+      gstAmountCents: bookings.gstAmountCents,
+      status: bookings.status,
+      balancePaidAt: bookings.balancePaidAt,
+      primaryMemberId: bookings.primaryMemberId,
+      requiresApproval: bookings.requiresApproval,
+    })
+    .from(bookings)
+    .innerJoin(lodges, eq(lodges.id, bookings.lodgeId))
+    .where(
+      and(
+        eq(bookings.id, bookingId),
+        eq(bookings.organisationId, organisationId),
+        eq(bookings.primaryMemberId, memberId)
+      )
+    );
+
+  if (!booking) return null;
+
+  const guests = await db
+    .select({
+      id: bookingGuests.id,
+      memberId: bookingGuests.memberId,
+      firstName: members.firstName,
+      lastName: members.lastName,
+      membershipClassName: membershipClasses.name,
+      bedId: bookingGuests.bedId,
+      bedLabel: beds.label,
+      roomId: bookingGuests.roomId,
+      roomName: rooms.name,
+      pricePerNightCents: bookingGuests.pricePerNightCents,
+      totalAmountCents: bookingGuests.totalAmountCents,
+      snapshotTariffId: bookingGuests.snapshotTariffId,
+      snapshotMembershipClassId: bookingGuests.snapshotMembershipClassId,
+    })
+    .from(bookingGuests)
+    .innerJoin(members, eq(members.id, bookingGuests.memberId))
+    .leftJoin(
+      membershipClasses,
+      eq(membershipClasses.id, bookingGuests.snapshotMembershipClassId)
+    )
+    .leftJoin(beds, eq(beds.id, bookingGuests.bedId))
+    .leftJoin(rooms, eq(rooms.id, bookingGuests.roomId))
+    .where(eq(bookingGuests.bookingId, bookingId));
+
+  return { ...booking, guests };
+}
