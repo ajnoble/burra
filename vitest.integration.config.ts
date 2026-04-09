@@ -13,7 +13,7 @@ export default defineConfig({
     // the same process. (vitest 4 equivalent of poolOptions.forks.singleFork.)
     pool: "forks",
     fileParallelism: false,
-    // setupFiles: ["src/db/test-setup.ts"], // registered in Task 5
+    setupFiles: ["src/db/test-setup.ts"],
   },
   resolve: {
     alias: {
