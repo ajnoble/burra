@@ -19,6 +19,8 @@ const updateOrgSchema = z.object({
   subscriptionGraceDays: z.number().int().min(0).max(90).optional(),
   bookingPaymentGraceDays: z.number().int().min(0).max(90).optional(),
   bookingPaymentReminderDays: z.array(z.number().int().min(1).max(90)).optional(),
+  memberBookingEditWindowDays: z.number().int().min(0).max(365).optional(),
+  memberEditRequiresApproval: z.boolean().optional(),
 });
 
 export type UpdateOrgInput = z.infer<typeof updateOrgSchema>;
@@ -43,6 +45,12 @@ export async function updateOrganisation(input: UpdateOrgInput) {
       }),
       ...(data.bookingPaymentReminderDays !== undefined && {
         bookingPaymentReminderDays: data.bookingPaymentReminderDays,
+      }),
+      ...(data.memberBookingEditWindowDays !== undefined && {
+        memberBookingEditWindowDays: data.memberBookingEditWindowDays,
+      }),
+      ...(data.memberEditRequiresApproval !== undefined && {
+        memberEditRequiresApproval: data.memberEditRequiresApproval,
       }),
       updatedAt: new Date(),
     })
