@@ -47,25 +47,12 @@ Analysed two direct competitors:
 | 16 | Waitlist | Done |
 | 17 | Document Library | Done |
 | 18 | Audit Log Viewer | Done |
+| 19 | GST/Tax Management | Done |
+| 20 | Custom Member Fields | Done |
 
 ---
 
 ### High Priority (Next Up)
-
-#### Phase 19 — GST/Tax Management
-- GST fields on charges, subscriptions, and invoices
-- Configurable tax rate per organisation (default 10% for Australia)
-- Tax-inclusive and tax-exclusive pricing modes
-- GST breakdown on receipts, invoices, and CSV exports
-- BAS-ready GST summary report for treasurers
-- Tax line items visible in transaction ledger
-
-#### Phase 20 — Custom Member Fields
-- Admin UI to define custom fields per organisation (text, number, date, dropdown, checkbox)
-- Fields appear on member profile, edit form, and member detail page
-- Custom fields included in member CSV export/import
-- Use cases: emergency contact, dietary requirements, car registration, locker number, medical conditions
-- Field ordering and required/optional configuration
 
 #### Phase 21 — Two-Factor Authentication
 - TOTP-based 2FA (Google Authenticator, Authy, etc.)

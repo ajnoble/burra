@@ -25,7 +25,7 @@ A SaaS booking and membership management platform for member-owned accommodation
 
 Every club is an `Organisation` with a unique slug. All routes are scoped under `/[slug]/` and every database query is filtered by `organisationId`. Supabase Row Level Security provides a second enforcement layer.
 
-### Data Model (25 tables)
+### Data Model (27 tables)
 
 ```
 Organisation
@@ -43,6 +43,7 @@ Organisation
  ├── DocumentCategory
  ├── Document (categorised, access-level controlled, Supabase Storage)
  ├── AuditLog
+ ├── CustomField ── CustomFieldValue
  └── Communication ── CommunicationRecipient
       └── CommunicationTemplate
 ```
@@ -70,13 +71,14 @@ src/
   actions/                      # Server actions (mutations)
     availability/               # Cache rebuild, overrides, validation
     communications/             # Compose, send, recipients, templates, retry
+    custom-fields/              # Custom field CRUD, values save/fetch
     lodges/
     membership-classes/
     members/
     organisations/
   components/ui/                # shadcn/ui components
   db/
-    schema/                     # Drizzle schema (14 files, 21 tables)
+    schema/                     # Drizzle schema (15 files, 27 tables)
     seed.ts                     # Demo data (Alpine Demo Club)
     seed-polski.ts              # Polski Ski Club config
     index.ts                    # Drizzle client
@@ -117,22 +119,24 @@ drizzle/                        # Generated SQL migrations
 | 15 | Bulk Communications | Compose email + SMS with markdown editor and live preview, reusable templates, recipient filtering with manual add/remove, delivery tracking via Resend and Telnyx webhooks, automated SMS triggers (pre-arrival, payment reminders) |
 | 16 | Waitlist | Join waitlist for fully-booked dates, admin notification with 48h expiry, auto-conversion on booking, daily expiry cron |
 | 17 | Document Library | Admin upload/manage documents with categories, role-based access control (PUBLIC/MEMBER/COMMITTEE/ADMIN), file storage via Supabase Storage with signed URLs, member browse/download page |
+| 18 | Audit Log Viewer | Action/entity/date filtering, actor tracking, CSV export |
+| 19 | GST/Tax Management | Configurable GST per org, tax-inclusive/exclusive pricing, BAS-ready GST summary report |
+| 20 | Custom Member Fields | Admin-defined fields (text/number/date/dropdown/checkbox), member profile values, CSV import/export |
 
 ### Planned (Build Order)
 
 | Phase | Feature | Description |
 |-------|---------|-------------|
-| 18 | Audit Log | Viewer with filtering by user/action/entity, date range, CSV export, retention policy |
-| 19 | Member Self-Service Booking Edits | Members modify own bookings (date changes, guest updates), T&C acceptance checkbox on booking flow |
-| 20 | Reporting & Data Export | Booking data exports at various aggregation levels, member data filtered export, financial summary reports, batch transaction upload from spreadsheet |
-| 21 | Custom Fields | Custom member profile fields (unlimited, org-defined), custom per-guest booking fields, field type support (text, number, date, dropdown) |
-| 22 | Calendar Sync | iCal feed generation per lodge/room, subscribe from Google Calendar/Outlook, channel manager sync for external accommodation platforms |
-| 23 | Promotions & Extras | Post-booking promotional offers, optional extras during booking (ski hire, linen packs), auxiliary unit assignment (lockers, ski racks) |
-| 24 | Privacy & Compliance | Auto-purge guest data after configurable days, 2FA for admin accounts (TOTP/SMS), GDPR-style data export for members |
-| 25 | Kiosk Mode | Read-only room allocation display for lodge tablets/screens, auto-refresh, current and upcoming bookings view |
-| 26 | Booking Queue | Queue system for high-demand booking round openings, position display, fair-ordering, automatic progression |
-| 27 | Xero Integration | OAuth2 connection, invoice sync, bank feed reconciliation |
-| 28 | Hardening | E2E test expansion, security review, mobile polish, Google Analytics integration |
+| 21 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
+| 22 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
+| 23 | Member Self-Service Booking Editing | Members modify own bookings (date/guest changes), configurable edit window, price recalculation |
+| 24 | Custom Pages / CMS | Admin-editable content pages, rich text editor, role-based access, navigation integration |
+| 25 | Data Purging & Privacy | Configurable retention periods, auto-purge cron, manual right to erasure, Australian Privacy Act compliance |
+| 26 | Xero Integration | OAuth2 connect, auto-sync invoices/payments, bank feed reconciliation, chart of accounts mapping |
+| 27 | Kiosk Display | Read-only room allocation for lodge tablets/screens, auto-refresh, no-auth kiosk URL |
+| 28 | Booking Queue | Queue system for high-demand openings, fair ordering, progress indicator, auto-timeout |
+| 29 | Post-Booking Promotions | Promotional offers after booking, optional add-on purchases, Stripe payment |
+| 30 | Additional Payment Gateways | PayPal, eWay integration, gateway selection per org |
 
 ## Getting Started
 
@@ -261,6 +265,10 @@ E2E tests cover 7 critical flows: login, booking, admin members, dashboard, admi
 - **Waitlist notify** — auth/role check, status transition, expiry setting, spot-available email
 - **Waitlist remove** — auth/role check, entry deletion
 - **Waitlist expiry** — cron transitions stale NOTIFIED to EXPIRED
+- **Custom field validation** — create/update schemas, value validation for all 5 types (text, number, date, dropdown, checkbox)
+- **Custom field CRUD** — create, update, toggle, get actions
+- **Custom field values** — save (upsert), fetch with field definitions
+- **CSV import with custom fields** — column matching, backwards compatibility, value preservation
 
 ### Development Workflow
 

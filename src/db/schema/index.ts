@@ -52,3 +52,4 @@ export {
   communicationRecipients,
 } from "./communications";
 export type { CommunicationFilters } from "./communications";
+export { customFieldTypeEnum, customFields, customFieldValues } from "./custom-fields";

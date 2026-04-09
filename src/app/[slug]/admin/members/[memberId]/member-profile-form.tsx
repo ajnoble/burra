@@ -9,6 +9,20 @@ import { updateMember } from "@/actions/members/update";
 
 type MembershipClass = { id: string; name: string };
 
+type CustomFieldDef = {
+  id: string;
+  name: string;
+  key: string;
+  type: string;
+  options: string | null;
+  isRequired: boolean;
+};
+
+type CustomFieldValue = {
+  fieldId: string;
+  value: string;
+};
+
 type MemberData = {
   id: string;
   firstName: string;
@@ -26,11 +40,15 @@ export function MemberProfileForm({
   organisationId,
   slug,
   membershipClasses,
+  customFields,
+  customFieldValues,
 }: {
   member: MemberData;
   organisationId: string;
   slug: string;
   membershipClasses: MembershipClass[];
+  customFields?: CustomFieldDef[];
+  customFieldValues?: CustomFieldValue[];
 }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -44,6 +62,16 @@ export function MemberProfileForm({
 
     const form = new FormData(e.currentTarget);
 
+    const cfValues: Array<{ fieldId: string; value: string }> = [];
+    if (customFields) {
+      for (const cf of customFields) {
+        const val = cf.type === "checkbox"
+          ? (form.get(`cf_${cf.id}`) ? "true" : "false")
+          : (form.get(`cf_${cf.id}`) as string) || "";
+        cfValues.push({ fieldId: cf.id, value: val });
+      }
+    }
+
     const result = await updateMember({
       memberId: member.id,
       organisationId,
@@ -56,6 +84,7 @@ export function MemberProfileForm({
       memberNumber: (form.get("memberNumber") as string) || undefined,
       membershipClassId: form.get("membershipClassId") as string,
       notes: (form.get("notes") as string) || undefined,
+      customFieldValues: cfValues.length > 0 ? cfValues : undefined,
     });
 
     setPending(false);
@@ -132,6 +161,60 @@ export function MemberProfileForm({
         <Label htmlFor="notes">Notes (admin only)</Label>
         <Textarea id="notes" name="notes" rows={3} defaultValue={member.notes ?? ""} />
       </div>
+
+      {customFields && customFields.length > 0 && (
+        <>
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold mb-3">Custom Fields</h3>
+          </div>
+          {customFields.map((cf) => {
+            const currentValue = customFieldValues?.find(
+              (v) => v.fieldId === cf.id
+            )?.value ?? "";
+            return (
+              <div key={cf.id} className="space-y-2">
+                <Label htmlFor={`cf_${cf.id}`}>
+                  {cf.name}
+                  {cf.isRequired && <span className="text-destructive"> *</span>}
+                </Label>
+                {cf.type === "text" && (
+                  <Input id={`cf_${cf.id}`} name={`cf_${cf.id}`} defaultValue={currentValue} />
+                )}
+                {cf.type === "number" && (
+                  <Input id={`cf_${cf.id}`} name={`cf_${cf.id}`} type="number" step="any" defaultValue={currentValue} />
+                )}
+                {cf.type === "date" && (
+                  <Input id={`cf_${cf.id}`} name={`cf_${cf.id}`} type="date" defaultValue={currentValue} />
+                )}
+                {cf.type === "dropdown" && (
+                  <select
+                    id={`cf_${cf.id}`}
+                    name={`cf_${cf.id}`}
+                    defaultValue={currentValue}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  >
+                    <option value="">Select...</option>
+                    {cf.options?.split(",").map((opt) => (
+                      <option key={opt.trim()} value={opt.trim()}>
+                        {opt.trim()}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {cf.type === "checkbox" && (
+                  <input
+                    id={`cf_${cf.id}`}
+                    name={`cf_${cf.id}`}
+                    type="checkbox"
+                    defaultChecked={currentValue === "true"}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
 
       <Button type="submit" disabled={pending}>
         {pending ? "Saving..." : "Save Changes"}

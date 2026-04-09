@@ -4,7 +4,8 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { getTransactionLedger, formatLedgerForXero } from "@/actions/reports/transaction-ledger";
 import { getRevenueSummary } from "@/actions/reports/revenue-summary";
-import { getMemberBalances } from "@/actions/reports/member-balances";
+import { getMemberBalances, type MemberBalanceRow } from "@/actions/reports/member-balances";
+import { getCustomFields } from "@/actions/custom-fields/manage";
 import { getSubscriptionStatus } from "@/actions/reports/subscription-status";
 import { getOccupancyReport } from "@/actions/reports/occupancy";
 import { getArrivalsAndDepartures } from "@/actions/reports/arrivals-departures";
@@ -14,8 +15,8 @@ import { XERO_COLUMN_MAP } from "@/actions/reports/export-csv";
 import { formatCurrency } from "@/lib/currency";
 import { formatOrgDate } from "@/lib/dates";
 import { db } from "@/db/index";
-import { lodges, seasons } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { lodges, seasons, customFields, customFieldValues as cfvTable } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { format, addDays } from "date-fns";
 import { ExportButton } from "./export-button";
 import { ReportFilters } from "./report-filters";
@@ -261,6 +262,40 @@ export default async function ReportDetailPage({
       outstanding: formatCurrency(row.outstandingBalanceCents),
     }));
 
+    const orgCustomFields = await getCustomFields(org.id);
+
+    // Build a map of memberId -> { fieldKey: value }
+    const memberIds = result.rows.map((r: MemberBalanceRow) => r.memberId);
+    const cfValueMap = new Map<string, Record<string, string>>();
+
+    if (orgCustomFields.length > 0 && memberIds.length > 0) {
+      const cfValues = await db
+        .select({
+          memberId: cfvTable.memberId,
+          key: customFields.key,
+          type: customFields.type,
+          value: cfvTable.value,
+        })
+        .from(cfvTable)
+        .innerJoin(customFields, eq(customFields.id, cfvTable.customFieldId))
+        .where(
+          and(
+            eq(customFields.organisationId, org.id),
+            eq(customFields.isActive, true),
+            inArray(cfvTable.memberId, memberIds)
+          )
+        );
+
+      for (const row of cfValues) {
+        if (!cfValueMap.has(row.memberId)) cfValueMap.set(row.memberId, {});
+        const formatted =
+          row.type === "checkbox" ? (row.value === "true" ? "Yes" : "No") : row.value;
+        cfValueMap.get(row.memberId)![row.key] = formatted;
+      }
+    }
+
+    const cfColumns = orgCustomFields.map((f) => ({ key: f.key, header: f.name }));
+
     exportColumns = [
       { key: "member", header: "Member" },
       { key: "class", header: "Class" },
@@ -268,15 +303,23 @@ export default async function ReportDetailPage({
       { key: "totalPaid", header: "Total Paid" },
       { key: "totalRefunded", header: "Total Refunded" },
       { key: "outstanding", header: "Outstanding" },
+      ...cfColumns,
     ];
-    exportData = result.rows.map((row) => ({
-      member: `${row.firstName} ${row.lastName}`,
-      class: row.membershipClassName ?? "",
-      financial: row.isFinancial ? "Yes" : "No",
-      totalPaid: (row.totalPaidCents / 100).toFixed(2),
-      totalRefunded: (row.totalRefundedCents / 100).toFixed(2),
-      outstanding: (row.outstandingBalanceCents / 100).toFixed(2),
-    }));
+    exportData = result.rows.map((row) => {
+      const dataRow: Record<string, string> = {
+        member: `${row.firstName} ${row.lastName}`,
+        class: row.membershipClassName ?? "",
+        financial: row.isFinancial ? "Yes" : "No",
+        totalPaid: (row.totalPaidCents / 100).toFixed(2),
+        totalRefunded: (row.totalRefundedCents / 100).toFixed(2),
+        outstanding: (row.outstandingBalanceCents / 100).toFixed(2),
+      };
+      const cfVals = cfValueMap.get(row.memberId) ?? {};
+      for (const cf of orgCustomFields) {
+        dataRow[cf.key] = cfVals[cf.key] ?? "";
+      }
+      return dataRow;
+    });
     exportFilename = `member-balances-${today}.csv`;
   } else if (reportId === "subscription-status") {
     filterFields = [

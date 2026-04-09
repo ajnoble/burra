@@ -14,6 +14,9 @@ import { FamilySection } from "./family-section";
 import { RoleFinancialSection } from "./role-financial-section";
 import { MemberChargesSection } from "./member-charges-section";
 import { getChargesForMember, getChargesForFamily } from "@/actions/charges/queries";
+import { getCustomFields } from "@/actions/custom-fields/manage";
+import { getCustomFieldValues } from "@/actions/custom-fields/values";
+import { CustomFieldsSection } from "./custom-fields-section";
 
 export default async function MemberDetailPage({
   params,
@@ -60,6 +63,9 @@ export default async function MemberDetailPage({
     )
     .orderBy(chargeCategories.sortOrder);
 
+  const orgCustomFields = await getCustomFields(org.id);
+  const memberCustomFieldValues = await getCustomFieldValues(memberId, org.id);
+
   return (
     <div className="p-6">
       <div className="flex items-center gap-4 mb-6">
@@ -103,9 +109,40 @@ export default async function MemberDetailPage({
             organisationId={org.id}
             slug={slug}
             membershipClasses={classes}
+            customFields={orgCustomFields.map((f) => ({
+              id: f.id,
+              name: f.name,
+              key: f.key,
+              type: f.type,
+              options: f.options,
+              isRequired: f.isRequired,
+            }))}
+            customFieldValues={memberCustomFieldValues.map((v) => ({
+              fieldId: v.field.id,
+              value: v.value.value,
+            }))}
           />
         </CardContent>
       </Card>
+
+      {orgCustomFields.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Custom Fields</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CustomFieldsSection
+              fields={orgCustomFields.map((f) => ({
+                name: f.name,
+                type: f.type,
+                value:
+                  memberCustomFieldValues.find((v) => v.field.id === f.id)?.value
+                    .value ?? "",
+              }))}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="mb-6">
         <CardHeader>
