@@ -5,6 +5,7 @@ export const organisations = pgTable("organisations", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   logoUrl: text("logo_url"),
+  accentColor: text("accent_color"), // nullable; 6-char hex like "#2f5d3a"; null = default eucalypt
   timezone: text("timezone").notNull().default("Australia/Melbourne"),
   stripeConnectAccountId: text("stripe_connect_account_id"),
   stripeConnectOnboardingComplete: boolean(
