@@ -17,9 +17,12 @@ vi.mock("@/db/index", () => ({
     }),
     select: () => ({
       from: () => ({
+        // For getCustomFieldValues (innerJoin path)
         innerJoin: () => ({
           where: () => mockSelectRows,
         }),
+        // For field definition lookup in saveCustomFieldValues (direct where path)
+        where: () => [{ id: "cf-1", type: "text", options: null }],
       }),
     }),
   },

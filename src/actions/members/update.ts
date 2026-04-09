@@ -7,7 +7,7 @@ import { updateMemberSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { getSessionMember } from "@/lib/auth";
 import { createAuditLog, diffChanges } from "@/lib/audit-log";
-import { saveCustomFieldValues } from "@/actions/custom-fields/values";
+import { saveCustomFieldValues, getCustomFieldValues } from "@/actions/custom-fields/values";
 
 type UpdateMemberInput = {
   memberId: string;
@@ -87,12 +87,52 @@ export async function updateMember(
   }
 
   if (input.customFieldValues && input.customFieldValues.length > 0) {
+    // Fetch current values for audit diff
+    const currentCfValues = await getCustomFieldValues(memberId, organisationId);
+    const currentCfMap: Record<string, string> = {};
+    for (const v of currentCfValues) {
+      currentCfMap[v.field.name] = v.value.value;
+    }
+
     await saveCustomFieldValues({
       memberId,
       organisationId,
       slug,
       values: input.customFieldValues,
     });
+
+    // Build custom field diff for audit log
+    if (session) {
+      const newCfValues = await getCustomFieldValues(memberId, organisationId);
+      const newCfMap: Record<string, string> = {};
+      for (const v of newCfValues) {
+        newCfMap[v.field.name] = v.value.value;
+      }
+
+      const cfPrev: Record<string, string> = {};
+      const cfNew: Record<string, string> = {};
+      const allKeys = new Set([...Object.keys(currentCfMap), ...Object.keys(newCfMap)]);
+      for (const key of allKeys) {
+        const oldVal = currentCfMap[key] ?? "";
+        const newVal = newCfMap[key] ?? "";
+        if (oldVal !== newVal) {
+          cfPrev[key] = oldVal;
+          cfNew[key] = newVal;
+        }
+      }
+
+      if (Object.keys(cfNew).length > 0) {
+        createAuditLog({
+          organisationId,
+          actorMemberId: session.memberId,
+          action: "MEMBER_UPDATED",
+          entityType: "member",
+          entityId: memberId,
+          previousValue: cfPrev,
+          newValue: cfNew,
+        }).catch(console.error);
+      }
+    }
   }
 
   revalidatePath(`/${slug}/admin/members`);
