@@ -14,3 +14,10 @@ Commands:
 - `npm test` — unit tests (fast, no DB)
 - `npm run test:integration` — integration tests (pglite, slower)
 - `npm run test:e2e` — Playwright E2E
+
+# Authentication
+
+Every org-scoped server action must call `requireSession(organisationId)`
+from `@/lib/auth-guards` at entry. Most must also call
+`requireRole(session, minRole)`. Read `docs/auth.md` before writing or
+modifying any server action.
