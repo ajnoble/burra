@@ -17,9 +17,11 @@ import {
   type ValidationResult,
 } from "@/lib/import/validate-import";
 import { validateCustomFieldValue } from "@/lib/validation-custom-fields";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
 
 export type ValidateImportResult = {
   success: boolean;
+  error?: string;
   validation?: ValidationResult;
   parseErrors?: string[];
 };
@@ -28,6 +30,10 @@ export async function validateCsvImport(
   organisationId: string,
   csvText: string
 ): Promise<ValidateImportResult> {
+  try {
+    const session = await requireSession(organisationId);
+    requireRole(session, "ADMIN");
+
   const orgCustomFields = await db
     .select({ key: customFields.key })
     .from(customFields)
@@ -56,14 +62,20 @@ export async function validateCsvImport(
   const validation = validateImportRows(parsed.rows, existingEmails, validClasses);
 
   return { success: true, validation };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }
 
 export type ExecuteImportResult = {
   success: boolean;
-  importId: string;
-  imported: number;
-  errors: number;
-  errorDetails: Array<{ row: number; reason: string }>;
+  error?: string;
+  importId?: string;
+  imported?: number;
+  errors?: number;
+  errorDetails?: Array<{ row: number; reason: string }>;
 };
 
 export async function executeImport(
@@ -71,6 +83,9 @@ export async function executeImport(
   csvText: string,
   uploadedByMemberId: string
 ): Promise<ExecuteImportResult> {
+  try {
+    const session = await requireSession(organisationId);
+    requireRole(session, "ADMIN");
   const orgCustomFields = await db
     .select({ id: customFields.id, key: customFields.key, type: customFields.type, options: customFields.options })
     .from(customFields)
@@ -237,4 +252,9 @@ export async function executeImport(
     errors: errorDetails.length,
     errorDetails,
   };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }

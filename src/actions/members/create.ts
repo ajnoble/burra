@@ -11,6 +11,7 @@ import { sendEmail } from "@/lib/email/send";
 import { InviteEmail } from "@/lib/email/templates/invite";
 import { WelcomeEmail } from "@/lib/email/templates/welcome";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
 
 type CreateMemberInput = {
   organisationId: string;
@@ -30,6 +31,10 @@ type CreateMemberInput = {
 export async function createMember(
   input: CreateMemberInput
 ): Promise<{ success: boolean; error?: string }> {
+  try {
+    const session = await requireSession(input.organisationId);
+    requireRole(session, "COMMITTEE");
+
   const parsed = createMemberSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: parsed.error.issues[0]?.message ?? "Validation failed" };
@@ -192,4 +197,9 @@ export async function createMember(
 
   revalidatePath(`/${input.slug}/admin/members`);
   redirect(`/${input.slug}/admin/members/${member.id}`);
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }

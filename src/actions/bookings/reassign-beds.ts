@@ -4,6 +4,7 @@ import { db } from "@/db/index";
 import { bookings, bookingGuests, beds, rooms } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
 
 type Assignment = { bookingGuestId: string; bedId: string };
 
@@ -17,6 +18,10 @@ type ReassignInput = {
 type ReassignResult = { success: boolean; error?: string };
 
 export async function reassignBeds(input: ReassignInput): Promise<ReassignResult> {
+  try {
+    const session = await requireSession(input.organisationId);
+    requireRole(session, "BOOKING_OFFICER");
+
   const [booking] = await db
     .select({
       id: bookings.id,
@@ -70,4 +75,9 @@ export async function reassignBeds(input: ReassignInput): Promise<ReassignResult
 
   revalidatePath(`/${input.slug}/admin/bookings/${input.bookingId}`);
   return { success: true };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }

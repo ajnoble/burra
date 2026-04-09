@@ -5,6 +5,7 @@ import {
   getSeasonForDates,
   getBookingRound,
   getDateRangeAvailabilityForValidation,
+  getAvailabilityExcludingBooking,
   getMemberBookedNightsInRound,
   getTariffForValidation,
 } from "./validation-helpers";
@@ -26,6 +27,7 @@ export async function validateBookingDates(input: {
   checkOut: string;
   bookingRoundId: string;
   memberId: string;
+  excludeBookingId?: string;
 }): Promise<ValidationResult> {
   const parsed = validateBookingDatesSchema.safeParse(input);
   if (!parsed.success) {
@@ -36,6 +38,7 @@ export async function validateBookingDates(input: {
   }
 
   const { lodgeId, checkIn, checkOut, bookingRoundId, memberId } = parsed.data;
+  const excludeBookingId = input.excludeBookingId;
   const errors: string[] = [];
   const nights = countNights(checkIn, checkOut);
 
@@ -56,9 +59,12 @@ export async function validateBookingDates(input: {
   if (!round) {
     errors.push("Booking round not found");
   } else {
-    const now = new Date();
-    if (now < round.opensAt || now > round.closesAt) {
-      errors.push("Booking round is not currently open");
+    // Skip round-open check when editing an existing booking
+    if (!excludeBookingId) {
+      const now = new Date();
+      if (now < round.opensAt || now > round.closesAt) {
+        errors.push("Booking round is not currently open");
+      }
     }
 
     // Rule 4: Max nights per booking
@@ -72,7 +78,8 @@ export async function validateBookingDates(input: {
     if (round.maxNightsPerMember) {
       const existingNights = await getMemberBookedNightsInRound(
         memberId,
-        bookingRoundId
+        bookingRoundId,
+        excludeBookingId
       );
       if (existingNights + nights > round.maxNightsPerMember) {
         errors.push(
@@ -93,11 +100,9 @@ export async function validateBookingDates(input: {
   }
 
   // Rule 7: Sufficient availability
-  const availability = await getDateRangeAvailabilityForValidation(
-    lodgeId,
-    checkIn,
-    checkOut
-  );
+  const availability = excludeBookingId
+    ? await getAvailabilityExcludingBooking(lodgeId, checkIn, checkOut, excludeBookingId)
+    : await getDateRangeAvailabilityForValidation(lodgeId, checkIn, checkOut);
 
   if (availability.length < nights) {
     errors.push(

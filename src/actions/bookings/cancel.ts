@@ -9,6 +9,11 @@ import {
   lodges,
   cancellationPolicies,
 } from "@/db/schema";
+import {
+  requireSession,
+  requireRole,
+  authErrorToResult,
+} from "@/lib/auth-guards";
 import { eq, and, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { sendEmail } from "@/lib/email/send";
@@ -36,6 +41,10 @@ type CancelResult = {
 };
 
 export async function cancelBooking(input: CancelInput): Promise<CancelResult> {
+  try {
+    const session = await requireSession(input.organisationId);
+    requireRole(session, "BOOKING_OFFICER");
+
   // Fetch booking
   const [booking] = await db
     .select({
@@ -219,4 +228,9 @@ export async function cancelBooking(input: CancelInput): Promise<CancelResult> {
   revalidatePath(`/${input.slug}/dashboard`);
 
   return { success: true, refundAmountCents };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }

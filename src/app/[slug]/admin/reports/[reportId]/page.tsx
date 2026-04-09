@@ -187,6 +187,10 @@ export default async function ReportDetailPage({
       granularity,
     });
 
+    if ("success" in result) {
+      notFound();
+    }
+
     displayRows = result.rows.map((row) => ({
       period: row.period,
       bookingRevenue: formatCurrency(row.bookingRevenueCents),
@@ -550,6 +554,10 @@ export default async function ReportDetailPage({
       status: sp_str("status"),
       lodgeId: sp_str("lodgeId"),
     });
+
+    if ("success" in result) {
+      notFound();
+    }
 
     displayRows = result.rows.map((row) => ({
       reference: row.bookingReference,

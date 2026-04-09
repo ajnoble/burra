@@ -209,7 +209,12 @@ export default async function DashboardPage({
                         {formatCurrency(b.totalAmountCents)}
                       </p>
                       <p className="text-xs text-muted-foreground font-mono">
-                        {b.bookingReference}
+                        <Link
+                          href={`/${slug}/dashboard/bookings/${b.id}`}
+                          className="text-primary underline-offset-4 hover:underline"
+                        >
+                          {b.bookingReference}
+                        </Link>
                       </p>
                     </div>
                   </div>

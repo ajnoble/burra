@@ -3,6 +3,7 @@
 import { db } from "@/db/index";
 import { bookings, members, lodges, bookingGuests } from "@/db/schema";
 import { and, eq, gte, lte, desc, sql, inArray } from "drizzle-orm";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
 
 export type BookingSummaryFilters = {
   organisationId: string;
@@ -39,7 +40,11 @@ const PAGE_SIZE = 50;
 
 export async function getBookingSummary(
   filters: BookingSummaryFilters
-): Promise<BookingSummaryResult> {
+): Promise<BookingSummaryResult | { success: false; error: string }> {
+  try {
+  const session = await requireSession(filters.organisationId);
+  requireRole(session, "COMMITTEE");
+
   const {
     organisationId,
     dateFrom,
@@ -166,4 +171,9 @@ export async function getBookingSummary(
     pageSize: PAGE_SIZE,
     totalAmountCents,
   };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }

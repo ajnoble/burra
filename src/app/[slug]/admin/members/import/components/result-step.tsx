@@ -35,7 +35,7 @@ export function ResultStep({ result }: { result: ExecuteImportResult }) {
               {result.imported}
             </Badge>
           </div>
-          {result.errors > 0 && (
+          {(result.errors ?? 0) > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Rows with errors:</span>
               <Badge variant="destructive">{result.errors}</Badge>
@@ -43,7 +43,7 @@ export function ResultStep({ result }: { result: ExecuteImportResult }) {
           )}
         </div>
 
-        {result.errorDetails.length > 0 && (
+        {(result.errorDetails?.length ?? 0) > 0 && (
           <div>
             <h3 className="text-sm font-medium mb-2">Error Details</h3>
             <div className="rounded-md border max-h-48 overflow-y-auto">
@@ -55,7 +55,7 @@ export function ResultStep({ result }: { result: ExecuteImportResult }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {result.errorDetails.map((e, i) => (
+                  {result.errorDetails?.map((e, i) => (
                     <tr key={i} className="border-b last:border-0">
                       <td className="p-2 font-mono">{e.row}</td>
                       <td className="p-2 text-destructive">{e.reason}</td>

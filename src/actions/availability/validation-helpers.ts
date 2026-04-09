@@ -4,6 +4,7 @@ import {
   bookingRounds,
   availabilityCache,
   bookings,
+  bookingGuests,
   tariffs,
 } from "@/db/schema";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
@@ -68,7 +69,8 @@ export async function getDateRangeAvailabilityForValidation(
 
 export async function getMemberBookedNightsInRound(
   memberId: string,
-  bookingRoundId: string
+  bookingRoundId: string,
+  excludeBookingId?: string
 ) {
   const result = await db
     .select({ totalNights: sql<number>`COALESCE(SUM(${bookings.totalNights}), 0)` })
@@ -77,7 +79,8 @@ export async function getMemberBookedNightsInRound(
       and(
         eq(bookings.primaryMemberId, memberId),
         eq(bookings.bookingRoundId, bookingRoundId),
-        sql`${bookings.status} NOT IN ('CANCELLED')`
+        sql`${bookings.status} NOT IN ('CANCELLED')`,
+        ...(excludeBookingId ? [sql`${bookings.id} != ${excludeBookingId}`] : [])
       )
     );
 
@@ -99,4 +102,54 @@ export async function getTariffForValidation(
 
   const maxMinNights = Math.max(...result.map((r) => r.minimumNights));
   return { minimumNights: maxMinNights };
+}
+
+/**
+ * Get availability for a date range, subtracting the guest count of an excluded booking
+ * from bookedBeds for dates that overlap with the excluded booking.
+ */
+export async function getAvailabilityExcludingBooking(
+  lodgeId: string,
+  checkIn: string,
+  checkOut: string,
+  excludeBookingId: string
+) {
+  // Get the excluded booking's date range and guest count
+  const [excludedBooking] = await db
+    .select({
+      checkInDate: bookings.checkInDate,
+      checkOutDate: bookings.checkOutDate,
+    })
+    .from(bookings)
+    .where(eq(bookings.id, excludeBookingId));
+
+  const excludedGuestCount = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(bookingGuests)
+    .where(eq(bookingGuests.bookingId, excludeBookingId));
+
+  const guestCount = Number(excludedGuestCount[0]?.count ?? 0);
+
+  // Get base availability
+  const availability = await getDateRangeAvailabilityForValidation(
+    lodgeId,
+    checkIn,
+    checkOut
+  );
+
+  if (!excludedBooking || guestCount === 0) return availability;
+
+  // Subtract excluded booking's beds from overlapping dates
+  return availability.map((day) => {
+    const dayOverlaps =
+      day.date >= excludedBooking.checkInDate &&
+      day.date < excludedBooking.checkOutDate;
+
+    return {
+      ...day,
+      bookedBeds: dayOverlaps
+        ? Math.max(day.bookedBeds - guestCount, 0)
+        : day.bookedBeds,
+    };
+  });
 }

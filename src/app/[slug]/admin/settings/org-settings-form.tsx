@@ -27,6 +27,8 @@ type Org = {
   subscriptionGraceDays: number;
   bookingPaymentGraceDays: number;
   bookingPaymentReminderDays: number[];
+  memberBookingEditWindowDays: number;
+  memberEditRequiresApproval: boolean;
 };
 
 export function OrgSettingsForm({ org }: { org: Org }) {
@@ -53,6 +55,8 @@ export function OrgSettingsForm({ org }: { org: Org }) {
           .split(",")
           .map((s) => parseInt(s.trim(), 10))
           .filter((n) => !isNaN(n)),
+        memberBookingEditWindowDays: parseInt(form.get("memberBookingEditWindowDays") as string, 10),
+        memberEditRequiresApproval: form.get("memberEditRequiresApproval") === "on",
       });
       toast.success("Settings saved");
     } catch (err) {
@@ -167,6 +171,36 @@ export function OrgSettingsForm({ org }: { org: Org }) {
               Comma-separated days before due date to send payment reminders (e.g. 7, 1)
             </p>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="memberBookingEditWindowDays">Member Booking Edit Window (days)</Label>
+            <Input
+              id="memberBookingEditWindowDays"
+              name="memberBookingEditWindowDays"
+              type="number"
+              min="0"
+              max="365"
+              defaultValue={org.memberBookingEditWindowDays}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              0 = disabled. Members can edit their bookings up to this many days before check-in.
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <input
+              id="memberEditRequiresApproval"
+              name="memberEditRequiresApproval"
+              type="checkbox"
+              defaultChecked={org.memberEditRequiresApproval}
+              className="rounded border-input"
+            />
+            <Label htmlFor="memberEditRequiresApproval">
+              Require re-approval for member edits
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            When enabled, edits to bookings that originally required approval will be set back to pending.
+          </p>
           <Button type="submit" disabled={saving}>
             {saving ? "Saving..." : "Save Settings"}
           </Button>

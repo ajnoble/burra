@@ -2,9 +2,12 @@
 
 import { db } from "@/db/index";
 import { lodges, rooms, beds } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
+
+type AuthErrorResult = { success: false; error: string };
 
 // Lodge actions
 const lodgeSchema = z.object({
@@ -17,41 +20,64 @@ const lodgeSchema = z.object({
 
 export async function createLodge(
   input: z.infer<typeof lodgeSchema> & { slug: string }
-) {
-  const data = lodgeSchema.parse(input);
-  const [created] = await db
-    .insert(lodges)
-    .values({
-      organisationId: data.organisationId,
-      name: data.name,
-      address: data.address || null,
-      description: data.description || null,
-      totalBeds: data.totalBeds,
-    })
-    .returning();
+): Promise<typeof lodges.$inferSelect | AuthErrorResult> {
+  try {
+    const session = await requireSession(input.organisationId);
+    requireRole(session, "ADMIN");
 
-  revalidatePath(`/${input.slug}/admin/lodges`);
-  return created;
+    const data = lodgeSchema.parse(input);
+    const [created] = await db
+      .insert(lodges)
+      .values({
+        organisationId: data.organisationId,
+        name: data.name,
+        address: data.address || null,
+        description: data.description || null,
+        totalBeds: data.totalBeds,
+      })
+      .returning();
+
+    revalidatePath(`/${input.slug}/admin/lodges`);
+    return created;
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }
 
 export async function updateLodge(
   input: { id: string; slug: string } & z.infer<typeof lodgeSchema>
-) {
-  const data = lodgeSchema.parse(input);
-  const [updated] = await db
-    .update(lodges)
-    .set({
-      name: data.name,
-      address: data.address || null,
-      description: data.description || null,
-      totalBeds: data.totalBeds,
-      updatedAt: new Date(),
-    })
-    .where(eq(lodges.id, input.id))
-    .returning();
+): Promise<typeof lodges.$inferSelect | AuthErrorResult | undefined> {
+  try {
+    const session = await requireSession(input.organisationId);
+    requireRole(session, "ADMIN");
 
-  revalidatePath(`/${input.slug}/admin/lodges`);
-  return updated;
+    const data = lodgeSchema.parse(input);
+    const [updated] = await db
+      .update(lodges)
+      .set({
+        name: data.name,
+        address: data.address || null,
+        description: data.description || null,
+        totalBeds: data.totalBeds,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(lodges.id, input.id),
+          eq(lodges.organisationId, input.organisationId)
+        )
+      )
+      .returning();
+
+    revalidatePath(`/${input.slug}/admin/lodges`);
+    return updated;
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }
 
 // Room actions

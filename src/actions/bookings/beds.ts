@@ -21,7 +21,8 @@ export async function getAvailableBeds(
   lodgeId: string,
   checkInDate: string,
   checkOutDate: string,
-  currentMemberId: string
+  currentMemberId: string,
+  excludeBookingId?: string
 ): Promise<RoomWithBeds[]> {
   // Clean up expired holds
   await db.delete(bedHolds).where(lt(bedHolds.expiresAt, new Date()));
@@ -53,7 +54,8 @@ export async function getAvailableBeds(
         eq(bookings.lodgeId, lodgeId),
         sql`${bookings.status} NOT IN ('CANCELLED')`,
         lt(bookings.checkInDate, checkOutDate),
-        sql`${bookings.checkOutDate} > ${checkInDate}`
+        sql`${bookings.checkOutDate} > ${checkInDate}`,
+        ...(excludeBookingId ? [sql`${bookings.id} != ${excludeBookingId}`] : [])
       )
     );
 

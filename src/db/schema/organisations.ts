@@ -29,6 +29,8 @@ export const organisations = pgTable("organisations", {
   gstEnabled: boolean("gst_enabled").notNull().default(false),
   gstRateBps: integer("gst_rate_bps").notNull().default(1000), // 1000 bps = 10%
   abnNumber: text("abn_number"),
+  memberBookingEditWindowDays: integer("member_booking_edit_window_days").notNull().default(0),
+  memberEditRequiresApproval: boolean("member_edit_requires_approval").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
