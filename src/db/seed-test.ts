@@ -12,22 +12,22 @@ import {
 } from "./schema";
 
 /**
- * Polski Ski Club seed — club configuration only, no member data.
+ * Test Org seed — club configuration only, no member data.
  * Members will be imported via CSV.
  *
  * Lodge layout, membership classes, and tariffs are placeholders
  * until confirmed with the club committee.
  */
-async function seedPolski() {
-  console.log("Seeding Polski Ski Club configuration...");
+async function seedTestOrg() {
+  console.log("Seeding Test Org configuration...");
 
   // Organisation
   const [org] = await db
     .insert(organisations)
     .values({
-      name: "Polski Ski Club",
-      slug: "polski",
-      contactEmail: "secretary@polskiskiclub.example.com",
+      name: "Test Org",
+      slug: "test-org",
+      contactEmail: "admin@testorg.example.com",
       timezone: "Australia/Melbourne",
     })
     .returning();
@@ -194,12 +194,12 @@ async function seedPolski() {
     isDefault: true,
   });
 
-  console.log("\nPolski Ski Club seed complete!");
+  console.log("\nTest Org seed complete!");
   console.log("Note: No member data seeded — use CSV import to add members.");
   process.exit(0);
 }
 
-seedPolski().catch((e) => {
+seedTestOrg().catch((e) => {
   console.error("Seed failed:", e);
   process.exit(1);
 });
