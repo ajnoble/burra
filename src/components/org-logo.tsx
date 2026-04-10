@@ -24,7 +24,7 @@ export function OrgLogo({
       <div className={cn("flex items-center", className)}>
         <Image
           src={logoUrl}
-          alt={`${name} logo`}
+          alt={name}
           width={160}
           height={40}
           priority={priority}

@@ -56,7 +56,7 @@ export function BrandingSettingsForm({ organisationId, initial }: Props) {
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label>Accent color</Label>
+            <Label htmlFor="accent-color-hex">Accent color</Label>
             <div className="flex items-center gap-3">
               <input
                 type="color"
@@ -70,6 +70,7 @@ export function BrandingSettingsForm({ organisationId, initial }: Props) {
                 aria-label="Accent color picker"
               />
               <Input
+                id="accent-color-hex"
                 type="text"
                 value={accentColor}
                 onChange={(e) => {
@@ -80,7 +81,6 @@ export function BrandingSettingsForm({ organisationId, initial }: Props) {
                 placeholder="#38694a"
                 pattern="^#[0-9a-fA-F]{6}$"
                 className="w-32 font-mono"
-                aria-label="Accent color hex"
               />
               <label className="flex items-center gap-2 text-sm text-muted-foreground">
                 <input

@@ -39,7 +39,7 @@ describe("OrgLogo", () => {
       // Child is the Image (mocked as img)
       const img = element.props.children;
       expect(img.props.src).toBe(logoUrl);
-      expect(img.props.alt).toBe(`${name} logo`);
+      expect(img.props.alt).toBe(name);
     });
 
     it("applies className to the outer div", () => {
