@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useBooking } from "../booking-context";
+import { useBooking, guestKey } from "../booking-context";
 import { formatCurrency } from "@/lib/currency";
 
 type Lodge = {
@@ -49,7 +49,7 @@ export function ReviewPricing({ organisationId, lodges }: Props) {
               lodgeId: booking.lodgeId,
               checkInDate: booking.checkInDate,
               checkOutDate: booking.checkOutDate,
-              guestMemberIds: booking.guests.map((g) => g.memberId).join(","),
+              guestMemberIds: booking.guests.map((g) => guestKey(g)).join(","),
             })
         );
 
@@ -59,11 +59,12 @@ export function ReviewPricing({ organisationId, lodges }: Props) {
           // Mark as needing server-side calculation
           booking.setPricingResult({
             guests: booking.guests.map((g) => {
+              const key = guestKey(g);
               const assignment = booking.bedAssignments.find(
-                (a) => a.memberId === g.memberId
+                (a) => a.guestKey === key
               );
               return {
-                memberId: g.memberId,
+                guestKey: key,
                 firstName: g.firstName,
                 lastName: g.lastName,
                 membershipClassName: g.membershipClassName,
@@ -73,6 +74,7 @@ export function ReviewPricing({ organisationId, lodges }: Props) {
                 discountAmountCents: 0,
                 totalCents: 0,
                 blendedPerNightCents: 0,
+                portaCotRequested: g.portaCotRequested,
               };
             }),
             subtotalCents: 0,
@@ -179,22 +181,26 @@ export function ReviewPricing({ organisationId, lodges }: Props) {
                 </thead>
                 <tbody>
                   {booking.guests.map((guest) => {
+                    const key = guestKey(guest);
                     const assignment = booking.bedAssignments.find(
-                      (a) => a.memberId === guest.memberId
+                      (a) => a.guestKey === key
                     );
                     const pricing = booking.pricingResult?.guests.find(
-                      (g) => g.memberId === guest.memberId
+                      (g) => g.guestKey === key
                     );
 
                     return (
-                      <tr key={guest.memberId} className="border-b last:border-b-0">
+                      <tr key={key} className="border-b last:border-b-0">
                         <td className="py-2 pr-2">
-                          {assignment
-                            ? `${assignment.roomName} / ${assignment.bedLabel}`
-                            : "-"}
+                          {guest.portaCotRequested
+                            ? "Port-a-cot"
+                            : assignment
+                              ? `${assignment.roomName} / ${assignment.bedLabel}`
+                              : "-"}
                         </td>
                         <td className="py-2 pr-2">
                           {guest.firstName} {guest.lastName}
+                          {guest.associateId && !guest.memberId && " (Guest)"}
                         </td>
                         <td className="py-2 pr-2">
                           {guest.membershipClassName || "Standard"}

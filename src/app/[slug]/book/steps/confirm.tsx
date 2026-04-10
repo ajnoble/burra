@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useBooking } from "../booking-context";
+import { useBooking, guestKey } from "../booking-context";
 import { createBooking } from "@/actions/bookings/create";
 import { formatCurrency } from "@/lib/currency";
 
@@ -53,11 +53,27 @@ export function Confirm({ organisationId, slug, lodges }: Props) {
           bookingRoundId: booking.bookingRoundId,
           checkInDate: booking.checkInDate,
           checkOutDate: booking.checkOutDate,
-          guests: booking.bedAssignments.map((a) => ({
-            memberId: a.memberId,
-            bedId: a.bedId,
-            roomId: a.roomId,
-          })),
+          guests: [
+            // Bed guests (from bed assignments)
+            ...booking.bedAssignments.map((a) => {
+              const guest = booking.guests.find((g) => guestKey(g) === a.guestKey);
+              return {
+                memberId: guest?.memberId,
+                associateId: guest?.associateId,
+                bedId: a.bedId,
+                roomId: a.roomId,
+                portaCotRequested: false as boolean,
+              };
+            }),
+            // Cot guests (no bed assignment)
+            ...booking.guests
+              .filter((g) => g.portaCotRequested)
+              .map((g) => ({
+                memberId: g.memberId,
+                associateId: g.associateId,
+                portaCotRequested: true as boolean,
+              })),
+          ],
         },
         slug
       );
@@ -129,17 +145,21 @@ export function Confirm({ organisationId, slug, lodges }: Props) {
       <div className="rounded-lg border p-4">
         <h3 className="font-medium text-sm mb-2">Guests</h3>
         <div className="space-y-1 text-sm">
-          {booking.bedAssignments.map((a) => {
-            const guest = booking.guests.find(
-              (g) => g.memberId === a.memberId
-            );
+          {booking.guests.map((g) => {
+            const key = guestKey(g);
+            const assignment = booking.bedAssignments.find((a) => a.guestKey === key);
             return (
-              <div key={a.memberId} className="flex justify-between">
+              <div key={key} className="flex justify-between">
                 <span>
-                  {guest?.firstName} {guest?.lastName}
+                  {g.firstName} {g.lastName}
+                  {g.associateId && !g.memberId && " (Guest)"}
                 </span>
                 <span className="text-muted-foreground">
-                  {a.roomName} / {a.bedLabel}
+                  {g.portaCotRequested
+                    ? "Port-a-cot"
+                    : assignment
+                      ? `${assignment.roomName} / ${assignment.bedLabel}`
+                      : "-"}
                 </span>
               </div>
             );
