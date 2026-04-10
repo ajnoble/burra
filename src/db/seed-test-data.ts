@@ -59,17 +59,17 @@ const MEMBERS_DATA = [
   { first: "David", last: "Chen", class: "Social", role: "MEMBER" as const, dob: "1978-10-22" },
 ];
 
-async function seedPolskiData() {
-  console.log("Seeding Polski Ski Club member & booking data...\n");
+async function seedTestOrgData() {
+  console.log("Seeding Test Org member & booking data...\n");
 
   // Get existing org
   const [org] = await db
     .select()
     .from(organisations)
-    .where(eq(organisations.slug, "polski"));
+    .where(eq(organisations.slug, "test-org"));
 
   if (!org) {
-    console.error("Polski org not found! Run db:seed:polski first.");
+    console.error("Test Org not found! Run db:seed:test first.");
     process.exit(1);
   }
 
@@ -298,7 +298,7 @@ async function seedPolskiData() {
   for (let i = 0; i < MEMBERS_DATA.length; i++) {
     const m = MEMBERS_DATA[i];
     const email = `${m.first.toLowerCase()}.${m.last.toLowerCase()}@example.com`;
-    const memberNum = `PSC-${String(i + 1).padStart(4, "0")}`;
+    const memberNum = `TST-${String(i + 1).padStart(4, "0")}`;
 
     // Create auth user for non-juniors
     let authUserId: string | null = null;
@@ -394,7 +394,7 @@ async function seedPolskiData() {
     const perNight = 7500; // Full member weekday rate as baseline
     const subtotal = perNight * nights * bc.guests.length;
 
-    const ref = `PSC-2027-${String(bookingSeq++).padStart(4, "0")}`;
+    const ref = `TST-2027-${String(bookingSeq++).padStart(4, "0")}`;
 
     const [booking] = await db
       .insert(bookings)
@@ -482,12 +482,12 @@ async function seedPolskiData() {
   console.log(`  Booking Officer: anna.nowak@example.com`);
   console.log(`  Committee:       piotr.wisniewski@example.com`);
   console.log(`  Member:          katarzyna.wojcik@example.com`);
-  console.log(`\nLogin at: https://snowgum.site/polski/login`);
+  console.log(`\nLogin at: https://snowgum.site/test-org/login`);
 
   process.exit(0);
 }
 
-seedPolskiData().catch((e) => {
+seedTestOrgData().catch((e) => {
   console.error("Seed failed:", e);
   process.exit(1);
 });

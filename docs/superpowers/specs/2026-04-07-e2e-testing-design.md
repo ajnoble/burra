@@ -175,7 +175,7 @@ Push to main → Build → Unit tests → Deploy to VPS → E2E tests against li
 - Read-heavy tests verify existing data, don't modify it
 - Write tests use unique data: `test-${Date.now()}@example.com` for emails, timestamped names
 - No DB teardown between runs
-- If data accumulates, re-seed with `npm run db:seed:polski` scripts
+- If data accumulates, re-seed with `npm run db:seed:demo` or `npm run db:seed:test` scripts
 
 ## Future: Dedicated Test Environment
 
