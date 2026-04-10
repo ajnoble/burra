@@ -38,7 +38,7 @@ export async function getGstSummary(
   const fromDate = new Date(dateFrom);
   const toDate = new Date(dateTo);
 
-  const periodExpr = sql<string>`TO_CHAR(DATE_TRUNC(${truncUnit}, ${transactions.createdAt}), ${toCharFormat})`;
+  const periodExpr = sql<string>`TO_CHAR(DATE_TRUNC(${sql.raw(`'${truncUnit}'`)}, ${transactions.createdAt}), ${sql.raw(`'${toCharFormat}'`)})`;
 
   const dbRows = await db
     .select({
