@@ -123,14 +123,14 @@ drizzle/                        # Generated SQL migrations
 | 19 | GST/Tax Management | Configurable GST per org, tax-inclusive/exclusive pricing, BAS-ready GST summary report |
 | 20 | Custom Member Fields | Admin-defined fields (text/number/date/dropdown/checkbox), member profile values, CSV import/export |
 | 21 | Visual Identity | Alpine-warmth color palette, Fraunces + Inter typography, polished shadcn components, per-org accent color + logo, dark mode at parity |
+| 22 | Member Self-Service Booking Editing | Members modify own bookings (date/guest changes), configurable edit window, price recalculation, audit trail, email notifications |
 
 ### Planned (Build Order)
 
 | Phase | Feature | Description |
 |-------|---------|-------------|
-| 22 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
-| 23 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
-| 24 | Member Self-Service Booking Editing | Members modify own bookings (date/guest changes), configurable edit window, price recalculation |
+| 23 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
+| 24 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
 | 25 | Custom Pages / CMS | Admin-editable content pages, rich text editor, role-based access, navigation integration |
 | 26 | Data Purging & Privacy | Configurable retention periods, auto-purge cron, manual right to erasure, Australian Privacy Act compliance |
 | 27 | Xero Integration | OAuth2 connect, auto-sync invoices/payments, bank feed reconciliation, chart of accounts mapping |
