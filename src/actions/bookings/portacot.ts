@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/db/index";
 import { lodges, bookings, bookingGuests } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
