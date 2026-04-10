@@ -21,6 +21,7 @@ import {
   createMembershipClass,
   updateMembershipClass,
   toggleMembershipClass,
+  setGuestClass,
 } from "@/actions/membership-classes";
 import { toast } from "sonner";
 
@@ -32,6 +33,7 @@ type MembershipClass = {
   sortOrder: number;
   isActive: boolean;
   annualFeeCents: number | null;
+  isGuestClass: boolean;
 };
 
 export function MembershipClassManager({
@@ -107,6 +109,23 @@ export function MembershipClassManager({
     }
   }
 
+  async function handleSetGuestClass(cls: MembershipClass) {
+    if (cls.isGuestClass) return;
+    try {
+      const result = await setGuestClass(organisationId, cls.id, slug);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      setClasses((prev) =>
+        prev.map((c) => ({ ...c, isGuestClass: c.id === cls.id }))
+      );
+      toast.success(`"${cls.name}" set as guest class`);
+    } catch {
+      toast.error("Failed to set guest class");
+    }
+  }
+
   return (
     <div className="space-y-3">
       {classes.map((cls) => (
@@ -118,6 +137,11 @@ export function MembershipClassManager({
                 {!cls.isActive && (
                   <Badge variant="outline" className="text-xs">
                     Inactive
+                  </Badge>
+                )}
+                {cls.isGuestClass && (
+                  <Badge variant="secondary" className="text-xs">
+                    Guest Class
                   </Badge>
                 )}
               </div>
@@ -149,6 +173,15 @@ export function MembershipClassManager({
                 onClick={() => handleToggle(cls)}
               >
                 {cls.isActive ? "Deactivate" : "Activate"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={cls.isGuestClass}
+                onClick={() => handleSetGuestClass(cls)}
+                title={cls.isGuestClass ? "Already the guest class" : "Set as guest class"}
+              >
+                {cls.isGuestClass ? "Guest Class" : "Set as Guest"}
               </Button>
             </div>
           </CardContent>

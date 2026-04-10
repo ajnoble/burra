@@ -5,6 +5,7 @@ import { membershipClasses } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
 
 const classSchema = z.object({
   organisationId: z.string().uuid(),
@@ -66,4 +67,44 @@ export async function toggleMembershipClass(
     .where(eq(membershipClasses.id, id));
 
   revalidatePath(`/${slug}/admin/settings`);
+}
+
+export async function setGuestClass(
+  organisationId: string,
+  membershipClassId: string,
+  slug: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  try {
+    const session = await requireSession(organisationId);
+    requireRole(session, "ADMIN");
+
+    // Unset existing guest class
+    await db
+      .update(membershipClasses)
+      .set({ isGuestClass: false })
+      .where(
+        and(
+          eq(membershipClasses.organisationId, organisationId),
+          eq(membershipClasses.isGuestClass, true)
+        )
+      );
+
+    // Set new one
+    await db
+      .update(membershipClasses)
+      .set({ isGuestClass: true, updatedAt: new Date() })
+      .where(
+        and(
+          eq(membershipClasses.id, membershipClassId),
+          eq(membershipClasses.organisationId, organisationId)
+        )
+      );
+
+    revalidatePath(`/${slug}/admin/settings`);
+    return { success: true };
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }
