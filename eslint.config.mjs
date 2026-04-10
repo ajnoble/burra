@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Dev-only git worktrees; gitignored and contain stale build artifacts.
+    ".worktrees/**",
   ]),
 ]);
 

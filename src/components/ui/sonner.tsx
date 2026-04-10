@@ -30,7 +30,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
+          "--normal-bg": "var(--card)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
@@ -38,7 +38,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast shadow-[0_8px_24px_0_oklch(0.2_0.02_60_/_0.12)] [&_[data-icon]]:text-foreground [&_[data-icon=success]]:text-primary [&_[data-icon=warning]]:text-accent [&_[data-icon=error]]:text-destructive",
         },
       }}
       {...props}

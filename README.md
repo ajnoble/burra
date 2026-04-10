@@ -122,21 +122,22 @@ drizzle/                        # Generated SQL migrations
 | 18 | Audit Log Viewer | Action/entity/date filtering, actor tracking, CSV export |
 | 19 | GST/Tax Management | Configurable GST per org, tax-inclusive/exclusive pricing, BAS-ready GST summary report |
 | 20 | Custom Member Fields | Admin-defined fields (text/number/date/dropdown/checkbox), member profile values, CSV import/export |
+| 21 | Visual Identity | Alpine-warmth color palette, Fraunces + Inter typography, polished shadcn components, per-org accent color + logo, dark mode at parity |
 
 ### Planned (Build Order)
 
 | Phase | Feature | Description |
 |-------|---------|-------------|
-| 21 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
-| 22 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
-| 23 | Member Self-Service Booking Editing | Members modify own bookings (date/guest changes), configurable edit window, price recalculation |
-| 24 | Custom Pages / CMS | Admin-editable content pages, rich text editor, role-based access, navigation integration |
-| 25 | Data Purging & Privacy | Configurable retention periods, auto-purge cron, manual right to erasure, Australian Privacy Act compliance |
-| 26 | Xero Integration | OAuth2 connect, auto-sync invoices/payments, bank feed reconciliation, chart of accounts mapping |
-| 27 | Kiosk Display | Read-only room allocation for lodge tablets/screens, auto-refresh, no-auth kiosk URL |
-| 28 | Booking Queue | Queue system for high-demand openings, fair ordering, progress indicator, auto-timeout |
-| 29 | Post-Booking Promotions | Promotional offers after booking, optional add-on purchases, Stripe payment |
-| 30 | Additional Payment Gateways | PayPal, eWay integration, gateway selection per org |
+| 22 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
+| 23 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
+| 24 | Member Self-Service Booking Editing | Members modify own bookings (date/guest changes), configurable edit window, price recalculation |
+| 25 | Custom Pages / CMS | Admin-editable content pages, rich text editor, role-based access, navigation integration |
+| 26 | Data Purging & Privacy | Configurable retention periods, auto-purge cron, manual right to erasure, Australian Privacy Act compliance |
+| 27 | Xero Integration | OAuth2 connect, auto-sync invoices/payments, bank feed reconciliation, chart of accounts mapping |
+| 28 | Kiosk Display | Read-only room allocation for lodge tablets/screens, auto-refresh, no-auth kiosk URL |
+| 29 | Booking Queue | Queue system for high-demand openings, fair ordering, progress indicator, auto-timeout |
+| 30 | Post-Booking Promotions | Promotional offers after booking, optional add-on purchases, Stripe payment |
+| 31 | Additional Payment Gateways | PayPal, eWay integration, gateway selection per org |
 
 ## Getting Started
 
