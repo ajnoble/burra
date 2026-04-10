@@ -12,6 +12,7 @@ import {
 import { organisations } from "./organisations";
 import { lodges, beds, rooms } from "./lodges";
 import { members, membershipClasses } from "./members";
+import { associates } from "./associates";
 import { bookingRounds } from "./seasons";
 import { cancellationPolicies } from "./cancellation-policies";
 import { tariffs } from "./tariffs";
@@ -76,13 +77,13 @@ export const bookingGuests = pgTable("booking_guests", {
   bookingId: uuid("booking_id")
     .notNull()
     .references(() => bookings.id),
-  memberId: uuid("member_id")
-    .notNull()
-    .references(() => members.id),
+  memberId: uuid("member_id").references(() => members.id),
+  associateId: uuid("associate_id").references(() => associates.id),
   bedId: uuid("bed_id").references(() => beds.id),
   roomId: uuid("room_id").references(() => rooms.id),
   pricePerNightCents: integer("price_per_night_cents").notNull(),
   totalAmountCents: integer("total_amount_cents").notNull(),
+  portaCotRequested: boolean("porta_cot_requested").notNull().default(false),
   snapshotTariffId: uuid("snapshot_tariff_id").references(() => tariffs.id),
   snapshotMembershipClassId: uuid("snapshot_membership_class_id").references(
     () => membershipClasses.id

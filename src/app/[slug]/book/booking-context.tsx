@@ -11,14 +11,20 @@ import {
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 type Guest = {
-  memberId: string;
+  memberId?: string;
+  associateId?: string;
   firstName: string;
   lastName: string;
   membershipClassName: string;
+  portaCotRequested?: boolean;
 };
 
+export function guestKey(guest: Guest): string {
+  return guest.memberId ?? guest.associateId ?? "";
+}
+
 type BedAssignment = {
-  memberId: string;
+  guestKey: string;
   bedId: string;
   bedLabel: string;
   roomId: string;
@@ -42,7 +48,7 @@ type BookingState = {
 };
 
 export type GuestPriceInfo = {
-  memberId: string;
+  guestKey: string;
   firstName: string;
   lastName: string;
   membershipClassName: string;
@@ -52,6 +58,7 @@ export type GuestPriceInfo = {
   discountAmountCents: number;
   totalCents: number;
   blendedPerNightCents: number;
+  portaCotRequested?: boolean;
 };
 
 export type PricingResult = {
@@ -68,10 +75,10 @@ type BookingContextType = BookingState & {
   setDates: (checkIn: string, checkOut: string) => void;
   setGuests: (guests: Guest[]) => void;
   addGuest: (guest: Guest) => void;
-  removeGuest: (memberId: string) => void;
+  removeGuest: (key: string) => void;
   setBedAssignments: (assignments: BedAssignment[]) => void;
   addBedAssignment: (assignment: BedAssignment) => void;
-  removeBedAssignment: (memberId: string) => void;
+  removeBedAssignment: (key: string) => void;
   setHoldExpiresAt: (expiresAt: Date | null) => void;
   setPricingResult: (result: PricingResult | null) => void;
   setBookingReference: (ref: string) => void;
@@ -169,12 +176,10 @@ export function BookingProvider({ children }: { children: ReactNode }) {
     setGuests: (guests) => update({ guests }),
     addGuest: (guest) =>
       update({ guests: [...state.guests, guest] }),
-    removeGuest: (memberId) =>
+    removeGuest: (key) =>
       update({
-        guests: state.guests.filter((g) => g.memberId !== memberId),
-        bedAssignments: state.bedAssignments.filter(
-          (a) => a.memberId !== memberId
-        ),
+        guests: state.guests.filter((g) => guestKey(g) !== key),
+        bedAssignments: state.bedAssignments.filter((a) => a.guestKey !== key),
       }),
     setBedAssignments: (assignments) =>
       update({ bedAssignments: assignments }),
@@ -182,16 +187,14 @@ export function BookingProvider({ children }: { children: ReactNode }) {
       update({
         bedAssignments: [
           ...state.bedAssignments.filter(
-            (a) => a.memberId !== assignment.memberId
+            (a) => a.guestKey !== assignment.guestKey
           ),
           assignment,
         ],
       }),
-    removeBedAssignment: (memberId) =>
+    removeBedAssignment: (key) =>
       update({
-        bedAssignments: state.bedAssignments.filter(
-          (a) => a.memberId !== memberId
-        ),
+        bedAssignments: state.bedAssignments.filter((a) => a.guestKey !== key),
       }),
     setHoldExpiresAt: (expiresAt) => update({ holdExpiresAt: expiresAt }),
     setPricingResult: (result) => update({ pricingResult: result }),

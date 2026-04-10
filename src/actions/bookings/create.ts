@@ -6,7 +6,6 @@ import {
   bookingGuests,
   transactions,
   bedHolds,
-  availabilityCache,
   members,
   tariffs,
   seasons,
@@ -14,18 +13,23 @@ import {
   organisations,
   lodges,
   waitlistEntries,
+  associates,
+  membershipClasses,
 } from "@/db/schema";
-import { eq, and, sql, lt } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getSessionMember } from "@/lib/auth";
-import { createBookingSchema, type CreateBookingInput } from "./schemas";
+import { type CreateBookingInput } from "./schemas";
 import { generateBookingReference } from "./reference";
 import {
   calculateGuestPrice,
   calculateBookingPrice,
+  calculatePortaCotPrice,
   countNights,
   getNightDates,
   type GuestPriceResult,
+  type PortaCotPriceResult,
 } from "./pricing";
+import { getPortaCotAvailability } from "./portacot";
 import { validateBookingDates } from "@/actions/availability/validation";
 import { revalidatePath } from "next/cache";
 import { validateCreateBookingInput, getBalanceDueDateForRound } from "./create-helpers";
@@ -36,6 +40,35 @@ import { AdminBookingNotificationEmail } from "@/lib/email/templates/admin-booki
 import { createAuditLog } from "@/lib/audit-log";
 import { calculateGst } from "@/lib/currency";
 
+
+async function getGuestTariffClassId(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tx: any,
+  guest: { memberId?: string; associateId?: string },
+  organisationId: string
+): Promise<string | null> {
+  if (guest.memberId) {
+    const [member] = await tx
+      .select({ membershipClassId: members.membershipClassId })
+      .from(members)
+      .where(eq(members.id, guest.memberId));
+    return member?.membershipClassId ?? null;
+  }
+  // Associate — use org's guest class
+  const [guestClass] = await tx
+    .select({ id: membershipClasses.id })
+    .from(membershipClasses)
+    .where(
+      and(
+        eq(membershipClasses.organisationId, organisationId),
+        eq(membershipClasses.isGuestClass, true)
+      )
+    );
+  if (!guestClass) {
+    throw new Error("Guest pricing not configured for this organisation. Contact your administrator.");
+  }
+  return guestClass.id;
+}
 
 type CreateBookingResult = {
   success: boolean;
@@ -150,8 +183,18 @@ export async function createBooking(
             FOR UPDATE`
       );
 
-      // Verify each selected bed is not already booked
+      // Validate port-a-cot availability
+      const cotGuests = data.guests.filter((g) => g.portaCotRequested);
+      if (cotGuests.length > 0) {
+        const cotAvail = await getPortaCotAvailability(data.lodgeId, data.checkInDate, data.checkOutDate);
+        if (cotGuests.length > cotAvail.available) {
+          throw new Error(`Only ${cotAvail.available} port-a-cot${cotAvail.available === 1 ? "" : "s"} available for these dates.`);
+        }
+      }
+
+      // Verify each selected bed is not already booked (skip cot guests)
       for (const guest of data.guests) {
+        if (guest.portaCotRequested || !guest.bedId) continue;
         const conflicting = await tx.execute(
           sql`SELECT bg.bed_id FROM booking_guests bg
               JOIN bookings b ON b.id = bg.booking_id
@@ -168,16 +211,21 @@ export async function createBooking(
       }
 
       // Calculate pricing per guest
-      const guestPrices: { memberId: string; bedId: string; roomId?: string; price: GuestPriceResult; tariffId: string | null; membershipClassId: string | null }[] = [];
+      type GuestPriceEntry = {
+        memberId?: string;
+        associateId?: string;
+        bedId?: string;
+        roomId?: string;
+        portaCotRequested: boolean;
+        price: GuestPriceResult | null;
+        cotPrice: PortaCotPriceResult | null;
+        tariffId: string | null;
+        membershipClassId: string | null;
+      };
+      const guestPrices: GuestPriceEntry[] = [];
 
       for (const guest of data.guests) {
-        // Get guest's membership class
-        const [guestMember] = await tx
-          .select({ membershipClassId: members.membershipClassId })
-          .from(members)
-          .where(eq(members.id, guest.memberId));
-
-        const guestClassId = guestMember?.membershipClassId ?? null;
+        const guestClassId = await getGuestTariffClassId(tx, guest, data.organisationId);
 
         // Look up tariff: class-specific first, then default
         let tariff = null;
@@ -216,28 +264,63 @@ export async function createBooking(
           );
         }
 
-        const price = calculateGuestPrice({
-          checkInDate: data.checkInDate,
-          checkOutDate: data.checkOutDate,
-          pricePerNightWeekdayCents: tariff.pricePerNightWeekdayCents,
-          pricePerNightWeekendCents: tariff.pricePerNightWeekendCents,
-          discountFiveNightsBps: tariff.discountFiveNightsBps,
-          discountSevenNightsBps: tariff.discountSevenNightsBps,
-        });
-
-        guestPrices.push({
-          memberId: guest.memberId,
-          bedId: guest.bedId,
-          roomId: guest.roomId,
-          price,
-          tariffId: tariff.id,
-          membershipClassId: guestClassId,
-        });
+        if (guest.portaCotRequested) {
+          // Port-a-cot guest pricing
+          if (tariff.portaCotPricePerNightCents == null) {
+            throw new Error("Port-a-cot pricing not configured for this lodge and season. Contact your administrator.");
+          }
+          const cotPrice = calculatePortaCotPrice({
+            checkInDate: data.checkInDate,
+            checkOutDate: data.checkOutDate,
+            portaCotPricePerNightCents: tariff.portaCotPricePerNightCents,
+          });
+          guestPrices.push({
+            memberId: guest.memberId,
+            associateId: guest.associateId,
+            bedId: guest.bedId,
+            roomId: guest.roomId,
+            portaCotRequested: true,
+            price: null,
+            cotPrice,
+            tariffId: tariff.id,
+            membershipClassId: guestClassId,
+          });
+        } else {
+          // Bed guest pricing
+          const price = calculateGuestPrice({
+            checkInDate: data.checkInDate,
+            checkOutDate: data.checkOutDate,
+            pricePerNightWeekdayCents: tariff.pricePerNightWeekdayCents,
+            pricePerNightWeekendCents: tariff.pricePerNightWeekendCents,
+            discountFiveNightsBps: tariff.discountFiveNightsBps,
+            discountSevenNightsBps: tariff.discountSevenNightsBps,
+          });
+          guestPrices.push({
+            memberId: guest.memberId,
+            associateId: guest.associateId,
+            bedId: guest.bedId,
+            roomId: guest.roomId,
+            portaCotRequested: false,
+            price,
+            cotPrice: null,
+            tariffId: tariff.id,
+            membershipClassId: guestClassId,
+          });
+        }
       }
 
+      const bedGuestPrices = guestPrices.filter((g) => g.price !== null);
+      const cotGuestPrices = guestPrices.filter((g) => g.cotPrice !== null);
+
       const bookingTotal = calculateBookingPrice(
-        guestPrices.map((g) => g.price)
+        bedGuestPrices.map((g) => g.price!)
       );
+      const cotTotalCents = cotGuestPrices.reduce(
+        (sum, g) => sum + g.cotPrice!.totalCents,
+        0
+      );
+      bookingTotal.subtotalCents += cotTotalCents;
+      bookingTotal.totalAmountCents += cotTotalCents;
 
       const [orgGst] = await tx
         .select({
@@ -279,13 +362,20 @@ export async function createBooking(
 
       // Insert booking guests
       for (const gp of guestPrices) {
+        const isCot = gp.portaCotRequested && gp.cotPrice;
         await tx.insert(bookingGuests).values({
           bookingId: booking.id,
-          memberId: gp.memberId,
-          bedId: gp.bedId,
+          memberId: gp.memberId ?? null,
+          associateId: gp.associateId ?? null,
+          bedId: gp.bedId ?? null,
           roomId: gp.roomId ?? null,
-          pricePerNightCents: gp.price.blendedPerNightCents,
-          totalAmountCents: gp.price.totalCents,
+          portaCotRequested: gp.portaCotRequested,
+          pricePerNightCents: isCot
+            ? gp.cotPrice!.pricePerNightCents
+            : gp.price!.blendedPerNightCents,
+          totalAmountCents: isCot
+            ? gp.cotPrice!.totalCents
+            : gp.price!.totalCents,
           snapshotTariffId: gp.tariffId,
           snapshotMembershipClassId: gp.membershipClassId,
         });
@@ -301,16 +391,19 @@ export async function createBooking(
         description: `Booking ${bookingReference} — ${nights} nights at lodge`,
       });
 
-      // Update availability_cache — increment bookedBeds for each night
-      for (const nightDate of nightDates) {
-        await tx.execute(
-          sql`UPDATE availability_cache
-              SET booked_beds = booked_beds + ${data.guests.length},
-                  version = version + 1,
-                  updated_at = NOW()
-              WHERE lodge_id = ${data.lodgeId}
-              AND date = ${nightDate}`
-        );
+      // Update availability_cache — increment bookedBeds for bed guests only (not cot guests)
+      const bedGuestCount = data.guests.filter((g) => !g.portaCotRequested).length;
+      if (bedGuestCount > 0) {
+        for (const nightDate of nightDates) {
+          await tx.execute(
+            sql`UPDATE availability_cache
+                SET booked_beds = booked_beds + ${bedGuestCount},
+                    version = version + 1,
+                    updated_at = NOW()
+                WHERE lodge_id = ${data.lodgeId}
+                AND date = ${nightDate}`
+          );
+        }
       }
 
       // Delete bed holds for this member/round
@@ -356,12 +449,28 @@ export async function createBooking(
       .from(lodges)
       .where(eq(lodges.id, data.lodgeId));
 
-    // Get guest names for email
-    const guestMemberIds = data.guests.map((g) => g.memberId);
-    const guestMembers = await db
-      .select({ firstName: members.firstName, lastName: members.lastName })
-      .from(members)
-      .where(sql`${members.id} IN (${sql.join(guestMemberIds.map(id => sql`${id}`), sql`, `)})`);
+    // Get guest names for email (members and associates)
+    const guestMemberIds = data.guests
+      .filter((g) => g.memberId)
+      .map((g) => g.memberId!);
+    const guestAssociateIds = data.guests
+      .filter((g) => g.associateId)
+      .map((g) => g.associateId!);
+
+    let guestMembers: { firstName: string; lastName: string }[] = [];
+    if (guestMemberIds.length > 0) {
+      guestMembers = await db
+        .select({ firstName: members.firstName, lastName: members.lastName })
+        .from(members)
+        .where(sql`${members.id} IN (${sql.join(guestMemberIds.map(id => sql`${id}`), sql`, `)})`);
+    }
+    if (guestAssociateIds.length > 0) {
+      const assocNames = await db
+        .select({ firstName: associates.firstName, lastName: associates.lastName })
+        .from(associates)
+        .where(sql`${associates.id} IN (${sql.join(guestAssociateIds.map(id => sql`${id}`), sql`, `)})`);
+      guestMembers = [...guestMembers, ...assocNames];
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 

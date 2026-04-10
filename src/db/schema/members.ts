@@ -21,6 +21,7 @@ export const membershipClasses = pgTable("membership_classes", {
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   annualFeeCents: integer("annual_fee_cents"), // null = no fee for this class
+  isGuestClass: boolean("is_guest_class").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

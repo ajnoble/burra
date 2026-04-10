@@ -28,6 +28,7 @@ export const tariffs = pgTable("tariffs", {
     .notNull()
     .default(0),
   singleSupplementCents: integer("single_supplement_cents"), // nullable
+  portaCotPricePerNightCents: integer("porta_cot_price_per_night_cents"), // nullable
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

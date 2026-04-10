@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useBooking } from "./booking-context";
+import { useBooking, guestKey } from "./booking-context";
 
 type Props = {
   slug: string;
@@ -84,10 +84,10 @@ export function BookingSuccess({ slug }: Props) {
         <div className="space-y-1 text-sm">
           {booking.bedAssignments.map((a) => {
             const guest = booking.guests.find(
-              (g) => g.memberId === a.memberId
+              (g) => guestKey(g) === a.guestKey
             );
             return (
-              <div key={a.memberId} className="flex justify-between">
+              <div key={a.guestKey} className="flex justify-between">
                 <span>
                   {guest?.firstName} {guest?.lastName}
                 </span>

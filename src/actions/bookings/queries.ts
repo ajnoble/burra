@@ -298,7 +298,7 @@ export type BookingDetailForEdit = {
   requiresApproval: boolean;
   guests: {
     id: string;
-    memberId: string;
+    memberId: string | null;
     firstName: string;
     lastName: string;
     membershipClassName: string | null;

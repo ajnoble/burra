@@ -124,3 +124,77 @@ describe("bedHoldInputSchema", () => {
     expect(result.success).toBe(false);
   });
 });
+
+describe("bookingGuestSchema (via createBookingSchema)", () => {
+  const base = {
+    organisationId: "550e8400-e29b-41d4-a716-446655440000",
+    lodgeId: "660e8400-e29b-41d4-a716-446655440000",
+    bookingRoundId: "770e8400-e29b-41d4-a716-446655440000",
+    checkInDate: "2027-07-10",
+    checkOutDate: "2027-07-13",
+  };
+
+  const memberId = "880e8400-e29b-41d4-a716-446655440000";
+  const associateId = "aa0e8400-e29b-41d4-a716-446655440000";
+  const bedId = "990e8400-e29b-41d4-a716-446655440000";
+
+  it("accepts guest with memberId + bedId", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ memberId, bedId }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts guest with associateId + bedId", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ associateId, bedId }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts cot guest with associateId + portaCotRequested + no bedId", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ associateId, portaCotRequested: true }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects guest with neither memberId nor associateId", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ bedId }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects guest with both memberId and associateId", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ memberId, associateId, bedId }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("requires bedId when portaCotRequested is false", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ memberId, portaCotRequested: false }],
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const bedIssue = result.error.issues.find((i) => i.path.includes("bedId"));
+      expect(bedIssue).toBeDefined();
+    }
+  });
+
+  it("requires bedId when portaCotRequested is absent", () => {
+    const result = createBookingSchema.safeParse({
+      ...base,
+      guests: [{ memberId }],
+    });
+    expect(result.success).toBe(false);
+  });
+});

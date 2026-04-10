@@ -83,6 +83,7 @@ function WizardContent({
           memberId={memberId}
           memberName={memberName}
           membershipClassId={membershipClassId}
+          slug={slug}
         />
       )}
       {step === 3 && (

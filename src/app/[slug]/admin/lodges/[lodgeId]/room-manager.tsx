@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { createRoom, deleteRoom } from "@/actions/lodges";
+import { createRoom, deleteRoom, updatePortaCotCount } from "@/actions/lodges";
 import { toast } from "sonner";
 
 type Bed = {
@@ -42,9 +42,13 @@ type Room = {
 
 export function RoomManager({
   lodgeId,
+  organisationId,
+  portaCotCount: initialPortaCotCount,
   initialRooms,
 }: {
   lodgeId: string;
+  organisationId: string;
+  portaCotCount: number;
   initialRooms: Room[];
 }) {
   const params = useParams();
@@ -52,6 +56,23 @@ export function RoomManager({
   const [roomsList, setRooms] = useState(initialRooms);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [portaCotCount, setPortaCotCount] = useState(initialPortaCotCount);
+  const [portaCotSaving, setPortaCotSaving] = useState(false);
+
+  async function handlePortaCotBlur(e: React.FocusEvent<HTMLInputElement>) {
+    const value = parseInt(e.currentTarget.value, 10);
+    const count = isNaN(value) || value < 0 ? 0 : value;
+    if (count === initialPortaCotCount) return;
+    setPortaCotSaving(true);
+    try {
+      await updatePortaCotCount({ id: lodgeId, organisationId, portaCotCount: count, slug });
+      toast.success("Port-a-cot count updated");
+    } catch {
+      toast.error("Failed to update port-a-cot count");
+    } finally {
+      setPortaCotSaving(false);
+    }
+  }
 
   async function handleCreateRoom(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -102,6 +123,32 @@ export function RoomManager({
 
   return (
     <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Port-a-Cot Availability</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3">
+            <Label htmlFor="porta-cot-count" className="shrink-0">
+              Number of port-a-cots available
+            </Label>
+            <Input
+              id="porta-cot-count"
+              type="number"
+              min={0}
+              className="w-24"
+              value={portaCotCount}
+              disabled={portaCotSaving}
+              onChange={(e) => setPortaCotCount(parseInt(e.target.value, 10) || 0)}
+              onBlur={handlePortaCotBlur}
+            />
+            {portaCotSaving && (
+              <span className="text-xs text-muted-foreground">Saving...</span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {roomsList.length} rooms, {totalBeds} beds
