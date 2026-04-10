@@ -4,11 +4,31 @@ const isoDateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format");
 
-const bookingGuestSchema = z.object({
-  memberId: z.string().uuid(),
-  bedId: z.string().uuid(),
-  roomId: z.string().uuid().optional(),
-});
+const bookingGuestSchema = z
+  .object({
+    memberId: z.string().uuid().optional(),
+    associateId: z.string().uuid().optional(),
+    bedId: z.string().uuid().optional(),
+    roomId: z.string().uuid().optional(),
+    portaCotRequested: z.boolean().optional().default(false),
+  })
+  .superRefine((data, ctx) => {
+    const hasMember = !!data.memberId;
+    const hasAssociate = !!data.associateId;
+    if (hasMember === hasAssociate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Guest must have exactly one of memberId or associateId",
+      });
+    }
+    if (!data.portaCotRequested && !data.bedId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "bedId is required unless portaCotRequested is true",
+        path: ["bedId"],
+      });
+    }
+  });
 
 export const createBookingSchema = z
   .object({
