@@ -16,7 +16,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/seed.ts",
     "db:seed:test": "tsx src/db/seed-test.ts",
-    "db:seed:demo": "tsx src/db/seed-demo.ts",
+    "db:seed:demo": "DOTENV_CONFIG_PATH=.env.local tsx --require dotenv/config src/db/seed-demo.ts",
     "setup-org": "tsx scripts/setup-org.ts",
     "test:e2e": "playwright test --config e2e/playwright.config.ts",
     "test:e2e:ui": "playwright test --config e2e/playwright.config.ts --ui"

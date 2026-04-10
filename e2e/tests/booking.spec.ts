@@ -7,21 +7,33 @@ test.describe("Booking flow", () => {
     await expect(memberPage.getByText("Polski Lodge, Mt Buller")).toBeVisible();
   });
 
-  test("booking round dropdown shows names not UUIDs", async ({ memberPage }) => {
+  test("booking round shows name not UUID", async ({ memberPage }) => {
     await memberPage.goto("/polski/book");
-    // Open the booking round dropdown
-    const trigger = memberPage.locator("[data-slot='select-trigger']").first();
-    await expect(trigger).toBeVisible();
-    await trigger.click();
-    // Check that dropdown options contain human-readable names, not UUIDs
-    const options = memberPage.getByRole("option");
-    await expect(options.first()).toBeVisible();
-    const count = await options.count();
-    expect(count).toBeGreaterThan(0);
+    // Booking round section should show a human-readable name.
+    // When only one round is open, it displays as static text instead of a dropdown.
+    const roundHeading = memberPage.getByRole("heading", { name: "Booking Round" });
+    await expect(roundHeading).toBeVisible();
+
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-    for (let i = 0; i < count; i++) {
-      const text = await options.nth(i).textContent();
-      expect(text?.trim()).not.toMatch(uuidPattern);
+
+    // Check for either a dropdown trigger or a static round display
+    const trigger = memberPage.locator("[data-slot='select-trigger']").first();
+    const staticRound = roundHeading.locator("~ div >> p.font-medium").first();
+
+    if (await trigger.isVisible({ timeout: 2000 }).catch(() => false)) {
+      // Multiple rounds: open dropdown and verify options
+      await trigger.click();
+      const options = memberPage.getByRole("option");
+      await expect(options.first()).toBeVisible();
+      const count = await options.count();
+      expect(count).toBeGreaterThan(0);
+      for (let i = 0; i < count; i++) {
+        const text = await options.nth(i).textContent();
+        expect(text?.trim()).not.toMatch(uuidPattern);
+      }
+    } else {
+      // Single round: verify the displayed name is not a UUID
+      await expect(memberPage.getByText("Priority Round")).toBeVisible();
     }
   });
 

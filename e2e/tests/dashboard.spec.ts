@@ -13,14 +13,14 @@ test.describe("Member dashboard", () => {
 
   test("book a stay button links to booking page", async ({ memberPage }) => {
     await memberPage.goto("/polski/dashboard");
-    const bookButton = memberPage.getByRole("link", { name: "Book a Stay" });
+    const bookButton = memberPage.getByRole("link", { name: "Book a Stay", exact: true });
     await expect(bookButton).toBeVisible();
     await expect(bookButton).toHaveAttribute("href", "/polski/book");
   });
 
   test("upcoming bookings section renders", async ({ memberPage }) => {
     await memberPage.goto("/polski/dashboard");
-    await expect(memberPage.getByText("Upcoming Bookings")).toBeVisible();
+    await expect(memberPage.getByRole("heading", { name: "Upcoming Bookings" })).toBeVisible();
   });
 
   test("sign out button works from dashboard", async ({ browser }) => {

@@ -1,5 +1,3 @@
-import { config } from "dotenv";
-config({ path: ".env.local" });
 import { eq, sql } from "drizzle-orm";
 import { db } from "./index";
 import {
@@ -50,18 +48,18 @@ type MemberData = {
 const MEMBERS_DATA: MemberData[] = [
   // 0: Admin
   { first: "Marek", last: "Kowalski", class: "Full Member", role: "ADMIN", dob: "1975-03-15" },
-  // 1: Admin
-  { first: "Anna", last: "Nowak", class: "Full Member", role: "ADMIN", dob: "1980-07-22" },
+  // 1: Booking Officer (E2E tests expect anna.nowak as officer)
+  { first: "Anna", last: "Nowak", class: "Full Member", role: "BOOKING_OFFICER", dob: "1980-07-22" },
   // 2: Committee (Full)
   { first: "Piotr", last: "Wisniewski", class: "Full Member", role: "COMMITTEE", dob: "1968-11-30" },
-  // 3: Committee (Full)
-  { first: "Katarzyna", last: "Wojcik", class: "Full Member", role: "COMMITTEE", dob: "1982-05-10" },
+  // 3: Member (E2E tests expect katarzyna.wojcik as regular member)
+  { first: "Katarzyna", last: "Wojcik", class: "Full Member", role: "MEMBER", dob: "1982-05-10" },
   // 4: Committee (Life)
   { first: "Stanislaw", last: "Borkowski", class: "Life Member", role: "COMMITTEE", dob: "1950-06-10" },
-  // 5: Booking Officer (Full)
+  // 5: Booking Officer
   { first: "Tomasz", last: "Kaminski", class: "Full Member", role: "BOOKING_OFFICER", dob: "1977-09-18" },
-  // 6: Booking Officer (Full)
-  { first: "Magdalena", last: "Lewandowska", class: "Full Member", role: "BOOKING_OFFICER", dob: "1985-01-25" },
+  // 6: Committee (third)
+  { first: "Magdalena", last: "Lewandowska", class: "Full Member", role: "COMMITTEE", dob: "1985-01-25" },
   // 7-16: Full Members (10)
   { first: "Jan", last: "Zielinski", class: "Full Member", role: "MEMBER", dob: "1990-04-12" },
   { first: "Agnieszka", last: "Szymanska", class: "Full Member", role: "MEMBER", dob: "1988-08-07" },
@@ -339,8 +337,8 @@ async function seedDemoData() {
     .insert(lodges)
     .values({
       organisationId: org.id,
-      name: "Kosciuszko Lodge",
-      address: "Perisher Valley NSW 2624",
+      name: "Polski Lodge, Mt Buller",
+      address: "Mt Buller Alpine Village VIC 3723",
       totalBeds: 24,
     })
     .returning();
@@ -747,6 +745,9 @@ async function seedDemoData() {
     }
 
     // Create transactions
+    // Payment date: around when the booking round was open (May 2025)
+    const paymentDate2025 = new Date("2025-05-10");
+
     if (bc.status === "COMPLETED") {
       // INVOICE
       await db.insert(transactions).values({
@@ -757,6 +758,7 @@ async function seedDemoData() {
         amountCents: guestTotal,
         gstAmountCents: gstAmount,
         description: `Booking ${ref} — ${nights} nights`,
+        createdAt: paymentDate2025,
       });
       // PAYMENT
       await db.insert(transactions).values({
@@ -764,10 +766,11 @@ async function seedDemoData() {
         memberId: memberIds[bc.memberIdx],
         bookingId: booking.id,
         type: "PAYMENT",
-        amountCents: -guestTotal,
+        amountCents: guestTotal,
         gstAmountCents: 0,
         platformFeeCents: Math.round(guestTotal * 0.01),
         description: `Payment for booking ${ref}`,
+        createdAt: paymentDate2025,
       });
     } else if (bc.status === "CANCELLED") {
       // INVOICE
@@ -779,6 +782,7 @@ async function seedDemoData() {
         amountCents: guestTotal,
         gstAmountCents: gstAmount,
         description: `Booking ${ref} — ${nights} nights`,
+        createdAt: paymentDate2025,
       });
       // PAYMENT
       await db.insert(transactions).values({
@@ -786,12 +790,13 @@ async function seedDemoData() {
         memberId: memberIds[bc.memberIdx],
         bookingId: booking.id,
         type: "PAYMENT",
-        amountCents: -guestTotal,
+        amountCents: guestTotal,
         gstAmountCents: 0,
         platformFeeCents: Math.round(guestTotal * 0.01),
         description: `Payment for booking ${ref}`,
+        createdAt: paymentDate2025,
       });
-      // REFUND
+      // REFUND (after cancellation date)
       await db.insert(transactions).values({
         organisationId: org.id,
         memberId: memberIds[bc.memberIdx],
@@ -800,6 +805,7 @@ async function seedDemoData() {
         amountCents: guestTotal,
         gstAmountCents: gstAmount,
         description: `Refund for cancelled booking ${ref}`,
+        createdAt: new Date("2025-07-12"),
       });
     }
   }
@@ -903,7 +909,9 @@ async function seedDemoData() {
       });
     }
 
-    // Create transactions
+    // Create transactions (with realistic dates — April 2026 for priority round payments)
+    const paymentDate2026 = new Date("2026-04-08");
+
     if (bc.status !== "WAITLISTED") {
       // Always create INVOICE for non-waitlisted
       if (guestTotal > 0) {
@@ -915,6 +923,7 @@ async function seedDemoData() {
           amountCents: guestTotal,
           gstAmountCents: gstAmount,
           description: `Booking ${ref} — ${nights} nights`,
+          createdAt: paymentDate2026,
         });
       }
 
@@ -924,10 +933,11 @@ async function seedDemoData() {
           memberId: memberIds[bc.memberIdx],
           bookingId: booking.id,
           type: "PAYMENT",
-          amountCents: -guestTotal,
+          amountCents: guestTotal,
           gstAmountCents: 0,
           platformFeeCents: Math.round(guestTotal * 0.01),
           description: `Payment for booking ${ref}`,
+          createdAt: paymentDate2026,
         });
       }
     }
@@ -1075,10 +1085,11 @@ async function seedDemoData() {
           organisationId: org.id,
           memberId: memberIds[i],
           type: "SUBSCRIPTION",
-          amountCents: -feeCents,
+          amountCents: feeCents,
           gstAmountCents: gstCents,
           platformFeeCents: Math.round(feeCents * 0.01),
           description: `Annual subscription payment — Winter 2026`,
+          createdAt: new Date("2026-02-15"),
         });
       }
 
@@ -1141,10 +1152,11 @@ async function seedDemoData() {
           organisationId: org.id,
           memberId: memberIds[cc.memberIdx],
           type: "PAYMENT",
-          amountCents: -cc.amount,
+          amountCents: cc.amount,
           gstAmountCents: gst,
           platformFeeCents: Math.round(cc.amount * 0.01),
           description: `${cc.category} payment`,
+          createdAt: new Date("2026-03-20"),
         })
         .returning();
       await db
@@ -1164,7 +1176,7 @@ async function seedDemoData() {
       organisationId: org.id,
       name: "Season Opening Announcement",
       subject: "Winter 2026 Season Opening — Polski Ski Club",
-      bodyMarkdown: `# Winter 2026 Season Opening\n\nDear Member,\n\nWe are delighted to announce the opening of Kosciuszko Lodge for the **Winter 2026** season.\n\nThe lodge will be open from **1 June to 30 September 2026**.\n\nPlease log in to make your bookings.\n\nKind regards,\nThe Polski Ski Club Committee`,
+      bodyMarkdown: `# Winter 2026 Season Opening\n\nDear Member,\n\nWe are delighted to announce the opening of Polski Lodge for the **Winter 2026** season.\n\nThe lodge will be open from **1 June to 30 September 2026**.\n\nPlease log in to make your bookings.\n\nKind regards,\nThe Polski Ski Club Committee`,
       channel: "EMAIL",
       createdByMemberId: adminMemberId,
     })
@@ -1370,7 +1382,7 @@ async function seedDemoData() {
       organisationId: org.id,
       categoryId: docCat2.id,
       title: "Lodge Rules and Conditions",
-      description: "House rules for staying at Kosciuszko Lodge",
+      description: "House rules for staying at Polski Lodge",
       fileUrl: "https://storage.example.com/polski/lodge-rules.pdf",
       fileSizeBytes: 76000,
       mimeType: "application/pdf",
@@ -1518,18 +1530,18 @@ async function seedDemoData() {
   console.log("");
   console.log("  ADMIN:");
   console.log("    marek.kowalski@example.com   (PSC-0001)");
+  console.log("");
+  console.log("  BOOKING OFFICER:");
   console.log("    anna.nowak@example.com        (PSC-0002)");
+  console.log("    tomasz.kaminski@example.com   (PSC-0006)");
   console.log("");
   console.log("  COMMITTEE:");
   console.log("    piotr.wisniewski@example.com  (PSC-0003)");
-  console.log("    katarzyna.wojcik@example.com  (PSC-0004)");
   console.log("    stanislaw.borkowski@example.com (PSC-0005, Life Member)");
-  console.log("");
-  console.log("  BOOKING OFFICER:");
-  console.log("    tomasz.kaminski@example.com   (PSC-0006)");
   console.log("    magdalena.lewandowska@example.com (PSC-0007)");
   console.log("");
   console.log("  MEMBER (Full, financial):");
+  console.log("    katarzyna.wojcik@example.com  (PSC-0004)");
   console.log("    jan.zielinski@example.com     (PSC-0008)");
   console.log("    agnieszka.szymanska@example.com (PSC-0009)");
   console.log("");
