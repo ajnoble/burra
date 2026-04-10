@@ -80,7 +80,8 @@ src/
   db/
     schema/                     # Drizzle schema (15 files, 27 tables)
     seed.ts                     # Demo data (Alpine Demo Club)
-    seed-polski.ts              # Polski Ski Club config
+    seed-demo.ts                # Polski Ski Club demo (full feature showcase)
+    seed-test.ts                # Test Org config skeleton
     index.ts                    # Drizzle client
   lib/
     email/                      # Resend client, sendEmail helper, 12 templates
@@ -197,7 +198,8 @@ drizzle/                        # Generated SQL migrations
 | `npm run db:generate` | Generate Drizzle migration from schema |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:seed` | Seed demo data (Alpine Demo Club) |
-| `npm run db:seed:polski` | Seed Polski Ski Club config |
+| `npm run db:seed:demo` | Seed Polski Ski Club demo (full feature showcase) |
+| `npm run db:seed:test` | Seed Test Org config skeleton |
 | `npm run test:e2e` | Run E2E tests (headless Chromium) |
 | `npm run test:e2e:ui` | Interactive Playwright UI |
 
