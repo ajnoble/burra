@@ -39,13 +39,18 @@ vi.mock("@/db/schema", () => ({
   },
 }));
 
-vi.mock("drizzle-orm", () => ({
-  and: vi.fn(),
-  eq: vi.fn(),
-  gte: vi.fn(),
-  lte: vi.fn(),
-  sql: vi.fn(),
-}));
+vi.mock("drizzle-orm", () => {
+  const sqlTagged = vi.fn();
+  // sql is used both as a tagged template literal and has a .raw() method
+  (sqlTagged as unknown as Record<string, unknown>).raw = vi.fn((v: string) => v);
+  return {
+    and: vi.fn(),
+    eq: vi.fn(),
+    gte: vi.fn(),
+    lte: vi.fn(),
+    sql: sqlTagged,
+  };
+});
 
 // Helper: build a select chain that resolves to the given rows
 function makeSelectChain(rows: unknown[]) {
