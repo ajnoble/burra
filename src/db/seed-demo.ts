@@ -1,3 +1,5 @@
+import { config } from "dotenv";
+config({ path: ".env.local" });
 import { eq, sql } from "drizzle-orm";
 import { db } from "./index";
 import {
@@ -29,6 +31,7 @@ import {
   communicationRecipients,
   customFields,
   customFieldValues,
+  auditLog,
 } from "./schema";
 import { createClient } from "@supabase/supabase-js";
 
@@ -239,6 +242,11 @@ async function seedDemoData() {
         .where(eq(bookingRounds.seasonId, s.id));
     }
 
+    // Tariffs (must come before lodges and seasons due to FK constraints)
+    await db.delete(tariffs).where(
+      sql`${tariffs.seasonId} IN (SELECT id FROM seasons WHERE organisation_id = ${orgId})`
+    );
+
     // Availability
     const existingLodges = await db
       .select({ id: lodges.id })
@@ -263,10 +271,6 @@ async function seedDemoData() {
     }
     await db.delete(lodges).where(eq(lodges.organisationId, orgId));
 
-    // Tariffs
-    await db.delete(tariffs).where(
-      sql`${tariffs.seasonId} IN (SELECT id FROM seasons WHERE organisation_id = ${orgId})`
-    );
     await db.delete(seasons).where(eq(seasons.organisationId, orgId));
 
     // Organisation members
@@ -279,13 +283,16 @@ async function seedDemoData() {
       .delete(cancellationPolicies)
       .where(eq(cancellationPolicies.organisationId, orgId));
 
+    // Audit log (must come before members due to FK)
+    await db.delete(auditLog).where(eq(auditLog.organisationId, orgId));
+
+    // Members (must come before membership_classes due to FK)
+    await db.delete(members).where(eq(members.organisationId, orgId));
+
     // Membership classes
     await db
       .delete(membershipClasses)
       .where(eq(membershipClasses.organisationId, orgId));
-
-    // Members
-    await db.delete(members).where(eq(members.organisationId, orgId));
 
     // Organisation
     await db.delete(organisations).where(eq(organisations.id, orgId));
