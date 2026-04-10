@@ -7,6 +7,7 @@ import { ChargeCategoryManager } from "./charge-category-manager";
 import { CustomFieldManager } from "./custom-field-manager";
 import { StripeConnectCard } from "./stripe-connect-card";
 import { GstSettingsForm } from "./gst-settings-form";
+import { BrandingSettingsForm } from "./branding-settings-form";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db/index";
 import { membershipClasses, cancellationPolicies, chargeCategories, customFields } from "@/db/schema";
@@ -52,6 +53,16 @@ export default async function SettingsPage({
       <h1 className="text-2xl font-bold mb-6">Organisation Settings</h1>
 
       <OrgSettingsForm org={org} />
+
+      <Separator className="my-8" />
+
+      <BrandingSettingsForm
+        organisationId={org.id}
+        initial={{
+          accentColor: org.accentColor ?? null,
+          logoUrl: org.logoUrl ?? null,
+        }}
+      />
 
       <Separator className="my-8" />
 
