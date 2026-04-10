@@ -22,7 +22,8 @@ test.describe("Custom member fields", () => {
 
     // Fill in field details with unique name to avoid conflicts
     const fieldName = `E2E Test Field ${Date.now()}`;
-    await adminPage.getByLabel("Name").fill(fieldName);
+    const dialog = adminPage.getByRole("dialog");
+    await dialog.getByLabel("Name").fill(fieldName);
 
     // Key should be auto-generated
     const keyInput = adminPage.locator("#cf-key");
@@ -35,8 +36,11 @@ test.describe("Custom member fields", () => {
     await expect(adminPage.getByText(fieldName)).toBeVisible();
     await expect(adminPage.getByText("text").first()).toBeVisible();
 
-    // Clean up: deactivate the field
-    const fieldCard = adminPage.locator("div").filter({ hasText: fieldName }).first();
+    // Clean up: deactivate the field — scope tightly to the card containing
+    // the field name text so we don't match a parent div with many Deactivate buttons.
+    const fieldCard = adminPage
+      .locator("[data-slot='card']")
+      .filter({ hasText: fieldName });
     await fieldCard.getByRole("button", { name: "Deactivate" }).click();
   });
 

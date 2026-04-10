@@ -11,6 +11,9 @@ test.describe("Branding settings", () => {
   test("admin can set accent color and it applies on reload", async ({ adminPage }) => {
     await adminPage.goto(`/${SLUG}/admin/settings`);
 
+    // Uncheck "Use Snow Gum default" so the hex input becomes enabled
+    await adminPage.getByLabel("Use Snow Gum default").uncheck();
+
     const hexInput = adminPage.getByLabel("Accent color", { exact: true });
     await hexInput.fill("#2f5d3a");
     await adminPage.getByRole("button", { name: "Save branding" }).click();
@@ -52,6 +55,9 @@ test.describe("Branding settings", () => {
     const darkPage = await darkContext.newPage();
     try {
       await darkPage.goto(`/${SLUG}/admin/settings`);
+
+      // Uncheck "Use Snow Gum default" so the hex input becomes enabled
+      await darkPage.getByLabel("Use Snow Gum default").uncheck();
 
       await darkPage
         .getByLabel("Accent color", { exact: true })
