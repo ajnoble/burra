@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/db/index";
 import { membershipClasses } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "../../page-header";
 import { MemberForm } from "./member-form";
 
 export default async function NewMemberPage({
@@ -23,16 +22,11 @@ export default async function NewMemberPage({
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          render={<Link href={`/${slug}/admin/members`} />}
-        >
-          &larr; Members
-        </Button>
-        <h1 className="text-2xl font-bold">Add Member</h1>
-      </div>
+      <PageHeader
+        title="Add Member"
+        backHref={`/${slug}/admin/members`}
+        backLabel="Members"
+      />
 
       <MemberForm
         organisationId={org.id}

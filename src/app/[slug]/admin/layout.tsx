@@ -95,7 +95,7 @@ export default async function AdminLayout({
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col min-w-0">
         <header className="md:hidden flex items-center justify-between border-b px-4 py-3">
           <h2 className="font-semibold text-sm">{org.name} Admin</h2>
           <MobileNav
@@ -107,7 +107,7 @@ export default async function AdminLayout({
             logoutAction={handleLogout}
           />
         </header>
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 min-w-0 overflow-x-hidden">{children}</main>
       </div>
     </div>
   );
