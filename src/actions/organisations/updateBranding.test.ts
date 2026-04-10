@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { brandingSchema, MAX_LOGO_BYTES, ALLOWED_LOGO_MIME } from "./updateBranding";
+import { brandingSchema, MAX_LOGO_BYTES, ALLOWED_LOGO_MIME } from "./branding-schema";
 
 // NOTE: Auth-guard behaviour tests (requireSession / requireRole call
 // verification) are intentionally omitted here. docs/testing.md §Unit tests

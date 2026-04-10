@@ -46,7 +46,7 @@ export function MobileNav({
           <p className="text-xs text-muted-foreground">Admin</p>
         </SheetHeader>
         <Separator />
-        <nav className="flex flex-col gap-1 px-4 py-2">
+        <nav className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-1 px-4 py-2">
           {navItems.map((item) => (
             <SheetClose key={item.href} render={<span />}>
               <Link
@@ -58,7 +58,7 @@ export function MobileNav({
             </SheetClose>
           ))}
         </nav>
-        <div className="mt-auto px-4 pb-4">
+        <div className="shrink-0 px-4 pb-4">
           <Separator className="mb-4" />
           <SheetClose render={<span />}>
             <Link

@@ -36,12 +36,12 @@ export default async function AdminDocumentsPage({
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold">Document Library</h1>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 mb-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <h1 className="text-2xl font-bold truncate">Document Library</h1>
           <Badge variant="outline">{docs.length}</Badge>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <CategoryDialog
             organisationId={org.id}
             slug={slug}

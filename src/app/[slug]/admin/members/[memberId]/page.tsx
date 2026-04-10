@@ -4,11 +4,10 @@ import { getMemberById, getFamilyMembers, getFinancialHistory } from "@/lib/memb
 import { db } from "@/db/index";
 import { membershipClasses, chargeCategories } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSessionMember } from "@/lib/auth";
+import { PageHeader } from "../../page-header";
 import { MemberProfileForm } from "./member-profile-form";
 import { FamilySection } from "./family-section";
 import { RoleFinancialSection } from "./role-financial-section";
@@ -68,26 +67,18 @@ export default async function MemberDetailPage({
 
   return (
     <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          render={<Link href={`/${slug}/admin/members`} />}
-        >
-          &larr; Members
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">
-            {member.firstName} {member.lastName}
-          </h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline">{member.role}</Badge>
-            <Badge variant={member.isFinancial ? "default" : "destructive"}>
-              {member.isFinancial ? "Financial" : "Unfinancial"}
-            </Badge>
-          </div>
+      <PageHeader
+        title={`${member.firstName} ${member.lastName}`}
+        backHref={`/${slug}/admin/members`}
+        backLabel="Members"
+      >
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <Badge variant="outline">{member.role}</Badge>
+          <Badge variant={member.isFinancial ? "default" : "destructive"}>
+            {member.isFinancial ? "Financial" : "Unfinancial"}
+          </Badge>
         </div>
-      </div>
+      </PageHeader>
 
       <Card className="mb-6">
         <CardHeader>
