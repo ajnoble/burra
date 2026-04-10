@@ -49,19 +49,21 @@ Analysed two direct competitors:
 | 18 | Audit Log Viewer | Done |
 | 19 | GST/Tax Management | Done |
 | 20 | Custom Member Fields | Done |
+| 21 | Visual Identity | Done |
+| 22 | Member Self-Service Booking Editing | Done |
 
 ---
 
 ### High Priority (Next Up)
 
-#### Phase 21 — Two-Factor Authentication
+#### Phase 23 — Two-Factor Authentication
 - TOTP-based 2FA (Google Authenticator, Authy, etc.)
 - Required for ADMIN and COMMITTEE roles, optional for members
 - Setup flow with QR code and backup recovery codes
 - Remember trusted devices for configurable period
 - Admin can enforce 2FA policy per organisation
 
-#### Phase 22 — Hardening & Mobile Polish
+#### Phase 24 — Hardening & Mobile Polish
 - Dedicated test environment with seeded DB
 - Expand E2E suite: edge cases, error states, mobile viewports
 - Performance audit and optimisation
@@ -73,22 +75,14 @@ Analysed two direct competitors:
 
 ### Medium Priority
 
-#### Phase 23 — Member Self-Service Booking Editing
-- Members can modify their own bookings (change dates, add/remove guests)
-- Edit window configurable per booking round (e.g. up to 7 days before check-in)
-- Changes subject to availability validation
-- Automatic price recalculation on date/guest changes
-- Audit trail of member-initiated changes
-- Email notification to admin on booking modifications
-
-#### Phase 24 — Custom Pages / CMS
+#### Phase 25 — Custom Pages / CMS
 - Admin-editable content pages (rich text editor)
 - Default pages: booking rules, cancellation policy, lodge information, FAQs
 - Pages accessible to members and/or public based on access level
 - Navigation integration — pages appear in member-facing menu
 - Markdown or block-based editor with image support
 
-#### Phase 25 — Data Purging & Privacy
+#### Phase 26 — Data Purging & Privacy
 - Configurable retention periods for personal booking data (e.g. 2 years after checkout)
 - Auto-purge cron job that anonymises expired member data
 - Admin UI to configure retention policies per data type
@@ -100,31 +94,31 @@ Analysed two direct competitors:
 
 ### Lower Priority
 
-#### Phase 26 — Xero Integration
+#### Phase 27 — Xero Integration
 - OAuth2 connect flow
 - Auto-sync invoices and payments to Xero
 - Bank feed integration for reconciliation
 - Mapping config UI (chart of accounts)
 
-#### Phase 27 — Kiosk Display
+#### Phase 28 — Kiosk Display
 - Read-only room allocation display for lodge tablets/screens
 - Auto-refresh with current day's arrivals, departures, and room assignments
 - Large-format responsive layout optimised for TV/tablet mounting
 - No authentication required (accessed via unique org kiosk URL)
 
-#### Phase 28 — Booking Queue
+#### Phase 29 — Booking Queue
 - Queue system for high-demand booking round openings
 - Fair ordering when many members book simultaneously
 - Progress indicator and estimated wait time
 - Automatic timeout and re-queue on session expiry
 
-#### Phase 29 — Post-Booking Promotions
+#### Phase 30 — Post-Booking Promotions
 - Configurable promotional offers shown after booking confirmation
 - Optional add-on purchases (e.g. equipment hire, meals, lift passes)
 - Stripe payment for add-ons with platform fee
 - Admin UI to create/manage promotions per season or booking round
 
-#### Phase 30 — Additional Payment Gateways
+#### Phase 31 — Additional Payment Gateways
 - PayPal integration as alternative to Stripe
 - eWay integration for Australian direct debit
 - Gateway selection configurable per organisation
