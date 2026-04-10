@@ -16,6 +16,7 @@ const lodgeSchema = z.object({
   address: z.string().optional().or(z.literal("")),
   description: z.string().optional().or(z.literal("")),
   totalBeds: z.number().int().positive(),
+  portaCotCount: z.number().int().min(0).default(0),
 });
 
 export async function createLodge(
@@ -61,6 +62,7 @@ export async function updateLodge(
         address: data.address || null,
         description: data.description || null,
         totalBeds: data.totalBeds,
+        portaCotCount: data.portaCotCount,
         updatedAt: new Date(),
       })
       .where(
@@ -145,6 +147,34 @@ export async function deleteRoom(id: string, slug: string) {
   await db.delete(beds).where(eq(beds.roomId, id));
   await db.delete(rooms).where(eq(rooms.id, id));
   revalidatePath(`/${slug}/admin/lodges`);
+}
+
+export async function updatePortaCotCount(
+  input: { id: string; organisationId: string; portaCotCount: number; slug: string }
+): Promise<typeof lodges.$inferSelect | AuthErrorResult | undefined> {
+  try {
+    const session = await requireSession(input.organisationId);
+    requireRole(session, "ADMIN");
+
+    const count = z.number().int().min(0).parse(input.portaCotCount);
+    const [updated] = await db
+      .update(lodges)
+      .set({ portaCotCount: count, updatedAt: new Date() })
+      .where(
+        and(
+          eq(lodges.id, input.id),
+          eq(lodges.organisationId, input.organisationId)
+        )
+      )
+      .returning();
+
+    revalidatePath(`/${input.slug}/admin/lodges`);
+    return updated;
+  } catch (e) {
+    const authResult = authErrorToResult(e);
+    if (authResult) return authResult;
+    throw e;
+  }
 }
 
 // Bed actions

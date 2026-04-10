@@ -64,6 +64,8 @@ export default async function LodgeDetailPage({
 
       <RoomManager
         lodgeId={lodge.id}
+        organisationId={lodge.organisationId}
+        portaCotCount={lodge.portaCotCount}
         initialRooms={roomsWithBeds}
       />
     </div>
