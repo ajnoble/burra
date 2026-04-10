@@ -11,7 +11,7 @@ test.describe("Branding settings", () => {
   test("admin can set accent color and it applies on reload", async ({ adminPage }) => {
     await adminPage.goto(`/${SLUG}/admin/settings`);
 
-    const hexInput = adminPage.getByLabel("Accent color hex");
+    const hexInput = adminPage.getByLabel("Accent color", { exact: true });
     await hexInput.fill("#2f5d3a");
     await adminPage.getByRole("button", { name: "Save branding" }).click();
     await expect(adminPage.getByText("Branding updated")).toBeVisible();
@@ -27,7 +27,9 @@ test.describe("Branding settings", () => {
     await expect(accentLink).toHaveCount(1);
 
     // Verify the saved hex is reflected in the input (persistence round-trip)
-    await expect(adminPage.getByLabel("Accent color hex")).toHaveValue("#2f5d3a");
+    await expect(
+      adminPage.getByLabel("Accent color", { exact: true }),
+    ).toHaveValue("#2f5d3a");
   });
 
   test("wordmark renders org name in sidebar when no logo is set", async ({ adminPage }) => {
@@ -51,7 +53,9 @@ test.describe("Branding settings", () => {
     try {
       await darkPage.goto(`/${SLUG}/admin/settings`);
 
-      await darkPage.getByLabel("Accent color hex").fill("#2f5d3a");
+      await darkPage
+        .getByLabel("Accent color", { exact: true })
+        .fill("#2f5d3a");
       await darkPage.getByRole("button", { name: "Save branding" }).click();
       await expect(darkPage.getByText("Branding updated")).toBeVisible();
     } finally {
