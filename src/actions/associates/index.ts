@@ -12,9 +12,6 @@ import {
   type UpdateAssociateInput,
 } from "./schemas";
 
-type ActionResult<T = void> =
-  | (T extends void ? { success: true } : { success: true } & T)
-  | { success: false; error: string };
 
 export async function createAssociate(
   input: CreateAssociateInput & { slug: string }

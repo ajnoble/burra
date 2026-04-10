@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getTestDb, signInAs } from "../../../db/test-setup";
+import { getTestDb } from "../../../db/test-setup";
 import {
   organisations,
   members,

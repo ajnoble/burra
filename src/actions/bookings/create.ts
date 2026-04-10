@@ -6,7 +6,6 @@ import {
   bookingGuests,
   transactions,
   bedHolds,
-  availabilityCache,
   members,
   tariffs,
   seasons,
@@ -17,9 +16,9 @@ import {
   associates,
   membershipClasses,
 } from "@/db/schema";
-import { eq, and, sql, lt } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { getSessionMember } from "@/lib/auth";
-import { createBookingSchema, type CreateBookingInput } from "./schemas";
+import { type CreateBookingInput } from "./schemas";
 import { generateBookingReference } from "./reference";
 import {
   calculateGuestPrice,
@@ -43,6 +42,7 @@ import { calculateGst } from "@/lib/currency";
 
 
 async function getGuestTariffClassId(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tx: any,
   guest: { memberId?: string; associateId?: string },
   organisationId: string
