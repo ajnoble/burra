@@ -59,6 +59,7 @@ const ALL_TABLES = [
   "lodges",
   "organisations",
   "profiles",
+  "associates",
 ] as const;
 
 export async function truncateAll(db: TestDb): Promise<void> {
