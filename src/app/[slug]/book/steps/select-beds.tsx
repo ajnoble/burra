@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useBooking } from "../booking-context";
+import { useBooking, guestKey } from "../booking-context";
 import { getAvailableBeds, type RoomWithBeds } from "@/actions/bookings/beds";
 import { createBedHold, releaseBedHold } from "@/actions/bookings/holds";
 
@@ -80,17 +80,22 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
     return () => clearInterval(interval);
   }, [booking.holdExpiresAt]);
 
-  // Get the next unassigned guest
-  const assignedMemberIds = new Set(
-    booking.bedAssignments.map((a) => a.memberId)
+  // Split guests: cot guests don't need beds
+  const bedGuests = booking.guests.filter((g) => !g.portaCotRequested);
+  const cotGuests = booking.guests.filter((g) => g.portaCotRequested);
+
+  // Get the next unassigned bed guest
+  const assignedGuestKeys = new Set(
+    booking.bedAssignments.map((a) => a.guestKey)
   );
-  const nextUnassignedGuest = booking.guests.find(
-    (g) => !assignedMemberIds.has(g.memberId)
+  const nextUnassignedGuest = bedGuests.find(
+    (g) => !assignedGuestKeys.has(guestKey(g))
   );
 
+  // Color map uses guestKey
   const guestColorMap = new Map<string, string>();
-  booking.guests.forEach((g, i) => {
-    guestColorMap.set(g.memberId, GUEST_COLORS[i % GUEST_COLORS.length]);
+  bedGuests.forEach((g, i) => {
+    guestColorMap.set(guestKey(g), GUEST_COLORS[i % GUEST_COLORS.length]);
   });
 
   async function handleBedClick(
@@ -106,18 +111,20 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
       // Deselect — find which guest has this bed and remove assignment
       const assignment = booking.bedAssignments.find((a) => a.bedId === bedId);
       if (assignment) {
-        booking.removeBedAssignment(assignment.memberId);
+        booking.removeBedAssignment(assignment.guestKey);
         await releaseBedHold(bedId, memberId);
         await loadBeds();
       }
       return;
     }
 
-    // Assign to next unassigned guest
+    // Assign to next unassigned bed guest
     if (!nextUnassignedGuest) return;
 
+    const nextGuestKey = guestKey(nextUnassignedGuest);
+
     booking.addBedAssignment({
-      memberId: nextUnassignedGuest.memberId,
+      guestKey: nextGuestKey,
       bedId,
       bedLabel,
       roomId,
@@ -141,14 +148,14 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
         booking.setHoldExpiresAt(result.expiresAt);
         setHoldExpired(false);
       } else if (!result.success) {
-        booking.removeBedAssignment(nextUnassignedGuest.memberId);
+        booking.removeBedAssignment(nextGuestKey);
         booking.setError(result.error ?? "Failed to hold bed");
         await loadBeds();
       }
     }
   }
 
-  const allAssigned = booking.bedAssignments.length === booking.guests.length;
+  const allAssigned = booking.bedAssignments.length === bedGuests.length;
 
   return (
     <div className="space-y-6">
@@ -194,16 +201,36 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
         </div>
       )}
 
-      {/* Guest assignment legend */}
+      {/* Port-a-cot guests info box */}
+      {cotGuests.length > 0 && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 dark:bg-blue-950/20 p-3">
+          <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+            Port-a-cot Guests
+          </p>
+          <p className="text-xs text-blue-700 dark:text-blue-400 mb-2">
+            The following guests will use a port-a-cot and do not need a bed assigned.
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {cotGuests.map((g) => (
+              <Badge key={guestKey(g)} variant="secondary" className="text-xs">
+                {g.firstName} {g.lastName}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Guest assignment legend — only bed guests */}
       <div className="flex flex-wrap gap-2">
-        {booking.guests.map((guest, i) => {
-          const isAssigned = assignedMemberIds.has(guest.memberId);
+        {bedGuests.map((guest, i) => {
+          const key = guestKey(guest);
+          const isAssigned = assignedGuestKeys.has(key);
           const assignment = booking.bedAssignments.find(
-            (a) => a.memberId === guest.memberId
+            (a) => a.guestKey === key
           );
           return (
             <div
-              key={guest.memberId}
+              key={key}
               className={`flex items-center gap-2 rounded-md border px-2 py-1 text-xs ${
                 isAssigned ? "opacity-50" : ""
               }`}
@@ -244,7 +271,7 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
                     (a) => a.bedId === bed.id
                   );
                   const guestColor = assignment
-                    ? guestColorMap.get(assignment.memberId) ?? ""
+                    ? guestColorMap.get(assignment.guestKey) ?? ""
                     : "";
 
                   let bedClass = "";
@@ -292,8 +319,8 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
                       {bed.label}
                       {assignment && (
                         <div className="text-xs mt-0.5">
-                          {booking.guests.find(
-                            (g) => g.memberId === assignment.memberId
+                          {bedGuests.find(
+                            (g) => guestKey(g) === assignment.guestKey
                           )?.firstName ?? ""}
                         </div>
                       )}
