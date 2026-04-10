@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { organisations } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession, requireRole, authErrorToResult } from "@/lib/auth-guards";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import {
   MAX_LOGO_BYTES,
@@ -12,6 +12,19 @@ import {
   brandingSchema,
   type BrandingInput,
 } from "./branding-schema";
+
+const LOGO_BUCKET = "org-logos";
+let logoBucketEnsured = false;
+
+async function ensureLogoBucket() {
+  if (logoBucketEnsured) return;
+  const supabase = createAdminClient();
+  const { data } = await supabase.storage.getBucket(LOGO_BUCKET);
+  if (!data) {
+    await supabase.storage.createBucket(LOGO_BUCKET, { public: true });
+  }
+  logoBucketEnsured = true;
+}
 
 export async function updateBranding(
   organisationId: string,
@@ -75,9 +88,10 @@ export async function updateBranding(
             : "jpg";
       const path = `${organisationId}/logo-${Date.now()}.${ext}`;
 
-      const supabase = await createClient();
+      await ensureLogoBucket();
+      const supabase = createAdminClient();
       const { error: uploadErr } = await supabase.storage
-        .from("org-logos")
+        .from(LOGO_BUCKET)
         .upload(path, logoFile, { upsert: false, contentType: logoFile.type });
       if (uploadErr) {
         return {
@@ -87,7 +101,7 @@ export async function updateBranding(
       }
 
       const { data: publicUrlData } = supabase.storage
-        .from("org-logos")
+        .from(LOGO_BUCKET)
         .getPublicUrl(path);
       newLogoUrl = publicUrlData.publicUrl;
       uploadedPath = path;
@@ -122,8 +136,8 @@ export async function updateBranding(
         // become an orphan. Any error here is swallowed — we are already on an
         // error path and the caller will receive the original DB error.
         try {
-          const supabase = await createClient();
-          await supabase.storage.from("org-logos").remove([uploadedPath]);
+          const supabase = createAdminClient();
+          await supabase.storage.from(LOGO_BUCKET).remove([uploadedPath]);
         } catch {
           // swallow rollback error
         }
@@ -136,8 +150,8 @@ export async function updateBranding(
     // surfacing a spurious error after a successful DB write is not acceptable.
     if (oldLogoPathToClean) {
       try {
-        const supabase = await createClient();
-        await supabase.storage.from("org-logos").remove([oldLogoPathToClean]);
+        const supabase = createAdminClient();
+        await supabase.storage.from(LOGO_BUCKET).remove([oldLogoPathToClean]);
       } catch {
         // swallow — storage leak is recoverable
       }
