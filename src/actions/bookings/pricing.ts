@@ -110,6 +110,27 @@ export function calculateGuestPrice(input: GuestPriceInput): GuestPriceResult {
   };
 }
 
+export type PortaCotPriceResult = {
+  totalCents: number;
+  nightCount: number;
+  pricePerNightCents: number;
+};
+
+type PortaCotPriceInput = {
+  checkInDate: string;
+  checkOutDate: string;
+  portaCotPricePerNightCents: number;
+};
+
+export function calculatePortaCotPrice(input: PortaCotPriceInput): PortaCotPriceResult {
+  const nightCount = countNights(input.checkInDate, input.checkOutDate);
+  return {
+    totalCents: nightCount * input.portaCotPricePerNightCents,
+    nightCount,
+    pricePerNightCents: input.portaCotPricePerNightCents,
+  };
+}
+
 export type BookingPriceResult = {
   subtotalCents: number;
   discountAmountCents: number;

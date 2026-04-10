@@ -15,6 +15,7 @@ vi.mock("@/db/index", () => ({
 import {
   calculateGuestPrice,
   calculateBookingPrice,
+  calculatePortaCotPrice,
   countNights,
   getNightDates,
   isWeekendNight,
@@ -262,5 +263,40 @@ describe("calculateBookingPrice", () => {
     expect(result.subtotalCents).toBe(10000);
     expect(result.discountAmountCents).toBe(500);
     expect(result.totalAmountCents).toBe(9500);
+  });
+});
+
+describe("calculatePortaCotPrice", () => {
+  it("calculates 3 nights at 2500 cents per night", () => {
+    const result = calculatePortaCotPrice({
+      checkInDate: "2025-07-07",
+      checkOutDate: "2025-07-10",
+      portaCotPricePerNightCents: 2500,
+    });
+    expect(result.nightCount).toBe(3);
+    expect(result.pricePerNightCents).toBe(2500);
+    expect(result.totalCents).toBe(7500);
+  });
+
+  it("calculates 1 night at 3000 cents per night", () => {
+    const result = calculatePortaCotPrice({
+      checkInDate: "2025-07-07",
+      checkOutDate: "2025-07-08",
+      portaCotPricePerNightCents: 3000,
+    });
+    expect(result.nightCount).toBe(1);
+    expect(result.pricePerNightCents).toBe(3000);
+    expect(result.totalCents).toBe(3000);
+  });
+
+  it("calculates 7 nights at 2000 cents per night", () => {
+    const result = calculatePortaCotPrice({
+      checkInDate: "2025-07-07",
+      checkOutDate: "2025-07-14",
+      portaCotPricePerNightCents: 2000,
+    });
+    expect(result.nightCount).toBe(7);
+    expect(result.pricePerNightCents).toBe(2000);
+    expect(result.totalCents).toBe(14000);
   });
 });

@@ -20,7 +20,7 @@ ALTER TABLE "membership_classes" ADD COLUMN "is_guest_class" boolean DEFAULT fal
 ALTER TABLE "tariffs" ADD COLUMN "porta_cot_price_per_night_cents" integer;--> statement-breakpoint
 ALTER TABLE "associates" ADD CONSTRAINT "associates_organisation_id_organisations_id_fk" FOREIGN KEY ("organisation_id") REFERENCES "public"."organisations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "associates" ADD CONSTRAINT "associates_owner_member_id_members_id_fk" FOREIGN KEY ("owner_member_id") REFERENCES "public"."members"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "booking_guests" ADD CONSTRAINT "booking_guests_associate_id_associates_id_fk" FOREIGN KEY ("associate_id") REFERENCES "public"."associates"("id") ON DELETE no action ON UPDATE no action;
+ALTER TABLE "booking_guests" ADD CONSTRAINT "booking_guests_associate_id_associates_id_fk" FOREIGN KEY ("associate_id") REFERENCES "public"."associates"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "booking_guests" ADD CONSTRAINT "booking_guests_member_or_associate"
   CHECK (
     (member_id IS NOT NULL AND associate_id IS NULL) OR
