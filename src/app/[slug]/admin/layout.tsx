@@ -6,6 +6,7 @@ import { getSessionMember, canAccessAdmin, isCommitteeOrAbove } from "@/lib/auth
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MobileNav } from "./mobile-nav";
+import { OrgLogo } from "@/components/org-logo";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "", committeeOnly: false },
@@ -57,7 +58,7 @@ export default async function AdminLayout({
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-56 flex-col border-r bg-muted/30 p-4">
         <div className="mb-4 shrink-0">
-          <h2 className="font-semibold text-sm truncate">{org.name}</h2>
+          <OrgLogo className="mb-1" imageClassName="max-h-8" wordmarkClassName="text-base" />
           <p className="text-xs text-muted-foreground">Admin</p>
         </div>
         <Separator className="mb-4 shrink-0" />

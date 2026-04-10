@@ -14,14 +14,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { OrgLogo } from "@/components/org-logo";
 
 type LoginFormProps = {
   slug: string;
   orgName: string;
-  logoUrl: string | null;
+  logoUrl?: string | null;
 };
 
-export function LoginForm({ slug, orgName, logoUrl }: LoginFormProps) {
+export function LoginForm({ slug, orgName }: LoginFormProps) {
   const router = useRouter();
   const [mode, setMode] = useState<"password" | "magic-link">("password");
   const [email, setEmail] = useState("");
@@ -80,13 +81,7 @@ export function LoginForm({ slug, orgName, logoUrl }: LoginFormProps) {
     <div className="flex flex-1 items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          {logoUrl && (
-            <img
-              src={logoUrl}
-              alt={orgName}
-              className="mx-auto mb-2 h-12 w-12 rounded-lg"
-            />
-          )}
+          <OrgLogo className="mb-2 justify-center" imageClassName="max-h-12" />
           <CardTitle>{orgName}</CardTitle>
           <CardDescription>
             {magicLinkSent
