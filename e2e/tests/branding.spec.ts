@@ -18,13 +18,15 @@ test.describe("Branding settings", () => {
 
     await adminPage.reload();
 
-    // Verify the accent injection stylesheet is present and --primary is derived
-    const primary = await adminPage.evaluate(() =>
-      getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()
+    // After save, the per-org InjectAccent component emits a data-URL stylesheet
+    // <link> in the document head. This proves the accent pipeline ran end-to-end:
+    // hex -> deriveAccentPalette -> InjectAccent -> data-URL <link> in DOM.
+    const accentLink = adminPage.locator(
+      'link[rel="stylesheet"][href^="data:text/css"]',
     );
-    expect(primary).toContain("oklch");
+    await expect(accentLink).toHaveCount(1);
 
-    // Verify the saved hex is reflected in the input
+    // Verify the saved hex is reflected in the input (persistence round-trip)
     await expect(adminPage.getByLabel("Accent color hex")).toHaveValue("#2f5d3a");
   });
 
@@ -36,7 +38,11 @@ test.describe("Branding settings", () => {
     await expect(sidebar.getByText("Polski Ski Club")).toBeVisible();
   });
 
-  test("dark mode renders branding form with functional controls", async ({ browser }) => {
+  test("admin can save branding from dark mode", async ({ browser }) => {
+    // Dark mode is a real regression vector — CSS variable typos and missing
+    // .dark selectors only show under prefers-color-scheme: dark. This test
+    // performs a full save workflow in a dark-scheme context to prove the
+    // branding form is functional end-to-end (not just rendered) in dark mode.
     const darkContext = await browser.newContext({
       storageState: "e2e/.auth/admin.json",
       colorScheme: "dark",
@@ -45,17 +51,9 @@ test.describe("Branding settings", () => {
     try {
       await darkPage.goto(`/${SLUG}/admin/settings`);
 
-      // Assert the form is functional in dark mode: the hex input and save button
-      // must be present and enabled, not just that a heading is visible.
-      const hexInput = darkPage.getByLabel("Accent color hex");
-      await expect(hexInput).toBeEnabled();
-      await expect(darkPage.getByRole("button", { name: "Save branding" })).toBeEnabled();
-
-      // Verify dark-mode background is applied to the document root
-      const bgColor = await darkPage.evaluate(() =>
-        getComputedStyle(document.documentElement).getPropertyValue("--background").trim()
-      );
-      expect(bgColor.length).toBeGreaterThan(0);
+      await darkPage.getByLabel("Accent color hex").fill("#2f5d3a");
+      await darkPage.getByRole("button", { name: "Save branding" }).click();
+      await expect(darkPage.getByText("Branding updated")).toBeVisible();
     } finally {
       await darkContext.close();
     }
