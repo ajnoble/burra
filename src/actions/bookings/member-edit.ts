@@ -169,7 +169,9 @@ export async function memberEditBooking(
   const datesChanged =
     newCheckIn !== booking.checkInDate || newCheckOut !== booking.checkOutDate;
 
-  const oldGuestMemberIds = existingGuests.map((g) => g.memberId);
+  const oldGuestMemberIds = existingGuests
+    .map((g) => g.memberId)
+    .filter((id): id is string => id !== null);
   const newGuestMemberIds = input.newGuestMemberIds ?? oldGuestMemberIds;
   const guestsChanged =
     JSON.stringify([...oldGuestMemberIds].sort()) !==
@@ -303,6 +305,7 @@ export async function memberEditBooking(
 
   // Price existing guests that are staying
   for (const guest of existingGuests) {
+    if (guest.memberId === null) continue;
     if (removedMemberIds.includes(guest.memberId)) continue;
 
     const [tariff] = guest.snapshotTariffId
@@ -325,10 +328,10 @@ export async function memberEditBooking(
       discountSevenNightsBps: tariff.discountSevenNightsBps,
     });
 
-    const bedId = newBedMap.get(guest.memberId) ?? guest.bedId;
+    const bedId = newBedMap.get(guest.memberId!) ?? guest.bedId;
 
     allGuestPrices.push({
-      memberId: guest.memberId,
+      memberId: guest.memberId!,
       price,
       tariffId: guest.snapshotTariffId,
       membershipClassId: guest.snapshotMembershipClassId,

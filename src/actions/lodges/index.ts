@@ -16,11 +16,11 @@ const lodgeSchema = z.object({
   address: z.string().optional().or(z.literal("")),
   description: z.string().optional().or(z.literal("")),
   totalBeds: z.number().int().positive(),
-  portaCotCount: z.number().int().min(0).default(0),
+  portaCotCount: z.number().int().min(0).optional().default(0),
 });
 
 export async function createLodge(
-  input: z.infer<typeof lodgeSchema> & { slug: string }
+  input: z.input<typeof lodgeSchema> & { slug: string }
 ): Promise<typeof lodges.$inferSelect | AuthErrorResult> {
   try {
     const session = await requireSession(input.organisationId);
@@ -48,7 +48,7 @@ export async function createLodge(
 }
 
 export async function updateLodge(
-  input: { id: string; slug: string } & z.infer<typeof lodgeSchema>
+  input: { id: string; slug: string } & z.input<typeof lodgeSchema>
 ): Promise<typeof lodges.$inferSelect | AuthErrorResult | undefined> {
   try {
     const session = await requireSession(input.organisationId);

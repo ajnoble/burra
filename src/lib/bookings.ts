@@ -180,7 +180,7 @@ export type AdminBookingDetail = {
   cancellationPolicyId: string | null;
   guests: {
     id: string;
-    memberId: string;
+    memberId: string | null;
     firstName: string;
     lastName: string;
     membershipClassName: string | null;

@@ -63,7 +63,7 @@ export function EditBookingForm({
   const [checkInDate, setCheckInDate] = useState(booking.checkInDate);
   const [checkOutDate, setCheckOutDate] = useState(booking.checkOutDate);
   const [guestMemberIds, setGuestMemberIds] = useState<string[]>(
-    booking.guests.map((g) => g.memberId)
+    booking.guests.map((g) => g.memberId).filter((id): id is string => id !== null)
   );
   const [bedAssignments, setBedAssignments] = useState<
     Record<string, string>
@@ -335,7 +335,7 @@ export function EditBookingForm({
               setEditing(false);
               setCheckInDate(booking.checkInDate);
               setCheckOutDate(booking.checkOutDate);
-              setGuestMemberIds(booking.guests.map((g) => g.memberId));
+              setGuestMemberIds(booking.guests.map((g) => g.memberId).filter((id): id is string => id !== null));
               setBedAssignments(
                 Object.fromEntries(
                   booking.guests
