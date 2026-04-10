@@ -13,10 +13,6 @@ export default async function LoginPage({
   if (!org) notFound();
 
   return (
-    <LoginForm
-      slug={slug}
-      orgName={org.name}
-      logoUrl={org.logoUrl}
-    />
+    <LoginForm slug={slug} orgName={org.name} />
   );
 }

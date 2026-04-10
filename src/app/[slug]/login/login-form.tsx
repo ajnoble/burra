@@ -19,7 +19,6 @@ import { OrgLogo } from "@/components/org-logo";
 type LoginFormProps = {
   slug: string;
   orgName: string;
-  logoUrl?: string | null;
 };
 
 export function LoginForm({ slug, orgName }: LoginFormProps) {
