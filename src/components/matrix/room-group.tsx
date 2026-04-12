@@ -29,6 +29,8 @@ type Props = {
   onResize?: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
   /** Width of a single date column in pixels — forwarded for resize delta calculation */
   cellWidth?: number;
+  /** Called when admin drags across available cells to create a booking range */
+  onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
 };
 
 export function RoomGroup({
@@ -49,6 +51,7 @@ export function RoomGroup({
   draggable,
   onResize,
   cellWidth,
+  onRangeSelect,
 }: Props) {
   // Count active bookings for the occupancy indicator
   const occupiedBedIds = new Set(
@@ -104,6 +107,7 @@ export function RoomGroup({
             draggable={draggable}
             onResize={onResize}
             cellWidth={cellWidth}
+            onRangeSelect={onRangeSelect}
           />
         ))}
     </>

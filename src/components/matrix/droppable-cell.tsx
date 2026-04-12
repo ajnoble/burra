@@ -11,6 +11,9 @@ type Props = {
   children?: React.ReactNode;
   onClick?: () => void;
   "aria-label"?: string;
+  onMouseDown?: () => void;
+  onMouseEnter?: () => void;
+  onMouseUp?: () => void;
 };
 
 /**
@@ -25,6 +28,9 @@ export function DroppableCell({
   children,
   onClick,
   "aria-label": ariaLabel,
+  onMouseDown,
+  onMouseEnter,
+  onMouseUp,
 }: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id: `${bedId}:${date}`,
@@ -38,6 +44,9 @@ export function DroppableCell({
       style={style}
       onClick={onClick}
       aria-label={ariaLabel}
+      onMouseDown={onMouseDown}
+      onMouseEnter={onMouseEnter}
+      onMouseUp={onMouseUp}
     >
       {children}
     </div>

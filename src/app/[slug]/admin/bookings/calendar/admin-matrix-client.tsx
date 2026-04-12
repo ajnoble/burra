@@ -9,6 +9,7 @@ import {
   useBreakpoint,
 } from "@/components/matrix";
 import { BookingDetailSheet } from "./booking-detail-sheet";
+import { QuickCreateDialog } from "./quick-create-dialog";
 import { getMatrixData, type MatrixData, type MatrixBooking } from "@/actions/bookings/matrix";
 import { reassignBeds } from "@/actions/bookings/reassign-beds";
 import { modifyBookingDates } from "@/actions/bookings/modify-dates";
@@ -46,6 +47,13 @@ export function AdminMatrixClient({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<MatrixBooking | null>(null);
 
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [quickCreateParams, setQuickCreateParams] = useState<{
+    bedLabel: string;
+    checkIn: string;
+    checkOut: string;
+  } | null>(null);
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setFetchError(null);
@@ -68,6 +76,16 @@ export function AdminMatrixClient({
     const booking = data.bookings.find((b) => b.id === bookingId) ?? null;
     setSelectedBooking(booking);
     setSheetOpen(true);
+  }
+
+  function handleRangeSelect(
+    _bedId: string,
+    bedLabel: string,
+    startDate: string,
+    endDate: string
+  ) {
+    setQuickCreateParams({ bedLabel, checkIn: startDate, checkOut: endDate });
+    setQuickCreateOpen(true);
   }
 
   async function handleMoveToBed(
@@ -195,6 +213,7 @@ export function AdminMatrixClient({
               onMoveDates={handleMoveDates}
               onResize={handleResize}
               cellWidth={cellWidth}
+              onRangeSelect={handleRangeSelect}
             />
           ) : (
             <BookingMatrix
@@ -202,6 +221,7 @@ export function AdminMatrixClient({
               state={state}
               onBookingClick={handleBookingClick}
               abbreviateLabels
+              onRangeSelect={handleRangeSelect}
             />
           )}
         </div>
@@ -233,6 +253,20 @@ export function AdminMatrixClient({
         onOpenChange={setSheetOpen}
         slug={slug}
       />
+
+      {quickCreateParams && (
+        <QuickCreateDialog
+          open={quickCreateOpen}
+          onClose={() => {
+            setQuickCreateOpen(false);
+            setQuickCreateParams(null);
+          }}
+          bedLabel={quickCreateParams.bedLabel}
+          checkIn={quickCreateParams.checkIn}
+          checkOut={quickCreateParams.checkOut}
+          slug={slug}
+        />
+      )}
     </div>
   );
 }

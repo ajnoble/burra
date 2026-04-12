@@ -44,6 +44,8 @@ type Props = {
   onResize?: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
   /** Width of a single date column in pixels — forwarded for resize delta calculation */
   cellWidth?: number;
+  /** Called when admin drags across available cells to select a booking range */
+  onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
 };
 
 // ---------------------------------------------------------------------------
@@ -92,6 +94,7 @@ export function BookingMatrix({
   abbreviateLabels,
   onResize,
   cellWidth,
+  onRangeSelect,
 }: Props) {
   const { visibleDates, startDate, endDate, collapsedRooms, selectedBookingIds, toggleRoom } =
     state;
@@ -158,6 +161,7 @@ export function BookingMatrix({
               draggable={draggable}
               onResize={onResize}
               cellWidth={cellWidth}
+              onRangeSelect={onRangeSelect}
             />
           ))}
         </div>

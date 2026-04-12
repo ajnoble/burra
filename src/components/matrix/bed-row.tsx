@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { addDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { BookingBar } from "./booking-bar";
 import { DraggableBookingBar } from "./draggable-booking-bar";
@@ -28,6 +30,11 @@ type Props = {
   onResize?: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
   /** Width of a single date column in pixels — forwarded for resize delta calculation */
   cellWidth?: number;
+  /**
+   * Called when an admin drags across a range of available cells in this bed row.
+   * startDate and endDate are both YYYY-MM-DD; endDate is already +1 day (half-open).
+   */
+  onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
 };
 
 function cellStatusClasses(status: CellStatus): string {
@@ -60,7 +67,13 @@ export function BedRow({
   draggable,
   onResize,
   cellWidth,
+  onRangeSelect,
 }: Props) {
+  // Drag-to-select state: the date where the drag started (if any)
+  const [dragStartDate, setDragStartDate] = useState<string | null>(null);
+  // The date the pointer is currently hovering over during a drag
+  const [hoverDate, setHoverDate] = useState<string | null>(null);
+
   // Build a quick lookup: date → status for this bed
   const dateStatusMap = new Map<string, CellStatus>();
 
@@ -72,6 +85,60 @@ export function BedRow({
         dateStatusMap.set(date, "booked");
       }
     }
+  }
+
+  // Compute the selection range bounds for visual highlight
+  const selectionStart =
+    dragStartDate && hoverDate
+      ? dragStartDate < hoverDate
+        ? dragStartDate
+        : hoverDate
+      : null;
+  const selectionEnd =
+    dragStartDate && hoverDate
+      ? dragStartDate > hoverDate
+        ? dragStartDate
+        : hoverDate
+      : null;
+
+  function isInSelection(date: string): boolean {
+    if (!selectionStart || !selectionEnd) return false;
+    return date >= selectionStart && date <= selectionEnd;
+  }
+
+  function handleCellMouseDown(date: string, status: CellStatus) {
+    if (!onRangeSelect) return;
+    if (status !== "available") return;
+    setDragStartDate(date);
+    setHoverDate(date);
+  }
+
+  function handleCellMouseEnter(date: string) {
+    if (!dragStartDate) return;
+    setHoverDate(date);
+  }
+
+  function handleCellMouseUp(date: string, status: CellStatus) {
+    if (!dragStartDate || !onRangeSelect) {
+      setDragStartDate(null);
+      setHoverDate(null);
+      return;
+    }
+
+    if (status !== "available") {
+      setDragStartDate(null);
+      setHoverDate(null);
+      return;
+    }
+
+    const start = dragStartDate < date ? dragStartDate : date;
+    const endInclusive = dragStartDate > date ? dragStartDate : date;
+    // endDate is exclusive (half-open): add 1 day
+    const endDate = format(addDays(new Date(endInclusive), 1), "yyyy-MM-dd");
+
+    setDragStartDate(null);
+    setHoverDate(null);
+    onRangeSelect(bed.id, bed.label, start, endDate);
   }
 
   return (
@@ -90,9 +157,12 @@ export function BedRow({
       {visibleDates.map((date, i) => {
         const status = dateStatusMap.get(date) ?? "available";
         const colIndex = i + 2;
+        const inSelection = isInSelection(date);
         const cellClassName = cn(
           "border-b border-r min-h-[36px] min-w-[40px] relative",
-          cellStatusClasses(status)
+          inSelection
+            ? "bg-blue-200 dark:bg-blue-800/40"
+            : cellStatusClasses(status)
         );
         const cellStyle = { gridColumn: colIndex, gridRow };
         const handleClick = () => {
@@ -101,6 +171,14 @@ export function BedRow({
           }
         };
         const cellAriaLabel = `${bed.label} on ${date} — ${status}`;
+
+        const rangeHandlers = onRangeSelect
+          ? {
+              onMouseDown: () => handleCellMouseDown(date, status),
+              onMouseEnter: () => handleCellMouseEnter(date),
+              onMouseUp: () => handleCellMouseUp(date, status),
+            }
+          : {};
 
         if (draggable) {
           return (
@@ -112,6 +190,7 @@ export function BedRow({
               style={cellStyle}
               onClick={handleClick}
               aria-label={cellAriaLabel}
+              {...rangeHandlers}
             />
           );
         }
@@ -123,6 +202,7 @@ export function BedRow({
             style={cellStyle}
             onClick={handleClick}
             aria-label={cellAriaLabel}
+            {...rangeHandlers}
           />
         );
       })}

@@ -58,6 +58,8 @@ type Props = {
    * resize-handle day delta calculation. When omitted bars use a built-in default.
    */
   cellWidth?: number;
+  /** Called when admin drags across available cells to select a booking range */
+  onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
 };
 
 /**
@@ -78,6 +80,7 @@ export function DraggableMatrix({
   onMoveDates,
   onResize,
   cellWidth,
+  onRangeSelect,
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -130,6 +133,7 @@ export function DraggableMatrix({
         draggable
         onResize={onResize}
         cellWidth={cellWidth}
+        onRangeSelect={onRangeSelect}
       />
     </DndContext>
   );
