@@ -1,15 +1,22 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { BookingMatrix, useMatrixState, useBreakpoint } from "@/components/matrix";
 import { AvailabilityList } from "./availability-list";
 import { getMatrixData, type MatrixData } from "@/actions/bookings/matrix";
 import { Button } from "@/components/ui/button";
+import { BookingPopover, type BookingPopoverSelection } from "./booking-popover";
+import { BookingSheet } from "./booking-sheet";
 
 type OpenRoundSummary = {
   id: string;
   name: string;
+};
+
+type CellSelection = {
+  bedId: string;
+  bedLabel: string;
+  date: string;
 };
 
 type Props = {
@@ -31,7 +38,6 @@ export function AvailabilityMatrixClient({
   openRounds = [],
   memberId,
 }: Props) {
-  const router = useRouter();
   const breakpoint = useBreakpoint();
   const isMobile = breakpoint === "mobile";
 
@@ -73,9 +79,32 @@ export function AvailabilityMatrixClient({
     fetchData();
   }, [fetchData]);
 
+  // --- Popover state ---
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [cellSelection, setCellSelection] = useState<CellSelection | null>(null);
+  const popoverAnchorRef = useRef<HTMLElement | null>(null);
+
+  // --- Sheet state ---
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetSelection, setSheetSelection] = useState<BookingPopoverSelection | null>(null);
+
   function handleCellClick(bedId: string, date: string, bedLabel: string) {
-    const params = new URLSearchParams({ checkIn: date, bed: bedId });
-    router.push(`/${slug}/book?${params.toString()}`);
+    const target = document.activeElement as HTMLElement;
+    popoverAnchorRef.current = target;
+    setCellSelection({ bedId, bedLabel, date });
+    setPopoverOpen(true);
+  }
+
+  function handleStartBooking(selection: BookingPopoverSelection) {
+    setPopoverOpen(false);
+    setSheetSelection(selection);
+    setSheetOpen(true);
+  }
+
+  function handleBookingComplete() {
+    setSheetOpen(false);
+    setSheetSelection(null);
+    fetchData();
   }
 
   return (
@@ -181,6 +210,30 @@ export function AvailabilityMatrixClient({
           </div>
         </div>
       )}
+
+      {/* Booking popover — shown when a cell is clicked */}
+      {cellSelection && (
+        <BookingPopover
+          open={popoverOpen}
+          onOpenChange={setPopoverOpen}
+          anchorRef={popoverAnchorRef}
+          date={cellSelection.date}
+          bedId={cellSelection.bedId}
+          bedLabel={cellSelection.bedLabel}
+          lodgeName={lodgeName}
+          openRounds={openRounds}
+          onStartBooking={handleStartBooking}
+        />
+      )}
+
+      {/* Booking sheet drawer */}
+      <BookingSheet
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        selection={sheetSelection}
+        slug={slug}
+        onBookingComplete={handleBookingComplete}
+      />
     </div>
   );
 }
