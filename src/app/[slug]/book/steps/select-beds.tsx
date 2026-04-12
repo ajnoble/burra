@@ -141,7 +141,7 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
     return null;
   }
 
-  async function handleCellClick(bedId: string, _date: string) {
+  async function handleCellClick(bedId: string, _date: string, _bedLabel: string) {
     // Determine if this bed is currently held-by-you
     const existingAssignment = booking.bedAssignments.find(
       (a) => a.bedId === bedId

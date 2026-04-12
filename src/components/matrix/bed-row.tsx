@@ -23,7 +23,7 @@ type Props = {
   holds?: MatrixHold[];
   currentMemberId?: string;
   selectedBookingIds?: Set<string>;
-  onCellClick?: (bedId: string, date: string) => void;
+  onCellClick?: (bedId: string, date: string, bedLabel: string) => void;
   onBookingClick?: (bookingId: string, guestBedId: string) => void;
   abbreviateLabels?: boolean;
   /** When true, cells become droppable and booking bars become draggable */
@@ -220,7 +220,7 @@ export function BedRow({
         const cellStyle = { gridColumn: colIndex, gridRow };
         const handleClick = () => {
           if (status === "available" || status === "held-by-you") {
-            onCellClick?.(bed.id, date);
+            onCellClick?.(bed.id, date, bed.label);
           }
         };
         const cellAriaLabel = `${bed.label} on ${date} — ${status}`;
