@@ -64,7 +64,7 @@ export function AvailabilityMatrixClient({
     fetchData();
   }, [fetchData]);
 
-  function handleCellClick(bedId: string, date: string) {
+  function handleCellClick(bedId: string, date: string, bedLabel: string) {
     const params = new URLSearchParams({ checkIn: date, bed: bedId });
     router.push(`/${slug}/book?${params.toString()}`);
   }
@@ -145,6 +145,8 @@ export function AvailabilityMatrixClient({
                 state={state}
                 onCellClick={handleCellClick}
                 abbreviateLabels={breakpoint !== "desktop"}
+                seasonStartDate={seasonStartDate}
+                seasonEndDate={seasonEndDate}
               />
             </div>
           )}

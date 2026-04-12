@@ -33,7 +33,7 @@ type Props = {
   data: MatrixData;
   state: MatrixState;
   currentMemberId?: string;
-  onCellClick?: (bedId: string, date: string) => void;
+  onCellClick?: (bedId: string, date: string, bedLabel: string) => void;
   onBookingClick?: (bookingId: string, guestBedId: string) => void;
   draggable?: boolean;
   abbreviateLabels?: boolean;
@@ -55,6 +55,9 @@ type Props = {
   wizardHeldBedIds?: Set<string>;
   /** Wizard-specific: per-bed CSS color class for guest assignment overlay */
   wizardBedColorMap?: Map<string, string>;
+  /** Season bounds forwarded to DateNavigator for date-picker clamping */
+  seasonStartDate?: string;
+  seasonEndDate?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -107,6 +110,8 @@ export function BookingMatrix({
   onToggleSelect,
   wizardHeldBedIds,
   wizardBedColorMap,
+  seasonStartDate,
+  seasonEndDate,
 }: Props) {
   const { visibleDates, startDate, endDate, collapsedRooms, selectedBookingIds, toggleRoom } =
     state;
@@ -136,7 +141,7 @@ export function BookingMatrix({
   return (
     <div className="flex flex-col h-full overflow-hidden border rounded-lg bg-background">
       {/* Navigation bar */}
-      <DateNavigator state={state} />
+      <DateNavigator state={state} seasonStartDate={seasonStartDate} seasonEndDate={seasonEndDate} />
 
       {/* Scrollable matrix grid */}
       <div className="overflow-auto flex-1">
