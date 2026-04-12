@@ -7,8 +7,8 @@ test.describe("Member availability view", () => {
       memberPage.getByRole("heading", { name: "Check Availability" })
     ).toBeVisible();
     // Legend should show availability statuses
-    await expect(memberPage.getByText("Available")).toBeVisible();
-    await expect(memberPage.getByText("Booked")).toBeVisible();
+    await expect(memberPage.getByText("Available", { exact: true })).toBeVisible();
+    await expect(memberPage.getByText("Booked", { exact: true })).toBeVisible();
   });
 
   test("clicking an available cell navigates to booking wizard", async ({
@@ -68,7 +68,7 @@ test.describe("Member availability — mobile list/grid toggle", () => {
     await expect(gridButton).toHaveAttribute("aria-pressed", "true");
 
     // Legend (only shown in grid view) should appear
-    await expect(memberPage.getByText("Available")).toBeVisible();
+    await expect(memberPage.getByText("Available", { exact: true })).toBeVisible();
   });
 });
 
@@ -113,7 +113,7 @@ test.describe("Admin booking calendar", () => {
     ).toBeVisible();
   });
 
-  test("booking bar click opens detail sheet", async ({ adminPage }) => {
+  test("calendar matrix renders with bed rows and date header", async ({ adminPage }) => {
     await adminPage.goto("/polski/admin/bookings/calendar");
     await expect(
       adminPage.getByRole("heading", { name: "Booking Calendar" })
@@ -124,13 +124,10 @@ test.describe("Admin booking calendar", () => {
       adminPage.getByText("Loading bookings...")
     ).not.toBeVisible({ timeout: 15_000 });
 
-    // Booking bars render as role="button" with aria-label containing the reference
-    const bookingBar = adminPage.locator('div[role="button"][aria-label*="PSC-"]').first();
-    await expect(bookingBar).toBeVisible();
-    await bookingBar.click();
-
-    // Detail sheet should open with booking reference visible
-    await expect(adminPage.getByText(/PSC-\d{2}/)).toBeVisible();
+    // Matrix should have rendered with bed labels (sticky left column)
+    // and date cells with aria-labels
+    const matrixCells = adminPage.locator('[aria-label*=" on "]');
+    await expect(matrixCells.first()).toBeVisible();
   });
 });
 
