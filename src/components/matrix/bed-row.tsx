@@ -219,8 +219,9 @@ export function BedRow({
         );
         const cellStyle = { gridColumn: colIndex, gridRow };
         const handleClick = () => {
-          if (status === "available" || status === "held-by-you") {
-            onCellClick?.(bed.id, date, bed.label);
+          // Only trigger cell click for available cells
+          if (status === "available" && onCellClick) {
+            onCellClick(bed.id, date, bed.label);
           }
         };
         const cellAriaLabel = `${bed.label} on ${date} — ${status}`;
