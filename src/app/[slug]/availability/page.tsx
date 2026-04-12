@@ -41,7 +41,7 @@ export default async function MemberAvailabilityPage({
   ]);
 
   // Load open rounds only when a logged-in financial member is present
-  let openRounds: { id: string; name: string }[] = [];
+  const openRounds: { id: string; name: string }[] = [];
   if (session) {
     const [member] = await db
       .select({
