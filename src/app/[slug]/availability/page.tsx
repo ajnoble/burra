@@ -1,8 +1,9 @@
 import { getOrgBySlug } from "@/lib/org";
+import { getSessionMember } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { db } from "@/db/index";
-import { lodges, seasons } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { lodges, seasons, bookingRounds, members } from "@/db/schema";
+import { eq, and, gte, lte } from "drizzle-orm";
 import { AvailabilityMatrixClient } from "./availability-matrix-client";
 import { LodgeSelector } from "./lodge-selector";
 
@@ -18,6 +19,9 @@ export default async function MemberAvailabilityPage({
   const org = await getOrgBySlug(slug);
   if (!org) notFound();
 
+  // Load session if available — availability page is public, so no redirect on failure
+  const session = await getSessionMember(org.id);
+
   const [orgLodges, activeSeasons] = await Promise.all([
     db
       .select({ id: lodges.id, name: lodges.name, totalBeds: lodges.totalBeds })
@@ -26,6 +30,7 @@ export default async function MemberAvailabilityPage({
     db
       .select({
         id: seasons.id,
+        name: seasons.name,
         startDate: seasons.startDate,
         endDate: seasons.endDate,
       })
@@ -34,6 +39,44 @@ export default async function MemberAvailabilityPage({
         and(eq(seasons.organisationId, org.id), eq(seasons.isActive, true))
       ),
   ]);
+
+  // Load open rounds only when a logged-in financial member is present
+  let openRounds: { id: string; name: string }[] = [];
+  if (session) {
+    const [member] = await db
+      .select({
+        isFinancial: members.isFinancial,
+        membershipClassId: members.membershipClassId,
+      })
+      .from(members)
+      .where(eq(members.id, session.memberId));
+
+    if (member?.isFinancial) {
+      const now = new Date();
+      for (const season of activeSeasons) {
+        const rounds = await db
+          .select()
+          .from(bookingRounds)
+          .where(
+            and(
+              eq(bookingRounds.seasonId, season.id),
+              lte(bookingRounds.opensAt, now),
+              gte(bookingRounds.closesAt, now)
+            )
+          );
+
+        for (const round of rounds) {
+          const allowedClasses = round.allowedMembershipClassIds;
+          if (
+            allowedClasses.length === 0 ||
+            allowedClasses.includes(member.membershipClassId)
+          ) {
+            openRounds.push({ id: round.id, name: round.name });
+          }
+        }
+      }
+    }
+  }
 
   if (orgLodges.length === 0) {
     return (
@@ -79,6 +122,8 @@ export default async function MemberAvailabilityPage({
         slug={slug}
         seasonStartDate={activeSeason?.startDate ?? undefined}
         seasonEndDate={activeSeason?.endDate ?? undefined}
+        openRounds={openRounds}
+        memberId={session?.memberId}
       />
     </div>
   );

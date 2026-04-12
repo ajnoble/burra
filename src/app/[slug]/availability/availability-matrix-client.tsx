@@ -7,12 +7,19 @@ import { AvailabilityList } from "./availability-list";
 import { getMatrixData, type MatrixData } from "@/actions/bookings/matrix";
 import { Button } from "@/components/ui/button";
 
+type OpenRoundSummary = {
+  id: string;
+  name: string;
+};
+
 type Props = {
   lodgeId: string;
   lodgeName: string;
   slug: string;
   seasonStartDate?: string;
   seasonEndDate?: string;
+  openRounds?: OpenRoundSummary[];
+  memberId?: string;
 };
 
 export function AvailabilityMatrixClient({
@@ -21,6 +28,8 @@ export function AvailabilityMatrixClient({
   slug,
   seasonStartDate,
   seasonEndDate,
+  openRounds = [],
+  memberId,
 }: Props) {
   const router = useRouter();
   const breakpoint = useBreakpoint();
