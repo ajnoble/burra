@@ -1,10 +1,10 @@
 import { getOrgBySlug } from "@/lib/org";
 import { notFound } from "next/navigation";
 import { db } from "@/db/index";
-import { lodges } from "@/db/schema";
+import { lodges, seasons } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { getMonthAvailability } from "@/actions/availability/queries";
-import { MemberAvailabilityClient } from "./member-availability-client";
+import { AvailabilityMatrixClient } from "./availability-matrix-client";
+import { LodgeSelector } from "./lodge-selector";
 
 export default async function MemberAvailabilityPage({
   params,
@@ -18,10 +18,22 @@ export default async function MemberAvailabilityPage({
   const org = await getOrgBySlug(slug);
   if (!org) notFound();
 
-  const orgLodges = await db
-    .select({ id: lodges.id, name: lodges.name, totalBeds: lodges.totalBeds })
-    .from(lodges)
-    .where(and(eq(lodges.organisationId, org.id), eq(lodges.isActive, true)));
+  const [orgLodges, activeSeasons] = await Promise.all([
+    db
+      .select({ id: lodges.id, name: lodges.name, totalBeds: lodges.totalBeds })
+      .from(lodges)
+      .where(and(eq(lodges.organisationId, org.id), eq(lodges.isActive, true))),
+    db
+      .select({
+        id: seasons.id,
+        startDate: seasons.startDate,
+        endDate: seasons.endDate,
+      })
+      .from(seasons)
+      .where(
+        and(eq(seasons.organisationId, org.id), eq(seasons.isActive, true))
+      ),
+  ]);
 
   if (orgLodges.length === 0) {
     return (
@@ -37,35 +49,36 @@ export default async function MemberAvailabilityPage({
   const selectedLodgeId =
     typeof sp.lodge === "string" ? sp.lodge : orgLodges[0].id;
 
-  const now = new Date();
-  const year =
-    typeof sp.year === "string" ? parseInt(sp.year, 10) : now.getFullYear();
-  const month =
-    typeof sp.month === "string" ? parseInt(sp.month, 10) : now.getMonth() + 1;
+  const selectedLodge =
+    orgLodges.find((l) => l.id === selectedLodgeId) ?? orgLodges[0];
 
-  const availability = await getMonthAvailability(selectedLodgeId, year, month);
-
-  const availabilityData = availability.map((a) => ({
-    date: a.date,
-    totalBeds: a.totalBeds,
-    bookedBeds: a.bookedBeds,
-    hasOverride: false,
-  }));
+  // Use the first active season for boundary clamping (if any)
+  const activeSeason = activeSeasons[0];
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Check Availability</h1>
       <p className="text-muted-foreground mb-6">
         See when beds are available at our lodges.
       </p>
 
-      <MemberAvailabilityClient
-        lodges={orgLodges}
-        selectedLodgeId={selectedLodgeId}
-        availability={availabilityData}
-        year={year}
-        month={month}
+      {/* Lodge selector — only shown when multiple lodges exist */}
+      {orgLodges.length > 1 && (
+        <div className="mb-6 w-64">
+          <LodgeSelector
+            lodges={orgLodges}
+            selectedLodgeId={selectedLodge.id}
+            slug={slug}
+          />
+        </div>
+      )}
+
+      <AvailabilityMatrixClient
+        lodgeId={selectedLodge.id}
+        lodgeName={selectedLodge.name}
         slug={slug}
+        seasonStartDate={activeSeason?.startDate ?? undefined}
+        seasonEndDate={activeSeason?.endDate ?? undefined}
       />
     </div>
   );

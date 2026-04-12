@@ -7,6 +7,8 @@ import { eq } from "drizzle-orm";
 import { BookingFilters } from "./booking-filters";
 import { BookingTable } from "./booking-table";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { CalendarDays } from "lucide-react";
 
 export default async function AdminBookingsPage({
   params,
@@ -42,6 +44,13 @@ export default async function AdminBookingsPage({
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold">Bookings</h1>
         <Badge variant="outline">{result.total}</Badge>
+        <Link
+          href={`/${slug}/admin/bookings/calendar`}
+          className="ml-auto flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted transition-colors"
+        >
+          <CalendarDays className="h-4 w-4" />
+          Calendar View
+        </Link>
       </div>
 
       <BookingFilters

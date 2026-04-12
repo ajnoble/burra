@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useBooking, guestKey } from "../booking-context";
-import { getAvailableBeds, type RoomWithBeds } from "@/actions/bookings/beds";
 import { createBedHold, releaseBedHold } from "@/actions/bookings/holds";
+import { getMatrixData, type MatrixData } from "@/actions/bookings/matrix";
+import {
+  BookingMatrix,
+  useMatrixState,
+  useBreakpoint,
+} from "@/components/matrix";
 
 type Props = {
   organisationId: string;
@@ -34,30 +39,38 @@ function formatTimeRemaining(expiresAt: Date): string {
 
 export function SelectBeds({ organisationId, memberId, slug }: Props) {
   const booking = useBooking();
-  const [rooms, setRooms] = useState<RoomWithBeds[]>([]);
+  const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
   const [loading, setLoading] = useState(true);
   const [holdTimerDisplay, setHoldTimerDisplay] = useState<string | null>(null);
   const [holdExpired, setHoldExpired] = useState(false);
 
-  const loadBeds = useCallback(async () => {
+  const breakpoint = useBreakpoint();
+  const matrixState = useMatrixState({
+    initialDate: booking.checkInDate ?? undefined,
+    breakpoint,
+    // Clamp navigation to the booking window
+    seasonStartDate: booking.checkInDate ?? undefined,
+    seasonEndDate: booking.checkOutDate ?? undefined,
+  });
+
+  const loadData = useCallback(async () => {
     if (!booking.lodgeId || !booking.checkInDate || !booking.checkOutDate) return;
     setLoading(true);
     try {
-      const result = await getAvailableBeds(
+      const data = await getMatrixData(
         booking.lodgeId,
         booking.checkInDate,
-        booking.checkOutDate,
-        memberId
+        booking.checkOutDate
       );
-      setRooms(result);
+      setMatrixData(data);
     } finally {
       setLoading(false);
     }
-  }, [booking.lodgeId, booking.checkInDate, booking.checkOutDate, memberId]);
+  }, [booking.lodgeId, booking.checkInDate, booking.checkOutDate]);
 
   useEffect(() => {
-    loadBeds();
-  }, [loadBeds]);
+    loadData();
+  }, [loadData]);
 
   // Hold timer
   useEffect(() => {
@@ -92,43 +105,70 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
     (g) => !assignedGuestKeys.has(guestKey(g))
   );
 
-  // Color map uses guestKey
-  const guestColorMap = new Map<string, string>();
-  bedGuests.forEach((g, i) => {
-    guestColorMap.set(guestKey(g), GUEST_COLORS[i % GUEST_COLORS.length]);
-  });
+  // Color map: guestKey → CSS color class
+  const guestColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    bedGuests.forEach((g, i) => {
+      map.set(guestKey(g), GUEST_COLORS[i % GUEST_COLORS.length]);
+    });
+    return map;
+  }, [bedGuests]);
 
-  async function handleBedClick(
-    bedId: string,
-    bedLabel: string,
-    roomId: string,
-    roomName: string,
-    status: string
-  ) {
-    if (status === "booked" || status === "held") return;
+  // Wizard-specific data for BookingMatrix: beds held-by-you and their colors
+  const wizardHeldBedIds = useMemo(
+    () => new Set(booking.bedAssignments.map((a) => a.bedId)),
+    [booking.bedAssignments]
+  );
 
-    if (status === "held-by-you") {
-      // Deselect — find which guest has this bed and remove assignment
-      const assignment = booking.bedAssignments.find((a) => a.bedId === bedId);
-      if (assignment) {
-        booking.removeBedAssignment(assignment.guestKey);
-        await releaseBedHold(bedId, memberId);
-        await loadBeds();
+  const wizardBedColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const assignment of booking.bedAssignments) {
+      const color = guestColorMap.get(assignment.guestKey);
+      if (color) map.set(assignment.bedId, color);
+    }
+    return map;
+  }, [booking.bedAssignments, guestColorMap]);
+
+  // Find room/bed labels from matrix data for assignment metadata
+  function findBedMeta(bedId: string): { bedLabel: string; roomId: string; roomName: string } | null {
+    if (!matrixData) return null;
+    for (const room of matrixData.rooms) {
+      const bed = room.beds.find((b) => b.id === bedId);
+      if (bed) {
+        return { bedLabel: bed.label, roomId: room.id, roomName: room.name };
       }
+    }
+    return null;
+  }
+
+  async function handleCellClick(bedId: string, _date: string) {
+    // Determine if this bed is currently held-by-you
+    const existingAssignment = booking.bedAssignments.find(
+      (a) => a.bedId === bedId
+    );
+
+    if (existingAssignment) {
+      // Deselect — remove assignment and release hold
+      booking.removeBedAssignment(existingAssignment.guestKey);
+      await releaseBedHold(bedId, memberId);
+      await loadData();
       return;
     }
 
     // Assign to next unassigned bed guest
     if (!nextUnassignedGuest) return;
 
+    const meta = findBedMeta(bedId);
+    if (!meta) return;
+
     const nextGuestKey = guestKey(nextUnassignedGuest);
 
     booking.addBedAssignment({
       guestKey: nextGuestKey,
       bedId,
-      bedLabel,
-      roomId,
-      roomName,
+      bedLabel: meta.bedLabel,
+      roomId: meta.roomId,
+      roomName: meta.roomName,
     });
 
     // Create hold
@@ -147,10 +187,11 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
       if (result.success && result.expiresAt) {
         booking.setHoldExpiresAt(result.expiresAt);
         setHoldExpired(false);
+        await loadData();
       } else if (!result.success) {
         booking.removeBedAssignment(nextGuestKey);
         booking.setError(result.error ?? "Failed to hold bed");
-        await loadBeds();
+        await loadData();
       }
     }
   }
@@ -162,10 +203,11 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
       <div>
         <h2 className="text-lg font-semibold mb-2">Select Beds</h2>
         <p className="text-sm text-muted-foreground mb-2">
-          Click a bed to assign it to {nextUnassignedGuest
+          Click a bed to assign it to{" "}
+          {nextUnassignedGuest
             ? `${nextUnassignedGuest.firstName} ${nextUnassignedGuest.lastName}`
-            : "the next guest"}.
-          Click a selected bed to deselect it.
+            : "the next guest"}
+          . Click a selected bed to deselect it.
         </p>
       </div>
 
@@ -193,7 +235,7 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
               booking.setBedAssignments([]);
               booking.setHoldExpiresAt(null);
               setHoldExpired(false);
-              loadBeds();
+              loadData();
             }}
           >
             Refresh Availability
@@ -248,90 +290,23 @@ export function SelectBeds({ organisationId, memberId, slug }: Props) {
         })}
       </div>
 
-      {/* Room/bed grid */}
+      {/* Booking matrix */}
       {loading ? (
         <div className="h-48 flex items-center justify-center text-muted-foreground">
           Loading beds...
         </div>
-      ) : (
-        <div className="space-y-4">
-          {rooms.map((room) => (
-            <div key={room.id} className="rounded-lg border p-4">
-              <h3 className="font-medium mb-2">
-                {room.name}
-                {room.floor && (
-                  <span className="text-sm text-muted-foreground ml-2">
-                    Floor {room.floor}
-                  </span>
-                )}
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {room.beds.map((bed) => {
-                  const assignment = booking.bedAssignments.find(
-                    (a) => a.bedId === bed.id
-                  );
-                  const guestColor = assignment
-                    ? guestColorMap.get(assignment.guestKey) ?? ""
-                    : "";
-
-                  let bedClass = "";
-                  let label = bed.label;
-                  let disabled = false;
-
-                  switch (bed.status) {
-                    case "available":
-                      bedClass =
-                        "border-green-300 bg-green-50 dark:bg-green-950/20 hover:bg-green-100 dark:hover:bg-green-950/40 cursor-pointer";
-                      break;
-                    case "booked":
-                      bedClass =
-                        "border-red-300 bg-red-50 dark:bg-red-950/20 opacity-60 cursor-not-allowed";
-                      label += " (booked)";
-                      disabled = true;
-                      break;
-                    case "held":
-                      bedClass =
-                        "border-amber-300 bg-amber-50 dark:bg-amber-950/20 opacity-60 cursor-not-allowed";
-                      label += " (held)";
-                      disabled = true;
-                      break;
-                    case "held-by-you":
-                      bedClass = `border-primary ${guestColor} cursor-pointer ring-2 ring-primary`;
-                      break;
-                  }
-
-                  return (
-                    <button
-                      key={bed.id}
-                      type="button"
-                      disabled={disabled || (!nextUnassignedGuest && bed.status === "available")}
-                      onClick={() =>
-                        handleBedClick(
-                          bed.id,
-                          bed.label,
-                          room.id,
-                          room.name,
-                          assignment ? "held-by-you" : bed.status
-                        )
-                      }
-                      className={`rounded-md border px-3 py-2 text-sm transition-colors ${bedClass}`}
-                    >
-                      {bed.label}
-                      {assignment && (
-                        <div className="text-xs mt-0.5">
-                          {bedGuests.find(
-                            (g) => guestKey(g) === assignment.guestKey
-                          )?.firstName ?? ""}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+      ) : matrixData ? (
+        <div className="h-96">
+          <BookingMatrix
+            data={matrixData}
+            state={matrixState}
+            currentMemberId={memberId}
+            onCellClick={handleCellClick}
+            wizardHeldBedIds={wizardHeldBedIds}
+            wizardBedColorMap={wizardBedColorMap}
+          />
         </div>
-      )}
+      ) : null}
 
       {/* Error */}
       {booking.error && (
