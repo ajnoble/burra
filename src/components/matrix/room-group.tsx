@@ -20,7 +20,7 @@ type Props = {
   holds?: MatrixHold[];
   currentMemberId?: string;
   selectedBookingIds?: Set<string>;
-  onCellClick?: (bedId: string, date: string) => void;
+  onCellClick?: (bedId: string, date: string, bedLabel: string) => void;
   onBookingClick?: (bookingId: string, guestBedId: string) => void;
   abbreviateLabels?: boolean;
   /** Total number of grid columns (date columns + 1 for the label column) */

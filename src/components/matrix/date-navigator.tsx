@@ -1,20 +1,18 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DatePickerPopover } from "./date-picker-popover";
 import type { MatrixState } from "./use-matrix-state";
 
 type Props = {
   state: MatrixState;
+  seasonStartDate?: string;
+  seasonEndDate?: string;
 };
 
-export function DateNavigator({ state }: Props) {
-  const { startDate, endDate, navigateBackward, navigateForward, jumpToToday } =
-    state;
-
-  const startLabel = format(parseISO(startDate), "d MMM yyyy");
-  const endLabel = format(parseISO(endDate), "d MMM yyyy");
+export function DateNavigator({ state, seasonStartDate, seasonEndDate }: Props) {
+  const { startDate, endDate, navigateBackward, navigateForward, jumpToToday, jumpToDate } = state;
 
   return (
     <div className="flex items-center gap-2 px-3 py-2 border-b bg-background">
@@ -45,12 +43,13 @@ export function DateNavigator({ state }: Props) {
         Today
       </Button>
 
-      <div className="flex items-center gap-1.5 ml-2 text-sm text-muted-foreground">
-        <CalendarDays className="size-4 shrink-0" />
-        <span>
-          {startLabel} – {endLabel}
-        </span>
-      </div>
+      <DatePickerPopover
+        startDate={startDate}
+        endDate={endDate}
+        onDateSelect={jumpToDate}
+        seasonStartDate={seasonStartDate}
+        seasonEndDate={seasonEndDate}
+      />
     </div>
   );
 }

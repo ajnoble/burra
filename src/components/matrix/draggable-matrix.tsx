@@ -17,7 +17,7 @@ type Props = {
   data: MatrixData;
   state: MatrixState;
   currentMemberId?: string;
-  onCellClick?: (bedId: string, date: string) => void;
+  onCellClick?: (bedId: string, date: string, bedLabel: string) => void;
   onBookingClick?: (bookingId: string, guestBedId: string) => void;
   abbreviateLabels?: boolean;
   /**

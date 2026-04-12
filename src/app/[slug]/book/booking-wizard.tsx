@@ -1,6 +1,10 @@
 "use client";
 
 import { Suspense } from "react";
+import Link from "next/link";
+import { ArrowLeft, LayoutDashboard } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { BookingProvider, useBooking } from "./booking-context";
 import { StepIndicator } from "./step-indicator";
 import { SelectLodgeDates } from "./steps/select-lodge-dates";
@@ -46,6 +50,7 @@ type Props = {
   memberId: string;
   memberName: string;
   membershipClassId: string;
+  showNav?: boolean;
 };
 
 function WizardContent({
@@ -57,6 +62,7 @@ function WizardContent({
   memberId,
   memberName,
   membershipClassId,
+  showNav = true,
 }: Props) {
   const { step, bookingReference } = useBooking();
 
@@ -66,6 +72,24 @@ function WizardContent({
 
   return (
     <div>
+      {showNav && (
+        <nav className="flex items-center gap-3 mb-6 text-sm">
+          <Link
+            href={`/${slug}/availability`}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1")}
+          >
+            <ArrowLeft className="size-4" />
+            Back to Calendar
+          </Link>
+          <Link
+            href={`/${slug}`}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "gap-1")}
+          >
+            <LayoutDashboard className="size-4" />
+            Dashboard
+          </Link>
+        </nav>
+      )}
       <StepIndicator currentStep={step} />
 
       {step === 1 && (
