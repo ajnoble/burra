@@ -69,8 +69,18 @@ export function SelectLodgeDates({ lodges, seasons, openRounds, slug, memberId }
   const [checkIn, setCheckIn] = useState<string | null>(booking.checkInDate);
   const [checkOut, setCheckOut] = useState<string | null>(booking.checkOutDate);
   const [availability, setAvailability] = useState<AvailabilityDay[]>([]);
-  const [year, setYear] = useState(new Date().getFullYear());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [year, setYear] = useState(() => {
+    if (booking.checkInDate) {
+      return parseInt(booking.checkInDate.slice(0, 4), 10);
+    }
+    return new Date().getFullYear();
+  });
+  const [month, setMonth] = useState(() => {
+    if (booking.checkInDate) {
+      return parseInt(booking.checkInDate.slice(5, 7), 10);
+    }
+    return new Date().getMonth() + 1;
+  });
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
