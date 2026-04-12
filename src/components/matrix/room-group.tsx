@@ -25,6 +25,10 @@ type Props = {
   totalColumns: number;
   /** When true, cells become droppable and booking bars become draggable */
   draggable?: boolean;
+  /** Forwarded to BedRow → DraggableBookingBar for resize handle callbacks */
+  onResize?: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
+  /** Width of a single date column in pixels — forwarded for resize delta calculation */
+  cellWidth?: number;
 };
 
 export function RoomGroup({
@@ -43,6 +47,8 @@ export function RoomGroup({
   abbreviateLabels,
   totalColumns,
   draggable,
+  onResize,
+  cellWidth,
 }: Props) {
   // Count active bookings for the occupancy indicator
   const occupiedBedIds = new Set(
@@ -96,6 +102,8 @@ export function RoomGroup({
             onBookingClick={onBookingClick}
             abbreviateLabels={abbreviateLabels}
             draggable={draggable}
+            onResize={onResize}
+            cellWidth={cellWidth}
           />
         ))}
     </>

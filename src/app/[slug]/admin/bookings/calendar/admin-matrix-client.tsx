@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import {
   BookingMatrix,
@@ -11,6 +11,7 @@ import {
 import { BookingDetailSheet } from "./booking-detail-sheet";
 import { getMatrixData, type MatrixData, type MatrixBooking } from "@/actions/bookings/matrix";
 import { reassignBeds } from "@/actions/bookings/reassign-beds";
+import { modifyBookingDates } from "@/actions/bookings/modify-dates";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -89,6 +90,73 @@ export function AdminMatrixClient({
     }
   }
 
+  async function handleMoveDates(
+    bookingId: string,
+    newCheckIn: string,
+    newCheckOut: string
+  ) {
+    const result = await modifyBookingDates({
+      bookingId,
+      organisationId,
+      newCheckInDate: newCheckIn,
+      newCheckOutDate: newCheckOut,
+      slug,
+    });
+
+    if (result.success) {
+      if (result.newTotalAmountCents !== undefined) {
+        const formatted = `$${(result.newTotalAmountCents / 100).toFixed(2)}`;
+        toast.success(`Dates moved — new total: ${formatted}`);
+      } else {
+        toast.success("Booking dates updated");
+      }
+      await fetchData();
+    } else {
+      toast.error("Failed to move dates: " + (result.error ?? "Unknown error"));
+    }
+  }
+
+  async function handleResize(
+    bookingId: string,
+    newCheckIn: string,
+    newCheckOut: string
+  ) {
+    const result = await modifyBookingDates({
+      bookingId,
+      organisationId,
+      newCheckInDate: newCheckIn,
+      newCheckOutDate: newCheckOut,
+      slug,
+    });
+
+    if (result.success) {
+      if (result.newTotalAmountCents !== undefined) {
+        const formatted = `$${(result.newTotalAmountCents / 100).toFixed(2)}`;
+        toast.success(`Booking resized — new total: ${formatted}`);
+      } else {
+        toast.success("Booking dates updated");
+      }
+      await fetchData();
+    } else {
+      toast.error("Failed to resize booking: " + (result.error ?? "Unknown error"));
+    }
+  }
+
+  // Measure the matrix container to derive cell width for resize handles.
+  // Cell width ≈ (container width - label column width) / number of visible dates.
+  const matrixContainerRef = useRef<HTMLDivElement>(null);
+  const [cellWidth, setCellWidth] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (!matrixContainerRef.current || !state.visibleDates.length) return;
+    const containerWidth = matrixContainerRef.current.getBoundingClientRect().width;
+    // Label column is minmax(80px, 120px) — use 100px as a mid-estimate
+    const labelColumnWidth = 100;
+    const dateColumnCount = state.visibleDates.length;
+    const computed = (containerWidth - labelColumnWidth) / dateColumnCount;
+    setCellWidth(computed > 0 ? computed : undefined);
+  }, [state.visibleDates.length, data]);
+
   const isDesktop = breakpoint !== "mobile";
 
   return (
@@ -116,7 +184,7 @@ export function AdminMatrixClient({
       )}
 
       {data && !isLoading && (
-        <div className="h-[600px]">
+        <div className="h-[600px]" ref={matrixContainerRef}>
           {isDesktop ? (
             <DraggableMatrix
               data={data}
@@ -124,6 +192,9 @@ export function AdminMatrixClient({
               onBookingClick={handleBookingClick}
               abbreviateLabels={false}
               onMoveToBed={handleMoveToBed}
+              onMoveDates={handleMoveDates}
+              onResize={handleResize}
+              cellWidth={cellWidth}
             />
           ) : (
             <BookingMatrix

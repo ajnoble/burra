@@ -37,6 +37,13 @@ type Props = {
   onBookingClick?: (bookingId: string, guestBedId: string) => void;
   draggable?: boolean;
   abbreviateLabels?: boolean;
+  /**
+   * Called when a resize handle drag completes (admin only).
+   * Forwarded to DraggableBookingBar via RoomGroup → BedRow.
+   */
+  onResize?: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
+  /** Width of a single date column in pixels — forwarded for resize delta calculation */
+  cellWidth?: number;
 };
 
 // ---------------------------------------------------------------------------
@@ -83,6 +90,8 @@ export function BookingMatrix({
   onBookingClick,
   draggable,
   abbreviateLabels,
+  onResize,
+  cellWidth,
 }: Props) {
   const { visibleDates, startDate, endDate, collapsedRooms, selectedBookingIds, toggleRoom } =
     state;
@@ -147,6 +156,8 @@ export function BookingMatrix({
               abbreviateLabels={abbreviateLabels}
               totalColumns={totalColumns}
               draggable={draggable}
+              onResize={onResize}
+              cellWidth={cellWidth}
             />
           ))}
         </div>

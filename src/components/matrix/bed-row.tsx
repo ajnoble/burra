@@ -24,6 +24,10 @@ type Props = {
   abbreviateLabels?: boolean;
   /** When true, cells become droppable and booking bars become draggable */
   draggable?: boolean;
+  /** Forwarded to DraggableBookingBar for resize handle callbacks */
+  onResize?: (bookingId: string, newCheckIn: string, newCheckOut: string) => void;
+  /** Width of a single date column in pixels — forwarded for resize delta calculation */
+  cellWidth?: number;
 };
 
 function cellStatusClasses(status: CellStatus): string {
@@ -54,6 +58,8 @@ export function BedRow({
   onBookingClick,
   abbreviateLabels,
   draggable,
+  onResize,
+  cellWidth,
 }: Props) {
   // Build a quick lookup: date → status for this bed
   const dateStatusMap = new Map<string, CellStatus>();
@@ -136,6 +142,8 @@ export function BedRow({
               onClick={() =>
                 onBookingClick?.(bar.bookingId, bar.bookingGuestBedId)
               }
+              onResize={onResize}
+              cellWidth={cellWidth}
             />
           ) : (
             <BookingBar

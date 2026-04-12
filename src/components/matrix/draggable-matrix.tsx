@@ -7,6 +7,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import { addDays, differenceInCalendarDays, format } from "date-fns";
 import { BookingMatrix } from "./booking-matrix";
 import type { MatrixData } from "@/actions/bookings/matrix";
 import type { MatrixState } from "./use-matrix-state";
@@ -30,10 +31,40 @@ type Props = {
     bookingId: string,
     newBedId: string
   ) => void;
+  /**
+   * Called when a booking bar is dragged horizontally to new dates (same bed).
+   * @param bookingId - the booking's ID
+   * @param newCheckIn - new check-in date (YYYY-MM-DD)
+   * @param newCheckOut - new check-out date (YYYY-MM-DD)
+   */
+  onMoveDates?: (
+    bookingId: string,
+    newCheckIn: string,
+    newCheckOut: string
+  ) => void;
+  /**
+   * Called when a resize handle drag completes.
+   * @param bookingId - the booking's ID
+   * @param newCheckIn - new check-in date (YYYY-MM-DD)
+   * @param newCheckOut - new check-out date (YYYY-MM-DD)
+   */
+  onResize?: (
+    bookingId: string,
+    newCheckIn: string,
+    newCheckOut: string
+  ) => void;
+  /**
+   * Width of a single date column in pixels, forwarded to booking bars for
+   * resize-handle day delta calculation. When omitted bars use a built-in default.
+   */
+  cellWidth?: number;
 };
 
 /**
- * Wraps BookingMatrix in a DndContext enabling drag-and-drop bed reassignment.
+ * Wraps BookingMatrix in a DndContext enabling drag-and-drop interactions:
+ * - Vertical drag: reassign booking to a different bed (onMoveToBed)
+ * - Horizontal drag (same bed): shift booking dates (onMoveDates)
+ *
  * Uses PointerSensor with an 8px activation distance to avoid accidental drags.
  */
 export function DraggableMatrix({
@@ -44,6 +75,9 @@ export function DraggableMatrix({
   onBookingClick,
   abbreviateLabels,
   onMoveToBed,
+  onMoveDates,
+  onResize,
+  cellWidth,
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -61,8 +95,25 @@ export function DraggableMatrix({
 
     if (!bar || !target) return;
 
-    // Only act if the target bed differs from the current bed
-    if (target.bedId !== bar.bedId) {
+    if (target.bedId === bar.bedId) {
+      // Same bed — treat as a date-shift if the drop date differs from check-in
+      if (onMoveDates && target.date !== bar.checkIn) {
+        const offset = differenceInCalendarDays(
+          new Date(target.date),
+          new Date(bar.checkIn)
+        );
+        const newCheckIn = format(
+          addDays(new Date(bar.checkIn), offset),
+          "yyyy-MM-dd"
+        );
+        const newCheckOut = format(
+          addDays(new Date(bar.checkOut), offset),
+          "yyyy-MM-dd"
+        );
+        onMoveDates(bar.bookingId, newCheckIn, newCheckOut);
+      }
+    } else {
+      // Different bed — reassign
       onMoveToBed(bar.bookingGuestId, bar.bookingId, target.bedId);
     }
   }
@@ -77,6 +128,8 @@ export function DraggableMatrix({
         onBookingClick={onBookingClick}
         abbreviateLabels={abbreviateLabels}
         draggable
+        onResize={onResize}
+        cellWidth={cellWidth}
       />
     </DndContext>
   );
