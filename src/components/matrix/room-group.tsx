@@ -31,6 +31,11 @@ type Props = {
   cellWidth?: number;
   /** Called when admin drags across available cells to create a booking range */
   onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
+  /**
+   * Called when the admin Ctrl+clicks (or Cmd+clicks) a booking bar to toggle selection.
+   * @param bookingId - the booking's ID
+   */
+  onToggleSelect?: (bookingId: string) => void;
 };
 
 export function RoomGroup({
@@ -52,6 +57,7 @@ export function RoomGroup({
   onResize,
   cellWidth,
   onRangeSelect,
+  onToggleSelect,
 }: Props) {
   // Count active bookings for the occupancy indicator
   const occupiedBedIds = new Set(
@@ -108,6 +114,7 @@ export function RoomGroup({
             onResize={onResize}
             cellWidth={cellWidth}
             onRangeSelect={onRangeSelect}
+            onToggleSelect={onToggleSelect}
           />
         ))}
     </>

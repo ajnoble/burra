@@ -15,6 +15,11 @@ type Props = {
   isSelected?: boolean;
   onClick?: () => void;
   /**
+   * Called when the user Ctrl+clicks (or Cmd+clicks) the bar to toggle selection.
+   * @param bookingId - the booking's ID
+   */
+  onToggleSelect?: (bookingId: string) => void;
+  /**
    * Called when a resize handle drag completes.
    * @param bookingId - the booking's ID
    * @param newCheckIn - new check-in date (YYYY-MM-DD)
@@ -108,6 +113,7 @@ export function DraggableBookingBar({
   gridRow,
   isSelected,
   onClick,
+  onToggleSelect,
   onResize,
   cellWidth,
 }: Props) {
@@ -163,11 +169,20 @@ export function DraggableBookingBar({
 
   const effectiveCellWidth = cellWidth ?? DEFAULT_CELL_WIDTH_PX;
 
+  function handleClick(e: React.MouseEvent) {
+    if ((e.ctrlKey || e.metaKey) && onToggleSelect) {
+      e.preventDefault();
+      onToggleSelect(bar.bookingId);
+    } else {
+      onClick?.();
+    }
+  }
+
   return (
     <div
       ref={setNodeRef}
       aria-label={`${bar.guestName || "Guest"} — ${bar.bookingReference} (${bar.status})`}
-      onClick={onClick}
+      onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") onClick?.();
       }}
@@ -176,7 +191,7 @@ export function DraggableBookingBar({
       className={cn(
         "absolute inset-y-0.5 z-10 flex items-center px-1.5 text-xs font-medium rounded cursor-grab transition-opacity select-none min-h-[28px]",
         statusClasses(bar.status),
-        isSelected && "ring-2 ring-offset-1 ring-ring",
+        isSelected && "ring-2 ring-primary ring-offset-1",
         clippedStart && "rounded-l-none",
         clippedEnd && "rounded-r-none",
         isDragging && "opacity-50 cursor-grabbing"

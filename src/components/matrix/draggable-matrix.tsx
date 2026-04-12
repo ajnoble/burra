@@ -60,6 +60,11 @@ type Props = {
   cellWidth?: number;
   /** Called when admin drags across available cells to select a booking range */
   onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
+  /**
+   * Called when the admin Ctrl+clicks (or Cmd+clicks) a booking bar to toggle selection.
+   * @param bookingId - the booking's ID
+   */
+  onToggleSelect?: (bookingId: string) => void;
 };
 
 /**
@@ -81,6 +86,7 @@ export function DraggableMatrix({
   onResize,
   cellWidth,
   onRangeSelect,
+  onToggleSelect,
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -134,6 +140,7 @@ export function DraggableMatrix({
         onResize={onResize}
         cellWidth={cellWidth}
         onRangeSelect={onRangeSelect}
+        onToggleSelect={onToggleSelect}
       />
     </DndContext>
   );

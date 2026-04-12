@@ -35,6 +35,11 @@ type Props = {
    * startDate and endDate are both YYYY-MM-DD; endDate is already +1 day (half-open).
    */
   onRangeSelect?: (bedId: string, bedLabel: string, startDate: string, endDate: string) => void;
+  /**
+   * Called when the admin Ctrl+clicks (or Cmd+clicks) a booking bar to toggle selection.
+   * @param bookingId - the booking's ID
+   */
+  onToggleSelect?: (bookingId: string) => void;
 };
 
 function cellStatusClasses(status: CellStatus): string {
@@ -68,6 +73,7 @@ export function BedRow({
   onResize,
   cellWidth,
   onRangeSelect,
+  onToggleSelect,
 }: Props) {
   // Drag-to-select state: the date where the drag started (if any)
   const [dragStartDate, setDragStartDate] = useState<string | null>(null);
@@ -222,6 +228,7 @@ export function BedRow({
               onClick={() =>
                 onBookingClick?.(bar.bookingId, bar.bookingGuestBedId)
               }
+              onToggleSelect={onToggleSelect}
               onResize={onResize}
               cellWidth={cellWidth}
             />

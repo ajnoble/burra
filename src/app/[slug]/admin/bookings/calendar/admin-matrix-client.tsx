@@ -214,6 +214,7 @@ export function AdminMatrixClient({
               onResize={handleResize}
               cellWidth={cellWidth}
               onRangeSelect={handleRangeSelect}
+              onToggleSelect={state.toggleBookingSelection}
             />
           ) : (
             <BookingMatrix
