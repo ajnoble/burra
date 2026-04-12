@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BedRow } from "./bed-row";
-import type { MatrixRoom } from "@/actions/bookings/matrix";
+import type { MatrixRoom, MatrixHold } from "@/actions/bookings/matrix";
 import type { BedBookingBar } from "./booking-matrix";
 
 type Props = {
@@ -16,6 +16,8 @@ type Props = {
   isCollapsed: boolean;
   onToggle: () => void;
   bookingBars: BedBookingBar[];
+  /** Active bed holds — forwarded to BedRow for cell status computation */
+  holds?: MatrixHold[];
   currentMemberId?: string;
   selectedBookingIds?: Set<string>;
   onCellClick?: (bedId: string, date: string) => void;
@@ -36,6 +38,10 @@ type Props = {
    * @param bookingId - the booking's ID
    */
   onToggleSelect?: (bookingId: string) => void;
+  /** Wizard-specific: set of bedIds held-by-you in the booking context */
+  wizardHeldBedIds?: Set<string>;
+  /** Wizard-specific: per-bed CSS color class for guest assignment overlay */
+  wizardBedColorMap?: Map<string, string>;
 };
 
 export function RoomGroup({
@@ -47,6 +53,7 @@ export function RoomGroup({
   isCollapsed,
   onToggle,
   bookingBars,
+  holds,
   currentMemberId,
   selectedBookingIds,
   onCellClick,
@@ -58,6 +65,8 @@ export function RoomGroup({
   cellWidth,
   onRangeSelect,
   onToggleSelect,
+  wizardHeldBedIds,
+  wizardBedColorMap,
 }: Props) {
   // Count active bookings for the occupancy indicator
   const occupiedBedIds = new Set(
@@ -105,6 +114,7 @@ export function RoomGroup({
             gridEndDate={gridEndDate}
             gridRow={startGridRow + 1 + idx}
             bookingBars={bookingBars}
+            holds={holds}
             currentMemberId={currentMemberId}
             selectedBookingIds={selectedBookingIds}
             onCellClick={onCellClick}
@@ -115,6 +125,8 @@ export function RoomGroup({
             cellWidth={cellWidth}
             onRangeSelect={onRangeSelect}
             onToggleSelect={onToggleSelect}
+            wizardHeldBedIds={wizardHeldBedIds}
+            wizardBedColorMap={wizardBedColorMap}
           />
         ))}
     </>

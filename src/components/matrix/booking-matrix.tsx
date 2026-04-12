@@ -51,6 +51,10 @@ type Props = {
    * @param bookingId - the booking's ID
    */
   onToggleSelect?: (bookingId: string) => void;
+  /** Wizard-specific: set of bedIds held-by-you in the booking context */
+  wizardHeldBedIds?: Set<string>;
+  /** Wizard-specific: per-bed CSS color class for guest assignment overlay */
+  wizardBedColorMap?: Map<string, string>;
 };
 
 // ---------------------------------------------------------------------------
@@ -101,6 +105,8 @@ export function BookingMatrix({
   cellWidth,
   onRangeSelect,
   onToggleSelect,
+  wizardHeldBedIds,
+  wizardBedColorMap,
 }: Props) {
   const { visibleDates, startDate, endDate, collapsedRooms, selectedBookingIds, toggleRoom } =
     state;
@@ -158,6 +164,7 @@ export function BookingMatrix({
               bookingBars={bedBars.filter((b) =>
                 room.beds.some((bed) => bed.id === b.bedId)
               )}
+              holds={data.holds}
               currentMemberId={currentMemberId}
               selectedBookingIds={selectedBookingIds}
               onCellClick={onCellClick}
@@ -169,6 +176,8 @@ export function BookingMatrix({
               cellWidth={cellWidth}
               onRangeSelect={onRangeSelect}
               onToggleSelect={onToggleSelect}
+              wizardHeldBedIds={wizardHeldBedIds}
+              wizardBedColorMap={wizardBedColorMap}
             />
           ))}
         </div>

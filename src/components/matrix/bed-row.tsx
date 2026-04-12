@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { BookingBar } from "./booking-bar";
 import { DraggableBookingBar } from "./draggable-booking-bar";
 import { DroppableCell } from "./droppable-cell";
-import type { MatrixBed } from "@/actions/bookings/matrix";
+import type { MatrixBed, MatrixHold } from "@/actions/bookings/matrix";
 import type { BedBookingBar } from "./booking-matrix";
 
 type CellStatus = "available" | "booked" | "held" | "held-by-you" | "closed";
@@ -19,6 +19,8 @@ type Props = {
   /** CSS grid row index for this bed row */
   gridRow: number;
   bookingBars: BedBookingBar[];
+  /** Active bed holds — used to compute held / held-by-you cell status */
+  holds?: MatrixHold[];
   currentMemberId?: string;
   selectedBookingIds?: Set<string>;
   onCellClick?: (bedId: string, date: string) => void;
@@ -40,6 +42,13 @@ type Props = {
    * @param bookingId - the booking's ID
    */
   onToggleSelect?: (bookingId: string) => void;
+  /**
+   * Wizard-specific: set of bedIds currently held-by-you (from booking context).
+   * When provided, these cells render as "held-by-you" even before a DB refetch.
+   */
+  wizardHeldBedIds?: Set<string>;
+  /** Wizard-specific: per-bed CSS color class for guest assignment overlay */
+  wizardBedColorMap?: Map<string, string>;
 };
 
 function cellStatusClasses(status: CellStatus): string {
@@ -64,6 +73,7 @@ export function BedRow({
   gridEndDate,
   gridRow,
   bookingBars,
+  holds,
   currentMemberId,
   selectedBookingIds,
   onCellClick,
@@ -74,6 +84,8 @@ export function BedRow({
   cellWidth,
   onRangeSelect,
   onToggleSelect,
+  wizardHeldBedIds,
+  wizardBedColorMap,
 }: Props) {
   // Drag-to-select state: the date where the drag started (if any)
   const [dragStartDate, setDragStartDate] = useState<string | null>(null);
@@ -89,6 +101,35 @@ export function BedRow({
       // Booking occupies [checkIn, checkOut) half-open interval
       if (date >= bar.checkIn && date < bar.checkOut) {
         dateStatusMap.set(date, "booked");
+      }
+    }
+  }
+
+  // Layer holds on top (held / held-by-you), but don't overwrite "booked"
+  if (holds) {
+    for (const hold of holds) {
+      if (hold.bedId !== bed.id) continue;
+      const holdStatus: CellStatus =
+        currentMemberId && hold.memberId === currentMemberId
+          ? "held-by-you"
+          : "held";
+      for (const date of visibleDates) {
+        if (date >= hold.checkInDate && date < hold.checkOutDate) {
+          const existing = dateStatusMap.get(date);
+          if (!existing || existing === "available") {
+            dateStatusMap.set(date, holdStatus);
+          }
+        }
+      }
+    }
+  }
+
+  // Wizard override: locally-tracked held-by-you beds (optimistic, before refetch)
+  if (wizardHeldBedIds?.has(bed.id)) {
+    for (const date of visibleDates) {
+      const existing = dateStatusMap.get(date);
+      if (!existing || existing === "available" || existing === "held") {
+        dateStatusMap.set(date, "held-by-you");
       }
     }
   }
@@ -164,15 +205,21 @@ export function BedRow({
         const status = dateStatusMap.get(date) ?? "available";
         const colIndex = i + 2;
         const inSelection = isInSelection(date);
+        // Wizard guest-color overlay: when this bed is held-by-you, apply the
+        // guest's color class instead of the default held-by-you color.
+        const wizardColor =
+          status === "held-by-you" && wizardBedColorMap
+            ? wizardBedColorMap.get(bed.id)
+            : undefined;
         const cellClassName = cn(
           "border-b border-r min-h-[36px] min-w-[40px] relative",
           inSelection
             ? "bg-blue-200 dark:bg-blue-800/40"
-            : cellStatusClasses(status)
+            : wizardColor ?? cellStatusClasses(status)
         );
         const cellStyle = { gridColumn: colIndex, gridRow };
         const handleClick = () => {
-          if (status === "available") {
+          if (status === "available" || status === "held-by-you") {
             onCellClick?.(bed.id, date);
           }
         };
