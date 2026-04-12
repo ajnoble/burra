@@ -23,6 +23,8 @@ type Props = {
   abbreviateLabels?: boolean;
   /** Total number of grid columns (date columns + 1 for the label column) */
   totalColumns: number;
+  /** When true, cells become droppable and booking bars become draggable */
+  draggable?: boolean;
 };
 
 export function RoomGroup({
@@ -40,6 +42,7 @@ export function RoomGroup({
   onBookingClick,
   abbreviateLabels,
   totalColumns,
+  draggable,
 }: Props) {
   // Count active bookings for the occupancy indicator
   const occupiedBedIds = new Set(
@@ -92,6 +95,7 @@ export function RoomGroup({
             onCellClick={onCellClick}
             onBookingClick={onBookingClick}
             abbreviateLabels={abbreviateLabels}
+            draggable={draggable}
           />
         ))}
     </>

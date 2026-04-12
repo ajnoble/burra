@@ -87,6 +87,7 @@ export default async function AdminBookingCalendarPage({
       <AdminMatrixClient
         lodgeId={selectedLodge.id}
         lodgeName={selectedLodge.name}
+        organisationId={org.id}
         slug={slug}
         seasonStartDate={activeSeason?.startDate ?? undefined}
         seasonEndDate={activeSeason?.endDate ?? undefined}

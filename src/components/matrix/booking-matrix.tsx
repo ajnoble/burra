@@ -12,8 +12,10 @@ import type { MatrixState } from "./use-matrix-state";
 // ---------------------------------------------------------------------------
 
 export type BedBookingBar = {
-  /** Composite key: bookingId + guestIndex + bedId */
+  /** bookingGuest.id — unique per guest-bed assignment */
   bookingGuestBedId: string;
+  /** The bookingGuests.id — used for reassignment */
+  bookingGuestId: string;
   bookingId: string;
   guestName: string;
   bedId: string;
@@ -45,8 +47,7 @@ function flattenBookings(data: MatrixData): BedBookingBar[] {
   const bars: BedBookingBar[] = [];
 
   for (const booking of data.bookings) {
-    for (let gi = 0; gi < booking.guests.length; gi++) {
-      const guest = booking.guests[gi];
+    for (const guest of booking.guests) {
       if (!guest.bedId) continue;
 
       const guestName = [guest.firstName, guest.lastName]
@@ -54,7 +55,8 @@ function flattenBookings(data: MatrixData): BedBookingBar[] {
         .join(" ");
 
       bars.push({
-        bookingGuestBedId: `${booking.id}__g${gi}__${guest.bedId}`,
+        bookingGuestBedId: guest.id,
+        bookingGuestId: guest.id,
         bookingId: booking.id,
         guestName,
         bedId: guest.bedId,
@@ -79,7 +81,7 @@ export function BookingMatrix({
   currentMemberId,
   onCellClick,
   onBookingClick,
-  draggable: _draggable,
+  draggable,
   abbreviateLabels,
 }: Props) {
   const { visibleDates, startDate, endDate, collapsedRooms, selectedBookingIds, toggleRoom } =
@@ -144,6 +146,7 @@ export function BookingMatrix({
               onBookingClick={onBookingClick}
               abbreviateLabels={abbreviateLabels}
               totalColumns={totalColumns}
+              draggable={draggable}
             />
           ))}
         </div>

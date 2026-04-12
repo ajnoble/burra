@@ -2,6 +2,8 @@
 
 import { cn } from "@/lib/utils";
 import { BookingBar } from "./booking-bar";
+import { DraggableBookingBar } from "./draggable-booking-bar";
+import { DroppableCell } from "./droppable-cell";
 import type { MatrixBed } from "@/actions/bookings/matrix";
 import type { BedBookingBar } from "./booking-matrix";
 
@@ -20,6 +22,8 @@ type Props = {
   onCellClick?: (bedId: string, date: string) => void;
   onBookingClick?: (bookingId: string, guestBedId: string) => void;
   abbreviateLabels?: boolean;
+  /** When true, cells become droppable and booking bars become draggable */
+  draggable?: boolean;
 };
 
 function cellStatusClasses(status: CellStatus): string {
@@ -49,6 +53,7 @@ export function BedRow({
   onCellClick,
   onBookingClick,
   abbreviateLabels,
+  draggable,
 }: Props) {
   // Build a quick lookup: date → status for this bed
   const dateStatusMap = new Map<string, CellStatus>();
@@ -79,21 +84,39 @@ export function BedRow({
       {visibleDates.map((date, i) => {
         const status = dateStatusMap.get(date) ?? "available";
         const colIndex = i + 2;
+        const cellClassName = cn(
+          "border-b border-r min-h-[36px] min-w-[40px] relative",
+          cellStatusClasses(status)
+        );
+        const cellStyle = { gridColumn: colIndex, gridRow };
+        const handleClick = () => {
+          if (status === "available") {
+            onCellClick?.(bed.id, date);
+          }
+        };
+        const cellAriaLabel = `${bed.label} on ${date} — ${status}`;
+
+        if (draggable) {
+          return (
+            <DroppableCell
+              key={date}
+              bedId={bed.id}
+              date={date}
+              className={cellClassName}
+              style={cellStyle}
+              onClick={handleClick}
+              aria-label={cellAriaLabel}
+            />
+          );
+        }
 
         return (
           <div
             key={date}
-            className={cn(
-              "border-b border-r min-h-[36px] min-w-[40px] relative",
-              cellStatusClasses(status)
-            )}
-            style={{ gridColumn: colIndex, gridRow }}
-            onClick={() => {
-              if (status === "available") {
-                onCellClick?.(bed.id, date);
-              }
-            }}
-            aria-label={`${bed.label} on ${date} — ${status}`}
+            className={cellClassName}
+            style={cellStyle}
+            onClick={handleClick}
+            aria-label={cellAriaLabel}
           />
         );
       })}
@@ -101,24 +124,38 @@ export function BedRow({
       {/* Booking bars positioned absolutely within the grid row */}
       {bookingBars
         .filter((bar) => bar.bedId === bed.id)
-        .map((bar) => (
-          <BookingBar
-            key={bar.bookingGuestBedId}
-            bookingId={bar.bookingId}
-            guestName={bar.guestName || null}
-            checkIn={bar.checkIn}
-            checkOut={bar.checkOut}
-            status={bar.status}
-            bookingReference={bar.bookingReference}
-            gridStartDate={gridStartDate}
-            gridEndDate={gridEndDate}
-            gridRow={gridRow}
-            isSelected={selectedBookingIds?.has(bar.bookingId)}
-            onClick={() =>
-              onBookingClick?.(bar.bookingId, bar.bookingGuestBedId)
-            }
-          />
-        ))}
+        .map((bar) =>
+          draggable ? (
+            <DraggableBookingBar
+              key={bar.bookingGuestBedId}
+              bar={bar}
+              gridStartDate={gridStartDate}
+              gridEndDate={gridEndDate}
+              gridRow={gridRow}
+              isSelected={selectedBookingIds?.has(bar.bookingId)}
+              onClick={() =>
+                onBookingClick?.(bar.bookingId, bar.bookingGuestBedId)
+              }
+            />
+          ) : (
+            <BookingBar
+              key={bar.bookingGuestBedId}
+              bookingId={bar.bookingId}
+              guestName={bar.guestName || null}
+              checkIn={bar.checkIn}
+              checkOut={bar.checkOut}
+              status={bar.status}
+              bookingReference={bar.bookingReference}
+              gridStartDate={gridStartDate}
+              gridEndDate={gridEndDate}
+              gridRow={gridRow}
+              isSelected={selectedBookingIds?.has(bar.bookingId)}
+              onClick={() =>
+                onBookingClick?.(bar.bookingId, bar.bookingGuestBedId)
+              }
+            />
+          )
+        )}
     </>
   );
 }

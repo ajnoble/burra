@@ -32,6 +32,7 @@ export type MatrixRoom = {
 };
 
 export type MatrixGuest = {
+  id: string;
   memberId: string | null;
   firstName: string | null;
   lastName: string | null;
@@ -143,6 +144,7 @@ export async function getMatrixData(
   for (const booking of overlappingBookings) {
     const guestRows = await db
       .select({
+        id: bookingGuests.id,
         memberId: bookingGuests.memberId,
         bedId: bookingGuests.bedId,
         firstName: members.firstName,
@@ -155,6 +157,7 @@ export async function getMatrixData(
     matrixBookings.push({
       ...booking,
       guests: guestRows.map((g) => ({
+        id: g.id,
         memberId: g.memberId,
         firstName: g.firstName,
         lastName: g.lastName,

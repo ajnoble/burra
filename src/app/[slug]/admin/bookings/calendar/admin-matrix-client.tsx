@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { BookingMatrix, useMatrixState, useBreakpoint } from "@/components/matrix";
+import { toast } from "sonner";
+import {
+  BookingMatrix,
+  DraggableMatrix,
+  useMatrixState,
+  useBreakpoint,
+} from "@/components/matrix";
 import { BookingDetailSheet } from "./booking-detail-sheet";
 import { getMatrixData, type MatrixData, type MatrixBooking } from "@/actions/bookings/matrix";
+import { reassignBeds } from "@/actions/bookings/reassign-beds";
 import { Button } from "@/components/ui/button";
 
 type Props = {
   lodgeId: string;
   lodgeName: string;
+  organisationId: string;
   slug: string;
   seasonStartDate?: string;
   seasonEndDate?: string;
@@ -17,6 +25,7 @@ type Props = {
 export function AdminMatrixClient({
   lodgeId,
   lodgeName,
+  organisationId,
   slug,
   seasonStartDate,
   seasonEndDate,
@@ -60,6 +69,28 @@ export function AdminMatrixClient({
     setSheetOpen(true);
   }
 
+  async function handleMoveToBed(
+    bookingGuestId: string,
+    bookingId: string,
+    newBedId: string
+  ) {
+    const result = await reassignBeds({
+      bookingId,
+      organisationId,
+      assignments: [{ bookingGuestId, bedId: newBedId }],
+      slug,
+    });
+
+    if (result.success) {
+      toast.success("Bed reassigned successfully");
+      await fetchData();
+    } else {
+      toast.error("Failed to reassign bed: " + (result.error ?? "Unknown error"));
+    }
+  }
+
+  const isDesktop = breakpoint !== "mobile";
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold">{lodgeName}</h2>
@@ -86,13 +117,22 @@ export function AdminMatrixClient({
 
       {data && !isLoading && (
         <div className="h-[600px]">
-          <BookingMatrix
-            data={data}
-            state={state}
-            onBookingClick={handleBookingClick}
-            draggable={breakpoint !== "mobile"}
-            abbreviateLabels={breakpoint === "mobile"}
-          />
+          {isDesktop ? (
+            <DraggableMatrix
+              data={data}
+              state={state}
+              onBookingClick={handleBookingClick}
+              abbreviateLabels={false}
+              onMoveToBed={handleMoveToBed}
+            />
+          ) : (
+            <BookingMatrix
+              data={data}
+              state={state}
+              onBookingClick={handleBookingClick}
+              abbreviateLabels
+            />
+          )}
         </div>
       )}
 
