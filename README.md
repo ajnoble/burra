@@ -63,9 +63,11 @@ src/
     [slug]/                     # Per-club routes
       admin/                    # Admin pages (role-protected)
         availability/           # Availability calendar and overrides
+        bookings/calendar/      # Admin booking matrix with drag-and-drop
         lodges/                 # Lodge, room, bed management
         members/import/         # CSV member import flow
         settings/               # Org settings, membership classes
+      availability/             # Member availability view (matrix + list)
       dashboard/                # Member dashboard
       login/                    # Auth
   actions/                      # Server actions (mutations)
@@ -76,7 +78,9 @@ src/
     membership-classes/
     members/
     organisations/
-  components/ui/                # shadcn/ui components
+  components/
+    matrix/                     # Booking matrix (CSS Grid, drag-and-drop, responsive)
+    ui/                         # shadcn/ui components
   db/
     schema/                     # Drizzle schema (15 files, 27 tables)
     seed.ts                     # Demo data (Alpine Demo Club)
@@ -89,6 +93,7 @@ src/
     import/                     # CSV parsing and validation
     supabase/                   # Supabase client helpers
     auth.ts                     # Session and role helpers
+    matrix-utils.ts             # Grid date range, column mapping, overlap detection
     currency.ts                 # Money formatting (cents -> AUD)
     dates.ts                    # UTC/timezone conversion
     org.ts                      # Organisation resolver
@@ -125,20 +130,21 @@ drizzle/                        # Generated SQL migrations
 | 20 | Custom Member Fields | Admin-defined fields (text/number/date/dropdown/checkbox), member profile values, CSV import/export |
 | 21 | Visual Identity | Alpine-warmth color palette, Fraunces + Inter typography, polished shadcn components, per-org accent color + logo, dark mode at parity |
 | 22 | Member Self-Service Booking Editing | Members modify own bookings (date/guest changes), configurable edit window, price recalculation, audit trail, email notifications |
+| 23 | Booking Matrix Calendar | CSS Grid occupancy matrix (beds × dates), responsive breakpoints (7/14/30 days), admin drag-and-drop (move beds, shift dates, resize, drag-to-create), member availability with mobile list/grid toggle, wizard step 3 integration |
 
 ### Planned (Build Order)
 
 | Phase | Feature | Description |
 |-------|---------|-------------|
-| 23 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
-| 24 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
-| 25 | Custom Pages / CMS | Admin-editable content pages, rich text editor, role-based access, navigation integration |
-| 26 | Data Purging & Privacy | Configurable retention periods, auto-purge cron, manual right to erasure, Australian Privacy Act compliance |
-| 27 | Xero Integration | OAuth2 connect, auto-sync invoices/payments, bank feed reconciliation, chart of accounts mapping |
-| 28 | Kiosk Display | Read-only room allocation for lodge tablets/screens, auto-refresh, no-auth kiosk URL |
-| 29 | Booking Queue | Queue system for high-demand openings, fair ordering, progress indicator, auto-timeout |
-| 30 | Post-Booking Promotions | Promotional offers after booking, optional add-on purchases, Stripe payment |
-| 31 | Additional Payment Gateways | PayPal, eWay integration, gateway selection per org |
+| 24 | Two-Factor Authentication | TOTP-based 2FA, required for admin/committee, QR setup, backup codes, trusted devices |
+| 25 | Hardening & Mobile Polish | Dedicated test environment, E2E expansion, performance audit, security review, responsive polish |
+| 26 | Custom Pages / CMS | Admin-editable content pages, rich text editor, role-based access, navigation integration |
+| 27 | Data Purging & Privacy | Configurable retention periods, auto-purge cron, manual right to erasure, Australian Privacy Act compliance |
+| 28 | Xero Integration | OAuth2 connect, auto-sync invoices/payments, bank feed reconciliation, chart of accounts mapping |
+| 29 | Kiosk Display | Read-only room allocation for lodge tablets/screens, auto-refresh, no-auth kiosk URL |
+| 30 | Booking Queue | Queue system for high-demand openings, fair ordering, progress indicator, auto-timeout |
+| 31 | Post-Booking Promotions | Promotional offers after booking, optional add-on purchases, Stripe payment |
+| 32 | Additional Payment Gateways | PayPal, eWay integration, gateway selection per org |
 
 ## Getting Started
 
@@ -272,6 +278,9 @@ E2E tests cover 7 critical flows: login, booking, admin members, dashboard, admi
 - **Custom field CRUD** — create, update, toggle, get actions
 - **Custom field values** — save (upsert), fetch with field definitions
 - **CSV import with custom fields** — column matching, backwards compatibility, value preservation
+- **Matrix utilities** — date range generation, column index calculation, grid column positioning with clipping, date overlap detection, responsive day counts
+- **Matrix data** — rooms/beds grouping, booking overlap, cancelled exclusion, date range boundaries, overrides, active/expired holds
+- **Booking matrix E2E** — member availability (desktop grid, mobile list/grid toggle), admin calendar (nav links, matrix rendering, mobile view)
 
 ### Development Workflow
 
